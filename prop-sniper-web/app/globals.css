@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f7f8;
+  --foreground: #111111;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #6b7280;
+  --info: #2563eb;
+  --radius: 16px;
+  --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  background: white;
+  color: var(--foreground);
+}
+
+::selection {
+  background: #9b0707;
+  color: white;
+}
+
+/* Smooth feel */
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+/* Better form look */
+input,
+textarea,
+select {
+  border: 1px solid var(--border);
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #111111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+}
+
+/* Better button feel */
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #efefef;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mapbox popup polish */
+.mapboxgl-popup-content {
+  border-radius: 14px !important;
+  padding: 12px 14px !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.mapboxgl-popup-close-button {
+  font-size: 18px !important;
+  color: #444 !important;
+  padding: 4px 8px !important;
+}
+
+.mapboxgl-ctrl-group {
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+/* Nice card utility feel */
+.card-polish {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Optional status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-new {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.status-contacted {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.status-negotiating {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.status-under-contract {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+
+.status-dead {
+  background: rgba(107, 114, 128, 0.14);
+  color: #4b5563;
+}

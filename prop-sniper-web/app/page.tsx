@@ -4,19 +4,35 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-24">
       <div className="max-w-3xl">
-        <h1 className="text-5xl font-bold tracking-tight">
+        <h1 className="text-5xl font-bold tracking-tight text-black">
           Find, track, and manage off-market leads faster
         </h1>
+
         <p className="mt-5 text-lg text-gray-600">
           PropSniper is a simple map-based wholesaling CRM built for finding leads,
           tracking follow-ups, and staying organized.
         </p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/signup" className="rounded-xl bg-black px-5 py-3 text-white">
-            Get started
+        <div className="mt-8 flex flex-wrap gap-4">
+        <Link
+  href="/signup"
+  className="inline-flex min-w-[180px] items-center justify-center rounded-xl bg-black px-6 py-3 text-base font-semibold shadow-md transition hover:bg-gray-900"
+  style={{ color: '#fff', WebkitTextFillColor: '#fff' }}
+>
+  Get Started
+</Link>
+
+          <Link
+            href="/dashboard"
+            className="inline-flex min-w-[180px] items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-black transition hover:bg-gray-100"
+          >
+            View Demo
           </Link>
-          <Link href="/login" className="rounded-xl border px-5 py-3">
+
+          <Link
+            href="/login"
+            className="inline-flex min-w-[140px] items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-black transition hover:bg-gray-100"
+          >
             Log in
           </Link>
         </div>
@@ -24,21 +40,23 @@ export default function HomePage() {
 
       <div className="mt-16 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border bg-white p-6">
-          <h2 className="font-semibold">Map lead capture</h2>
+          <h2 className="font-semibold text-black">Map lead capture</h2>
           <p className="mt-2 text-sm text-gray-600">
             Search addresses or click the map and save leads fast.
           </p>
         </div>
+
         <div className="rounded-2xl border bg-white p-6">
-          <h2 className="font-semibold">Daily follow-ups</h2>
+          <h2 className="font-semibold text-black">Daily follow-ups</h2>
           <p className="mt-2 text-sm text-gray-600">
             See what needs action today without digging through notes.
           </p>
         </div>
+
         <div className="rounded-2xl border bg-white p-6">
-          <h2 className="font-semibold">Simple pipeline</h2>
+          <h2 className="font-semibold text-black">Simple pipeline</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Track New, Contacted, Negotiating, and Under Contract in one place.
+            Track new, contacted, negotiating, and under-contract leads in one place.
           </p>
         </div>
       </div>

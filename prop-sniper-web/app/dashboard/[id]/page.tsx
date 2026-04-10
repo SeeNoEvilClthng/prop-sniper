@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import AppShell from '@/components/AppShell'
 import { getBuyerMatch } from '@/lib/buyer-matching'
-
+import SendToBuyersButton from '@/components/SendToBuyersButton'
 type Props = {
   params: Promise<{ id: string }>
 }
@@ -82,7 +82,8 @@ export default async function LeadDetailsPage({ params }: Props) {
         >
           Edit Lead
         </Link>
-
+        <SendToBuyersButton leadId={lead.id} />
+  <SendToBuyersButton leadId={lead.id} />
         <Link href="/dashboard" className="rounded-xl border px-4 py-2">
           Back
         </Link>

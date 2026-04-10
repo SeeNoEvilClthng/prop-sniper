@@ -4,7 +4,6 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-24">
       <div className="max-w-3xl">
-      git add .
 <h1 className="text-5xl font-bold tracking-tight text-black">
   Find off-market deals before anyone else
 </h1>
@@ -13,6 +12,12 @@ export default function HomePage() {
   Search cities, identify motivated sellers, and track deals in one place.
   Built for wholesalers who want more deals, faster.
 </p>
+<div className="mt-12 rounded-2xl border bg-gray-100 p-6 text-center">
+  <p className="text-sm text-gray-600">Live Deal Map Preview</p>
+  <div className="mt-4 h-[300px] rounded-xl bg-black text-white flex items-center justify-center">
+    Map Preview Coming Soon
+  </div>
+</div>
 
         <div className="mt-8 flex flex-wrap gap-4">
         <Link

@@ -2,8 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import AppShell from '@/components/AppShell'
-import { getBuyerMatch } from '@/lib/buyer-matching'
 import SendToBuyersButton from '@/components/SendToBuyersButton'
+import RunDealAnalyzerButton from '@/components/RunDealAnalyzerButton'
+import { getBuyerMatch } from '@/lib/buyer-matching'
+import PropertyPhotos from '@/components/PropertyPhotos'
+
 type Props = {
   params: Promise<{ id: string }>
 }
@@ -72,7 +75,7 @@ export default async function LeadDetailsPage({ params }: Props) {
   return (
     <AppShell
       title="Lead Details"
-      subtitle="Review property intelligence, motivation, and best buyer matches."
+      subtitle="Review property intelligence, motivation, buyer matches, and deal numbers."
     >
       <div className="flex flex-wrap gap-3">
         <Link
@@ -82,8 +85,11 @@ export default async function LeadDetailsPage({ params }: Props) {
         >
           Edit Lead
         </Link>
+
         <SendToBuyersButton leadId={lead.id} />
-  <SendToBuyersButton leadId={lead.id} />
+
+        <RunDealAnalyzerButton leadId={lead.id} />
+
         <Link href="/dashboard" className="rounded-xl border px-4 py-2">
           Back
         </Link>
@@ -97,14 +103,49 @@ export default async function LeadDetailsPage({ params }: Props) {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div><p className="text-sm text-gray-500">City</p><p>{lead.city || '—'}</p></div>
-            <div><p className="text-sm text-gray-500">State</p><p>{lead.state || '—'}</p></div>
-            <div><p className="text-sm text-gray-500">ZIP Code</p><p>{lead.zip_code || '—'}</p></div>
-            <div><p className="text-sm text-gray-500">Status</p><p>{lead.status || 'New'}</p></div>
-            <div><p className="text-sm text-gray-500">Follow Up Date</p><p>{lead.follow_up_date || 'None'}</p></div>
-            <div><p className="text-sm text-gray-500">Estimated Value</p><p>{lead.estimated_value ? `$${Number(lead.estimated_value).toLocaleString()}` : 'Not available'}</p></div>
-            <div><p className="text-sm text-gray-500">Bedrooms</p><p>{lead.bedrooms ?? '—'}</p></div>
-            <div><p className="text-sm text-gray-500">Bathrooms</p><p>{lead.bathrooms ?? '—'}</p></div>
+            <div>
+              <p className="text-sm text-gray-500">City</p>
+              <p>{lead.city || '—'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">State</p>
+              <p>{lead.state || '—'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">ZIP Code</p>
+              <p>{lead.zip_code || '—'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Status</p>
+              <p>{lead.status || 'New'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Follow Up Date</p>
+              <p>{lead.follow_up_date || 'None'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Estimated Value</p>
+              <p>
+                {lead.estimated_value
+                  ? `$${Number(lead.estimated_value).toLocaleString()}`
+                  : 'Not available'}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Bedrooms</p>
+              <p>{lead.bedrooms ?? '—'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Bathrooms</p>
+              <p>{lead.bathrooms ?? '—'}</p>
+            </div>
           </div>
 
           <div className="mt-6 rounded-xl border bg-gray-50 p-4">
@@ -113,7 +154,11 @@ export default async function LeadDetailsPage({ params }: Props) {
             <div className="mt-2 flex items-center gap-3">
               <span className="text-2xl font-bold">{lead.lead_score ?? '—'}</span>
 
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${ratingBadgeClass(lead.lead_rating)}`}>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${ratingBadgeClass(
+                  lead.lead_rating
+                )}`}
+              >
                 {lead.lead_rating || 'Unrated'}
               </span>
             </div>
@@ -189,7 +234,14 @@ export default async function LeadDetailsPage({ params }: Props) {
               </div>
             </div>
           </div>
-
+<div className="mt-8">
+  <PropertyPhotos
+    address={lead.address}
+    city={lead.city}
+    state={lead.state}
+    zipCode={lead.zip_code}
+  />
+</div>
           <div className="rounded-2xl border bg-white p-6">
             <h2 className="text-xl font-semibold">Contact Panel</h2>
             <p className="mt-2 text-sm text-gray-600">
@@ -231,6 +283,73 @@ export default async function LeadDetailsPage({ params }: Props) {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8 rounded-2xl border bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold">Deal Analyzer</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              ARV, repairs, target offer, and AI summary.
+            </p>
+          </div>
+
+          <RunDealAnalyzerButton leadId={lead.id} />
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div>
+            <p className="text-sm text-gray-500">ARV</p>
+            <p className="font-medium">
+              {lead.arv ? `$${Number(lead.arv).toLocaleString()}` : 'Not available'}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-500">Estimated Repairs</p>
+            <p className="font-medium">
+              {lead.estimated_repairs
+                ? `$${Number(lead.estimated_repairs).toLocaleString()}`
+                : 'Not available'}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-500">Target Offer</p>
+            <p className="font-medium">
+              {lead.target_offer
+                ? `$${Number(lead.target_offer).toLocaleString()}`
+                : 'Not available'}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-500">Rehab Level</p>
+            <p className="capitalize">{lead.rehab_level || 'medium'}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-500">Comp Count</p>
+            <p>{lead.comp_count ?? 0}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-500">Confidence</p>
+            <p className="capitalize">{lead.value_confidence || 'low'}</p>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <p className="text-sm text-gray-500">AI Analysis</p>
+          <p className="mt-2 whitespace-pre-wrap">
+            {lead.ai_analysis || 'Run the deal analyzer to generate a summary.'}
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <p className="text-sm text-gray-500">Last Analysis Run</p>
+          <p>{lead.analysis_ran_at || 'Not run yet'}</p>
         </div>
       </div>
 
@@ -287,7 +406,11 @@ export default async function LeadDetailsPage({ params }: Props) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${matchBadgeClass(match.label)}`}>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${matchBadgeClass(
+                      match.label
+                    )}`}
+                  >
                     {match.label}
                   </span>
                   <span className="rounded-full border px-3 py-1 text-xs font-semibold">

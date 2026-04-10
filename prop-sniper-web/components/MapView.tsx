@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { enrichLeadFromAddress } from '@/lib/enrich-lead'
 
 type SelectedPoint = {
   lng: number
@@ -21,6 +22,7 @@ type SearchResult = {
     context?: {
       place?: { name?: string }
       region?: { name?: string }
+      postcode?: { name?: string }
     }
   }
 }
@@ -34,14 +36,17 @@ type Lead = {
   notes: string | null
   latitude: number | null
   longitude: number | null
+  lead_score: number | null
+  lead_rating: string | null
+  lead_signals: string | null
 }
 
-function getMarkerColor(status: string | null) {
-  if (status === 'Under Contract') return 'green'
-  if (status === 'Negotiating') return 'orange'
-  if (status === 'Contacted') return 'blue'
-  if (status === 'Dead') return 'gray'
-  return 'red'
+function getMarkerColor(leadScore: number | null) {
+  if ((leadScore || 0) >= 85) return 'red'
+  if ((leadScore || 0) >= 70) return 'orange'
+  if ((leadScore || 0) >= 55) return 'blue'
+  if ((leadScore || 0) >= 40) return 'gray'
+  return 'black'
 }
 
 export default function MapView() {
@@ -57,6 +62,7 @@ export default function MapView() {
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
+  const [zipCode, setZipCode] = useState('')
   const [status, setStatus] = useState('New')
   const [notes, setNotes] = useState('')
   const [message, setMessage] = useState('')
@@ -135,7 +141,7 @@ export default function MapView() {
             ${lead.city || ''}${lead.city && lead.state ? ', ' : ''}${lead.state || ''}
           </p>
           <p style="margin:0 0 8px 0; font-size:13px;">
-            <strong>Status:</strong> ${lead.status || 'New'}
+            <strong>Score:</strong> ${lead.lead_score ?? '—'}
           </p>
           <a href="/dashboard/${lead.id}" style="color:#2563eb; font-size:13px;">
             Open Lead
@@ -144,7 +150,7 @@ export default function MapView() {
       `)
 
       const marker = new mapboxgl.Marker({
-        color: getMarkerColor(lead.status),
+        color: getMarkerColor(lead.lead_score),
       })
         .setLngLat([lead.longitude, lead.latitude])
         .setPopup(popup)
@@ -157,7 +163,7 @@ export default function MapView() {
   async function fetchSavedLeads() {
     const { data, error } = await supabase
       .from('leads')
-      .select('id, address, city, state, status, notes, latitude, longitude')
+      .select('id, address, city, state, status, notes, latitude, longitude, lead_score, lead_rating, lead_signals')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
 
@@ -181,13 +187,18 @@ export default function MapView() {
       const props = feature?.properties || {}
       const context = props.context || {}
 
-      setAddress(props.full_address || props.name || '')
-      setCity(context.place?.name || '')
-      setState(context.region?.name || '')
+      const fullAddress = props.full_address || props.name || ''
+      const parts = fullAddress.split(',').map((part: string) => part.trim())
+
+      setAddress(props.name || parts[0] || '')
+      setCity(context.place?.name || parts[1] || '')
+      setState(context.region?.name || parts[2] || '')
+      setZipCode(context.postcode?.name || '')
     } catch {
       setAddress('')
       setCity('')
       setState('')
+      setZipCode('')
     }
   }
 
@@ -241,11 +252,32 @@ export default function MapView() {
         .addTo(mapRef.current)
     }
 
-    const context = result.properties?.context || {}
+    const fullPlace = result.place_name || ''
+    const parts = fullPlace.split(',').map((part) => part.trim())
 
-    setAddress(result.properties?.full_address || result.place_name || '')
-    setCity(context.place?.name || '')
-    setState(context.region?.name || '')
+    const streetAddress =
+      result.properties?.name ||
+      result.properties?.full_address?.split(',')[0] ||
+      parts[0] ||
+      ''
+
+    const guessedCity =
+      result.properties?.context?.place?.name ||
+      parts[1] ||
+      ''
+
+    const guessedStateRaw =
+      result.properties?.context?.region?.name ||
+      parts[2] ||
+      ''
+
+    const guessedState = guessedStateRaw.split(' ')[0]
+    const guessedZip = result.properties?.context?.postcode?.name || ''
+
+    setAddress(streetAddress)
+    setCity(guessedCity)
+    setState(guessedState)
+    setZipCode(guessedZip)
 
     setSearch(result.place_name)
     setResults([])
@@ -266,7 +298,7 @@ export default function MapView() {
           ${lead.city || ''}${lead.city && lead.state ? ', ' : ''}${lead.state || ''}
         </p>
         <p style="margin:0 0 8px 0; font-size:13px;">
-          <strong>Status:</strong> ${lead.status || 'New'}
+          <strong>Score:</strong> ${lead.lead_score ?? '—'}
         </p>
         <a href="/dashboard/${lead.id}" style="color:#2563eb; font-size:13px;">
           View Lead
@@ -286,6 +318,7 @@ export default function MapView() {
     setAddress('')
     setCity('')
     setState('')
+    setZipCode('')
     setStatus('New')
     setNotes('')
     setMessage('')
@@ -316,15 +349,39 @@ export default function MapView() {
       return
     }
 
+    const fullAddress = `${address}, ${city}, ${state} ${zipCode}`.trim()
+    const enriched = await enrichLeadFromAddress(fullAddress)
+
     const { error } = await supabase.from('leads').insert({
       user_id: user.id,
       address,
       city,
       state,
+      zip_code: zipCode || null,
       status,
       notes,
       latitude: selectedPoint.lat,
       longitude: selectedPoint.lng,
+
+      owner_name: enriched.owner_name,
+      owner_occupied: enriched.owner_occupied,
+      is_absentee_owner: enriched.is_absentee_owner,
+      years_owned: enriched.years_owned,
+      long_term_owner: enriched.long_term_owner,
+      senior_owner_likely: enriched.senior_owner_likely,
+      property_age: enriched.property_age,
+      owner_type: enriched.owner_type,
+      likely_distressed: enriched.likely_distressed,
+      bedrooms: enriched.bedrooms,
+      bathrooms: enriched.bathrooms,
+      estimated_value: enriched.estimated_value,
+      last_sale_date: enriched.last_sale_date,
+      owner_phone: enriched.owner_phone,
+      owner_email: enriched.owner_email,
+
+      lead_score: enriched.lead_score,
+      lead_rating: enriched.lead_rating,
+      lead_signals: enriched.lead_signals,
     })
 
     if (error) {
@@ -376,27 +433,27 @@ export default function MapView() {
           </div>
 
           <div className="absolute bottom-4 left-4 z-10 rounded-xl bg-white p-3 shadow">
-            <p className="text-sm font-semibold">Lead Status</p>
+            <p className="text-sm font-semibold">Lead Score</p>
             <div className="mt-2 space-y-1 text-sm">
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full bg-red-500" />
-                <span>New</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-blue-500" />
-                <span>Contacted</span>
+                <span>Hot</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full bg-orange-500" />
-                <span>Negotiating</span>
+                <span>Strong</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-green-500" />
-                <span>Under Contract</span>
+                <span className="h-3 w-3 rounded-full bg-blue-500" />
+                <span>Good</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full bg-gray-500" />
-                <span>Dead</span>
+                <span>Fair</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-black" />
+                <span>Weak</span>
               </div>
             </div>
           </div>
@@ -433,6 +490,13 @@ export default function MapView() {
                 onChange={(e) => setState(e.target.value)}
               />
 
+              <input
+                className="w-full rounded-xl border p-3"
+                placeholder="ZIP Code"
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
+              />
+
               <select
                 className="w-full rounded-xl border p-3"
                 value={status}
@@ -459,7 +523,7 @@ export default function MapView() {
                   <p className="font-medium">Selected Property</p>
                   <p className="mt-1">{address || 'No address found yet'}</p>
                   <p className="text-gray-600">
-                    {city || 'Unknown city'}, {state || 'Unknown state'}
+                    {city || 'Unknown city'}, {state || 'Unknown state'} {zipCode || ''}
                   </p>
                   <p className="mt-2 text-xs text-gray-500">
                     Pin: {selectedPoint.lat.toFixed(5)}, {selectedPoint.lng.toFixed(5)}
@@ -520,9 +584,34 @@ export default function MapView() {
                   <p className="text-sm text-gray-600">
                     {lead.city || 'Unknown city'}, {lead.state || 'Unknown state'}
                   </p>
+
                   <p className="mt-1 text-sm">
                     <strong>Status:</strong> {lead.status || 'New'}
                   </p>
+
+                  <p className="mt-1 text-sm">
+                    <strong>Lead Score:</strong> {lead.lead_score ?? '—'}
+                  </p>
+
+                  {lead.lead_rating && (
+                    <div className="mt-2">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${
+                          lead.lead_rating === 'Hot'
+                            ? 'bg-red-600'
+                            : lead.lead_rating === 'Strong'
+                            ? 'bg-orange-500'
+                            : lead.lead_rating === 'Good'
+                            ? 'bg-blue-600'
+                            : lead.lead_rating === 'Fair'
+                            ? 'bg-gray-600'
+                            : 'bg-black'
+                        }`}
+                      >
+                        {lead.lead_rating}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="mt-3 flex gap-2">
                     <button

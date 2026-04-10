@@ -4,14 +4,15 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-24">
       <div className="max-w-3xl">
-        <h1 className="text-5xl font-bold tracking-tight text-black">
-          Find, track, and manage off-market leads faster
-        </h1>
+      git add .
+<h1 className="text-5xl font-bold tracking-tight text-black">
+  Find off-market deals before anyone else
+</h1>
 
-        <p className="mt-5 text-lg text-gray-600">
-          PropSniper is a simple map-based wholesaling CRM built for finding leads,
-          tracking follow-ups, and staying organized.
-        </p>
+<p className="mt-5 text-lg text-gray-600">
+  Search cities, identify motivated sellers, and track deals in one place.
+  Built for wholesalers who want more deals, faster.
+</p>
 
         <div className="mt-8 flex flex-wrap gap-4">
         <Link
@@ -19,7 +20,7 @@ export default function HomePage() {
   className="inline-flex min-w-[180px] items-center justify-center rounded-xl bg-black px-6 py-3 text-base font-semibold shadow-md transition hover:bg-gray-900"
   style={{ color: '#fff', WebkitTextFillColor: '#fff' }}
 >
-  Get Started
+  Start Finding Deals
 </Link>
 
           <Link
@@ -36,6 +37,9 @@ export default function HomePage() {
             Log in
           </Link>
         </div>
+        <p className="mt-3 text-sm text-gray-500">
+  No credit card required. Start finding deals in seconds.
+</p>
       </div>
 
       <div className="mt-16 grid gap-4 md:grid-cols-3">

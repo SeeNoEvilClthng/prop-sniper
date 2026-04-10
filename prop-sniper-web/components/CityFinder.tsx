@@ -113,9 +113,7 @@ export default function CityFinder() {
       notes: `Imported from City Deal Finder. Score: ${result.score}/100 (${result.label}). Reasons: ${result.reasons.join(', ')}`,
       latitude: result.latitude,
       longitude: result.longitude,
-      motivation_score: result.score,
-      motivation_label: result.label,
-      motivation_reasons: result.reasons.join(', '),
+
       owner_occupied: result.ownerOccupied,
       is_absentee_owner: result.isAbsenteeOwner,
       years_owned: result.yearsOwned,
@@ -124,8 +122,13 @@ export default function CityFinder() {
       property_age: result.propertyAge,
       owner_type: result.ownerType,
       likely_distressed: result.likelyDistressed,
-      preforeclosure: result.preforeclosure,
       last_sale_date: result.lastSaleDate,
+      bedrooms: result.bedrooms,
+      bathrooms: result.bathrooms,
+
+      lead_score: result.score,
+      lead_rating: result.label,
+      lead_signals: result.reasons.join(', '),
     })
 
     setSavingId(null)

@@ -1,16 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import AppShell from '@/components/AppShell'
 
-type Props = {
-  searchParams?: Promise<{
-    status?: string
-    city?: string
-  }>
-}
-
-export default async function DashboardPage({ searchParams }: Props) {
-  const params = (await searchParams) || {}
+export default async function DashboardPage() {
   const supabase = await createClient()
 
   const {
@@ -21,137 +14,147 @@ export default async function DashboardPage({ searchParams }: Props) {
     redirect('/login')
   }
 
-  let query = supabase
+  const { data: leads, error } = await supabase
     .from('leads')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  if (params.status && params.status !== 'All') {
-    query = query.eq('status', params.status)
+  if (error) {
+    console.error(error)
   }
-
-  if (params.city) {
-    query = query.ilike('city', `%${params.city}%`)
-  }
-
-  const { data: leads } = await query
-
-  const today = new Date().toISOString().split('T')[0]
-
-  const { data: dueToday } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('follow_up_date', today)
-    .order('created_at', { ascending: false })
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-20">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+    <AppShell
+      title="Dashboard"
+      subtitle="Track your leads, follow-ups, and strongest opportunities."
+    >
+      <div className="flex flex-wrap gap-3">
+    <Link
+  href="/dashboard/new"
+  className="rounded-xl bg-black px-4 py-2 font-semibold shadow-md"
+  style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
+>
+  Add Lead
+</Link>
 
-        <div className="flex items-center gap-3">
-          <Link href="/map" className="rounded-xl border px-4 py-2">
-            Open Map
-          </Link>
-          <Link href="/billing" className="rounded-x1 border px-4 py-2">
-          Billing
-          </Link>
-          <Link href="/dashboard/new" className="rounded-xl bg-black px-4 py-2 text-white">
-            Add Lead
-          </Link>
-          <form action="/auth/logout" method="post">
-  <button className="rounded-xl border px-4 py-2">
-    Log out
-  </button>
-</form>
-        </div>
+        <Link href="/map" className="rounded-xl border px-4 py-2">
+          Open Map
+        </Link>
+
+        <Link href="/finder" className="rounded-xl border px-4 py-2">
+          City Finder
+        </Link>
       </div>
 
-      <div className="mt-8 rounded-xl border p-4">
-        <h2 className="text-xl font-semibold">Follow Ups Due Today</h2>
-        <div className="mt-4 space-y-3">
-          {dueToday?.length === 0 && (
-            <p className="text-sm text-gray-600">No follow-ups due today.</p>
-          )}
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border bg-white p-5">
+          <p className="text-sm text-gray-500">Total Leads</p>
+          <p className="mt-2 text-3xl font-bold">{leads?.length || 0}</p>
+        </div>
 
-          {dueToday?.map((lead) => (
-            <Link
-              key={lead.id}
-              href={`/dashboard/${lead.id}`}
-              className="block rounded-xl border p-3 hover:bg-gray-50"
-            >
-              <p className="font-medium">{lead.address}</p>
-              <p className="text-sm text-gray-600">
-                {lead.city}, {lead.state}
-              </p>
-            </Link>
-          ))}
+        <div className="rounded-2xl border bg-white p-5">
+          <p className="text-sm text-gray-500">Hot / Strong Leads</p>
+          <p className="mt-2 text-3xl font-bold">
+            {(leads || []).filter(
+              (lead) => lead.lead_rating === 'Hot' || lead.lead_rating === 'Strong'
+            ).length}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border bg-white p-5">
+          <p className="text-sm text-gray-500">Under Contract</p>
+          <p className="mt-2 text-3xl font-bold">
+            {(leads || []).filter((lead) => lead.status === 'Under Contract').length}
+          </p>
         </div>
       </div>
-
-      <form className="mt-8 grid gap-4 rounded-xl border p-4 md:grid-cols-3">
-        <div>
-          <label className="mb-2 block text-sm font-medium">Status</label>
-          <select
-            name="status"
-            defaultValue={params.status || 'All'}
-            className="w-full rounded-xl border p-3"
-          >
-            <option>All</option>
-            <option>New</option>
-            <option>Contacted</option>
-            <option>Follow Up</option>
-            <option>Negotiating</option>
-            <option>Under Contract</option>
-            <option>Dead</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium">City</label>
-          <input
-            name="city"
-            defaultValue={params.city || ''}
-            placeholder="Filter by city"
-            className="w-full rounded-xl border p-3"
-          />
-        </div>
-
-        <div className="flex items-end gap-3">
-          <button type="submit" className="rounded-xl bg-black px-5 py-3 text-white">
-            Filter
-          </button>
-          <Link href="/dashboard" className="rounded-xl border px-5 py-3">
-            Reset
-          </Link>
-        </div>
-      </form>
 
       <div className="mt-8 space-y-4">
-        {leads?.length === 0 && <p>No leads found.</p>}
+        {!leads?.length && (
+          <div className="rounded-2xl border bg-white p-5">
+            <p className="text-sm text-gray-600">No leads yet.</p>
+          </div>
+        )}
 
         {leads?.map((lead) => (
           <Link
             key={lead.id}
             href={`/dashboard/${lead.id}`}
-            className="block rounded-xl border p-4 hover:bg-gray-50"
+            className="block rounded-2xl border bg-white p-5 hover:bg-gray-50"
           >
-            <h2 className="font-semibold">{lead.address}</h2>
-            <p className="text-sm text-gray-600">
-              {lead.city}, {lead.state}
-            </p>
-            <p className="mt-2 text-sm">
-              <strong>Status:</strong> {lead.status || 'New'}
-            </p>
-            <p className="text-sm">
-              <strong>Follow up:</strong> {lead.follow_up_date || 'None'}
-            </p>
-            <p className="mt-2 text-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold">{lead.address}</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  {lead.city || 'Unknown city'}, {lead.state || 'Unknown state'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {lead.lead_rating && (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${
+                      lead.lead_rating === 'Hot'
+                        ? 'bg-red-600'
+                        : lead.lead_rating === 'Strong'
+                        ? 'bg-orange-500'
+                        : lead.lead_rating === 'Good'
+                        ? 'bg-blue-600'
+                        : lead.lead_rating === 'Fair'
+                        ? 'bg-gray-600'
+                        : 'bg-black'
+                    }`}
+                  >
+                    {lead.lead_rating}
+                  </span>
+                )}
+
+                <span className="rounded-full border px-3 py-1 text-xs font-semibold">
+                  Score {lead.lead_score ?? '—'}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 text-sm md:grid-cols-3">
+              <div>
+                <strong>Status:</strong> {lead.status || 'New'}
+              </div>
+              <div>
+                <strong>Follow up:</strong> {lead.follow_up_date || 'None'}
+              </div>
+              <div>
+                <strong>Estimated Value:</strong>{' '}
+                {lead.estimated_value
+                  ? `$${Number(lead.estimated_value).toLocaleString()}`
+                  : '—'}
+              </div>
+            </div>
+
+            {lead.lead_signals && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {lead.lead_signals
+                  .split(',')
+                  .map((signal: string) => signal.trim())
+                  .filter(Boolean)
+                  .slice(0, 5)
+                  .map((signal: string) => (
+                    <span
+                      key={signal}
+                      className="rounded-full border px-2 py-1 text-xs"
+                    >
+                      {signal}
+                    </span>
+                  ))}
+              </div>
+            )}
+
+            <p className="mt-3 text-sm text-gray-700">
               <strong>Notes:</strong> {lead.notes || 'No notes yet'}
             </p>
           </Link>
         ))}
       </div>
-    </main>
+    </AppShell>
   )
 }

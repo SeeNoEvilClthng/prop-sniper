@@ -19,19 +19,52 @@ export default function AppShell({ children, title, subtitle }: Props) {
           </div>
 
           <nav className="mt-8 space-y-2">
-            <Link href="/dashboard" className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100">
+            <Link
+              href="/dashboard"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
               Dashboard
             </Link>
-            <Link href="/map" className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100">
+
+            <Link
+              href="/leads"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
+              Leads
+            </Link>
+
+            <Link
+              href="/map"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
               Map
             </Link>
-            <Link href="/finder" className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100">
+
+            <Link
+              href="/finder"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
               City Finder
             </Link>
-            <Link href="/dashboard/new" className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100">
+
+            <Link
+              href="/investors"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
+              Investors
+            </Link>
+
+            <Link
+              href="/dashboard/new"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
               Add Lead
             </Link>
-            <Link href="/billing" className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100">
+
+            <Link
+              href="/billing"
+              className="block rounded-xl px-4 py-3 text-sm hover:bg-gray-100"
+            >
               Billing
             </Link>
           </nav>

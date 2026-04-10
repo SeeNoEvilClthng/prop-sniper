@@ -178,3 +178,6 @@ button:active {
   background: rgba(107, 114, 128, 0.14);
   color: #4b5563;
 }
+.bg-black {
+  color: white !important;
+}

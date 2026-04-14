@@ -1,73 +1,54 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { analyzeDeal } from '@/lib/deal-analysis'
+'use client'
 
-export async function POST(req: Request) {
-  try {
-    const supabase = await createClient()
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+export default function AnalyzeDealButton({
+  leadId,
+  rehabLevel = 'medium',
+}: {
+  leadId: string
+  rehabLevel?: 'light' | 'medium' | 'heavy'
+}) {
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
+  const handleAnalyze = async () => {
+    try {
+      setLoading(true)
 
-    const { leadId, rehabLevel } = await req.json()
-
-    if (!leadId) {
-      return NextResponse.json({ error: 'leadId is required' }, { status: 400 })
-    }
-
-    const { data: lead, error } = await supabase
-      .from('leads')
-      .select('*')
-      .eq('id', leadId)
-      .eq('user_id', user.id)
-      .single()
-
-    if (error || !lead) {
-      return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
-    }
-
-    const fullAddress = `${lead.address || ''}, ${lead.city || ''}, ${lead.state || ''} ${lead.zip_code || ''}`.trim()
-
-    const analysis = await analyzeDeal({
-      fullAddress,
-      currentEstimatedValue: lead.estimated_value,
-      currentBedrooms: lead.bedrooms,
-      currentBathrooms: lead.bathrooms,
-      currentSquareFootage: lead.square_footage,
-      notes: lead.notes,
-      rehabLevel: rehabLevel || lead.rehab_level || 'medium',
-    })
-
-    const { error: updateError } = await supabase
-      .from('leads')
-      .update({
-        arv: analysis.arv,
-        estimated_repairs: analysis.estimatedRepairs,
-        target_offer: analysis.targetOffer,
-        value_confidence: analysis.valueConfidence,
-        comp_count: analysis.compCount,
-        ai_analysis: analysis.aiAnalysis,
-        rehab_level: analysis.rehabLevel,
-        square_footage: analysis.squareFootage,
-        bedrooms: lead.bedrooms ?? analysis.bedrooms,
-        bathrooms: lead.bathrooms ?? analysis.bathrooms,
+      const res = await fetch('/api/analyze-deal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ leadId, rehabLevel }),
       })
-      .eq('id', leadId)
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || 'Failed to analyze deal')
+        return
+      }
+
+      router.refresh()
+      alert('Deal analysis updated')
+    } catch (error) {
+      console.error(error)
+      alert('Something went wrong')
+    } finally {
+      setLoading(false)
     }
-
-    return NextResponse.json({ success: true, analysis })
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Something went wrong.' },
-      { status: 500 }
-    )
   }
+
+  return (
+    <button
+      onClick={handleAnalyze}
+      disabled={loading}
+      className="rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+    >
+      {loading ? 'Analyzing...' : 'Run Deal Analyzer'}
+    </button>
+  )
 }

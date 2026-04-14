@@ -1,59 +1,77 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
-  const router = useRouter()
-  const supabase = createClient()
+  const supabase = createClient();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
 
-  async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    setMessage('Creating account...');
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-    })
+    });
 
     if (error) {
-      setMessage(error.message)
-      return
+      setMessage(error.message);
+      return;
     }
 
-    setMessage('Account created.')
-    router.push('/login')
+    const user = data.user;
+
+    if (user) {
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: user.id,
+        email: user.email,
+        role: 'user',
+        plan: 'free',
+      });
+
+      if (profileError) {
+        setMessage(profileError.message);
+        return;
+      }
+    }
+
+    setMessage('Account created. Check your email if confirmation is enabled.');
   }
 
   return (
-    <main className="mx-auto max-w-md px-6 py-20">
-      <h1 className="text-3xl font-bold">Create your account</h1>
+    <main className="p-6 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
 
-      <form onSubmit={handleSignup} className="mt-6 space-y-4">
+      <form onSubmit={handleSignup} className="space-y-4 rounded-lg border p-4">
         <input
-          className="w-full rounded-xl border p-3"
+          className="w-full border rounded px-3 py-2"
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
+
         <input
-          className="w-full rounded-xl border p-3"
+          className="w-full border rounded px-3 py-2"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        <button type="submit" className="w-full rounded-xl bg-black p-3 text-white">
-          Sign up
-        </button>
-      </form>
 
-      {message && <p className="mt-4 text-sm">{message}</p>}
+        <button className="px-4 py-2 rounded bg-black text-white" type="submit">
+          Sign Up
+        </button>
+
+        {message && <p className="text-sm">{message}</p>}
+      </form>
     </main>
-  )
+  );
 }

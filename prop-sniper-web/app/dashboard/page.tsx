@@ -1,270 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-
-type LeadStatus =
-  | "New"
-  | "Contacted"
-  | "Follow Up"
-  | "Negotiating"
-  | "Under Contract"
-  | "Dead";
-
-type LeadTag =
-  | "Absentee Owner"
-  | "High Equity"
-  | "Vacant"
-  | "Pre-Foreclosure"
-  | "Tax Delinquent"
-  | "Tired Landlord";
-
-type Lead = {
-  id: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  status: LeadStatus;
-  score: number;
-  arv: number;
-  asking: number;
-  repairs: number;
-  equityPercent: number;
-  tags: LeadTag[];
-  owner: string;
-  phone: string;
-};
-
-type MenuItem = {
-  label: string;
-  description: string;
-};
-
-type MenuSection = {
-  title: string;
-  items: MenuItem[];
-};
-
-const leadsSeed: Lead[] = [
-  {
-    id: "1",
-    address: "5039 Galahad Dr",
-    city: "San Antonio",
-    state: "TX",
-    zip: "78218",
-    status: "Negotiating",
-    score: 84,
-    arv: 265000,
-    asking: 200000,
-    repairs: 18000,
-    equityPercent: 47,
-    tags: ["Absentee Owner", "High Equity", "Vacant"],
-    owner: "Michael R.",
-    phone: "(210) 555-0192",
-  },
-  {
-    id: "2",
-    address: "542 Bertetti Dr",
-    city: "San Antonio",
-    state: "TX",
-    zip: "78227",
-    status: "Under Contract",
-    score: 91,
-    arv: 248000,
-    asking: 180000,
-    repairs: 22000,
-    equityPercent: 53,
-    tags: ["High Equity", "Tired Landlord"],
-    owner: "Angela P.",
-    phone: "(210) 555-0148",
-  },
-  {
-    id: "3",
-    address: "1371 S Parkway E",
-    city: "Memphis",
-    state: "TN",
-    zip: "38106",
-    status: "Follow Up",
-    score: 76,
-    arv: 210000,
-    asking: 143000,
-    repairs: 30000,
-    equityPercent: 39,
-    tags: ["Tax Delinquent", "Vacant"],
-    owner: "James T.",
-    phone: "(901) 555-0123",
-  },
-  {
-    id: "4",
-    address: "1256 Cleardale Dr",
-    city: "Dallas",
-    state: "TX",
-    zip: "75232",
-    status: "Contacted",
-    score: 71,
-    arv: 295000,
-    asking: 215000,
-    repairs: 25000,
-    equityPercent: 33,
-    tags: ["Pre-Foreclosure", "Absentee Owner"],
-    owner: "Patricia S.",
-    phone: "(469) 555-0167",
-  },
-  {
-    id: "5",
-    address: "1403 Lamar Ave",
-    city: "Memphis",
-    state: "TN",
-    zip: "38104",
-    status: "New",
-    score: 80,
-    arv: 325000,
-    asking: 219000,
-    repairs: 35000,
-    equityPercent: 44,
-    tags: ["High Equity", "Tired Landlord", "Vacant"],
-    owner: "Ronald D.",
-    phone: "(901) 555-0189",
-  },
-];
-
-const filters: Array<LeadTag | "All"> = [
-  "All",
-  "Absentee Owner",
-  "High Equity",
-  "Vacant",
-  "Pre-Foreclosure",
-  "Tax Delinquent",
-  "Tired Landlord",
-];
-
-const menuSections: MenuSection[] = [
-  {
-    title: "Leads",
-    items: [
-      { label: "All Leads", description: "View and manage every saved lead" },
-      { label: "Add Lead", description: "Save a new property to your pipeline" },
-      { label: "Lead Statuses", description: "Track every deal by stage" },
-      { label: "Driving Leads", description: "Manage properties found in target areas" },
-    ],
-  },
-  {
-    title: "Lists",
-    items: [
-      { label: "Vacant List", description: "Filter for empty and inactive properties" },
-      { label: "High Equity", description: "See stronger seller opportunity leads" },
-      { label: "Pre-Foreclosure", description: "Review motivated owner lists" },
-      { label: "Tax Delinquent", description: "Pull distressed lead segments" },
-    ],
-  },
-  {
-    title: "Marketing",
-    items: [
-      { label: "Text Campaigns", description: "Send follow-up texts to owners" },
-      { label: "Direct Mail", description: "Prepare postcards and mail campaigns" },
-      { label: "Buyer Blasts", description: "Push deals to your buyers list" },
-      { label: "Skip Trace", description: "Get better owner contact data" },
-    ],
-  },
-  {
-    title: "Analytics",
-    items: [
-      { label: "Deal Analyzer", description: "Run ARV, repairs, and spread" },
-      { label: "Score Trends", description: "See strongest deals over time" },
-      { label: "Pipeline Stats", description: "Measure progress across stages" },
-      { label: "Market View", description: "Review city-level opportunities" },
-    ],
-  },
-  {
-    title: "Tools",
-    items: [
-      { label: "Import CSV", description: "Bring in PropStream or Batch leads" },
-      { label: "Map View", description: "See properties on a live map" },
-      { label: "Comp Finder", description: "Analyze nearby comparable sales" },
-      { label: "Repair Estimator", description: "Estimate rehab costs faster" },
-    ],
-  },
-  {
-    title: "Account",
-    items: [
-      { label: "Profile", description: "Manage your account and info" },
-      { label: "Team Access", description: "Invite users and assign roles" },
-      { label: "Billing", description: "Control plans and payment settings" },
-      { label: "Settings", description: "Customize your dashboard and workflow" },
-    ],
-  },
-];
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function statusClasses(status: LeadStatus) {
-  switch (status) {
-    case "New":
-      return "bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30";
-    case "Contacted":
-      return "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-400/30";
-    case "Follow Up":
-      return "bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30";
-    case "Negotiating":
-      return "bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30";
-    case "Under Contract":
-      return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30";
-    case "Dead":
-      return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
-    default:
-      return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
-  }
-}
-
-function tagClasses(tag: LeadTag) {
-  switch (tag) {
-    case "Absentee Owner":
-      return "bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-400/20";
-    case "High Equity":
-      return "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-400/20";
-    case "Vacant":
-      return "bg-rose-500/10 text-rose-300 ring-1 ring-rose-400/20";
-    case "Pre-Foreclosure":
-      return "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20";
-    case "Tax Delinquent":
-      return "bg-violet-500/10 text-violet-300 ring-1 ring-violet-400/20";
-    case "Tired Landlord":
-      return "bg-blue-500/10 text-blue-300 ring-1 ring-blue-400/20";
-    default:
-      return "bg-zinc-500/10 text-zinc-300 ring-1 ring-zinc-400/20";
-  }
-}
-
-function getScoreTone(score: number) {
-  if (score >= 85) {
-    return {
-      text: "Strong",
-      color: "text-emerald-300",
-      bar: "from-emerald-400 to-lime-300",
-      glow: "shadow-[0_0_30px_rgba(52,211,153,0.15)]",
-    };
-  }
-  if (score >= 70) {
-    return {
-      text: "Solid",
-      color: "text-yellow-300",
-      bar: "from-yellow-300 to-amber-400",
-      glow: "shadow-[0_0_30px_rgba(250,204,21,0.12)]",
-    };
-  }
-  return {
-    text: "Weak",
-    color: "text-rose-300",
-    bar: "from-rose-400 to-red-400",
-    glow: "shadow-[0_0_30px_rgba(244,63,94,0.12)]",
-  };
-}
+import {
+  filters,
+  formatMoney,
+  getScoreTone,
+  leadsSeed,
+  menuSections,
+  statusClasses,
+  tagClasses,
+  type Lead,
+  type LeadTag,
+} from "./menuData";
 
 export default function DashboardPage() {
   const [search, setSearch] = useState("");
@@ -306,15 +54,18 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
-      <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_25%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_25%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="mb-6 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-lg font-bold shadow-lg shadow-sky-950/40">
+              <Link
+                href="/"
+                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-lg font-bold shadow-lg shadow-sky-950/40"
+              >
                 PS
-              </div>
+              </Link>
 
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-sky-200">
@@ -335,6 +86,7 @@ export default function DashboardPage() {
                   onMouseLeave={() => setOpenMenu(null)}
                 >
                   <button
+                    type="button"
                     onClick={() =>
                       setOpenMenu((prev) =>
                         prev === section.title ? null : section.title
@@ -346,24 +98,30 @@ export default function DashboardPage() {
                   </button>
 
                   {openMenu === section.title && (
-                    <div className="absolute left-0 top-[calc(100%+10px)] z-50 w-[320px] rounded-2xl border border-white/10 bg-[#0c1524]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                    <div className="absolute left-0 top-[calc(100%+10px)] z-50 w-[340px] rounded-2xl border border-white/10 bg-[#0c1524]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl">
                       <div className="mb-2 px-2 text-xs uppercase tracking-[0.25em] text-slate-400">
                         {section.title}
                       </div>
 
                       <div className="space-y-2">
                         {section.items.map((item) => (
-                          <button
-                            key={item.label}
-                            className="w-full rounded-xl border border-transparent bg-white/0 px-3 py-3 text-left transition hover:border-sky-400/20 hover:bg-white/5"
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="block rounded-xl border border-transparent bg-white/0 px-3 py-3 transition hover:border-sky-400/20 hover:bg-white/5"
                           >
-                            <p className="text-sm font-semibold text-white">
-                              {item.label}
-                            </p>
-                            <p className="mt-1 text-xs text-slate-400">
-                              {item.description}
-                            </p>
-                          </button>
+                            <div className="flex items-start gap-3">
+                              <span className="text-lg">{item.icon}</span>
+                              <div>
+                                <p className="text-sm font-semibold text-white">
+                                  {item.label}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-400">
+                                  {item.description}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
                         ))}
                       </div>
                     </div>
@@ -373,14 +131,21 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="hidden sm:inline-flex rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25">
+              <Link
+                href="/dashboard/add-lead"
+                className="hidden sm:inline-flex rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25"
+              >
                 + Add Lead
-              </button>
-              <button className="hidden sm:inline-flex rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+              </Link>
+              <Link
+                href="/dashboard/tools/import"
+                className="hidden sm:inline-flex rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+              >
                 Import CSV
-              </button>
+              </Link>
 
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen((prev) => !prev)}
                 className="inline-flex xl:hidden rounded-xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm font-medium text-white"
               >
@@ -402,29 +167,41 @@ export default function DashboardPage() {
                     </p>
                     <div className="grid gap-2">
                       {section.items.map((item) => (
-                        <button
-                          key={item.label}
-                          className="rounded-xl bg-[#0b1320] px-3 py-3 text-left transition hover:bg-[#101b2d]"
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="rounded-xl bg-[#0b1320] px-3 py-3 transition hover:bg-[#101b2d]"
                         >
-                          <p className="text-sm font-medium text-white">
-                            {item.label}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-400">
-                            {item.description}
-                          </p>
-                        </button>
+                          <div className="flex items-start gap-3">
+                            <span className="text-lg">{item.icon}</span>
+                            <div>
+                              <p className="text-sm font-medium text-white">
+                                {item.label}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-400">
+                                {item.description}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
                 ))}
 
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <button className="rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25">
+                  <Link
+                    href="/dashboard/add-lead"
+                    className="rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-center text-sm font-medium text-sky-200 transition hover:bg-sky-500/25"
+                  >
                     + Add Lead
-                  </button>
-                  <button className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+                  </Link>
+                  <Link
+                    href="/dashboard/tools/import"
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-white/10"
+                  >
                     Import CSV
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -500,6 +277,7 @@ export default function DashboardPage() {
                   return (
                     <button
                       key={filter}
+                      type="button"
                       onClick={() => setActiveFilter(filter)}
                       className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                         isActive
@@ -643,12 +421,18 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                      <button className="flex-1 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95">
+                      <Link
+                        href="/dashboard/leads"
+                        className="flex-1 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:opacity-95"
+                      >
                         View Lead
-                      </button>
-                      <button className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                      </Link>
+                      <Link
+                        href="/dashboard/marketing/text"
+                        className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
+                      >
                         Contact Owner
-                      </button>
+                      </Link>
                     </div>
                   </div>
 
@@ -670,10 +454,26 @@ export default function DashboardPage() {
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
               <h3 className="text-lg font-semibold">Quick Actions</h3>
               <div className="mt-4 grid gap-3">
-                <ActionButton title="Run AI Analyzer" subtitle="ARV, repairs, score" />
-                <ActionButton title="Import PropStream CSV" subtitle="Bring in real lead data" />
-                <ActionButton title="Skip Trace Owner" subtitle="Get better contact info" />
-                <ActionButton title="Send Buyer Blast" subtitle="Push deal to your buyers" />
+                <ActionLink
+                  title="Run AI Analyzer"
+                  subtitle="ARV, repairs, score"
+                  href="/dashboard/analyzer"
+                />
+                <ActionLink
+                  title="Import PropStream CSV"
+                  subtitle="Bring in real lead data"
+                  href="/dashboard/tools/import"
+                />
+                <ActionLink
+                  title="Skip Trace Owner"
+                  subtitle="Get better contact info"
+                  href="/dashboard/marketing/skiptrace"
+                />
+                <ActionLink
+                  title="Send Buyer Blast"
+                  subtitle="Push deal to your buyers"
+                  href="/dashboard/marketing/blast"
+                />
               </div>
             </div>
           </aside>
@@ -707,6 +507,7 @@ export default function DashboardPage() {
               {filteredLeads.map((lead) => (
                 <button
                   key={lead.id}
+                  type="button"
                   onClick={() => setSelectedLeadId(lead.id)}
                   className="grid w-full grid-cols-[2fr_1fr_1fr_1fr_1fr_1.2fr] gap-4 bg-[#0b1320] px-5 py-4 text-left transition hover:bg-[#0f1a2d]"
                 >
@@ -751,6 +552,7 @@ export default function DashboardPage() {
             {filteredLeads.map((lead) => (
               <button
                 key={lead.id}
+                type="button"
                 onClick={() => setSelectedLeadId(lead.id)}
                 className="w-full rounded-2xl border border-white/10 bg-[#0b1320] p-4 text-left transition hover:bg-[#0f1a2d]"
               >
@@ -828,6 +630,7 @@ function LeadCard({
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`w-full rounded-3xl border p-4 text-left transition ${
         active
@@ -942,17 +745,22 @@ function PipelineBox({
   );
 }
 
-function ActionButton({
+function ActionLink({
   title,
   subtitle,
+  href,
 }: {
   title: string;
   subtitle: string;
+  href: string;
 }) {
   return (
-    <button className="rounded-2xl border border-white/10 bg-[#0d1727] p-4 text-left transition hover:border-sky-400/30 hover:bg-[#101b2d]">
+    <Link
+      href={href}
+      className="rounded-2xl border border-white/10 bg-[#0d1727] p-4 text-left transition hover:border-sky-400/30 hover:bg-[#101b2d]"
+    >
       <p className="font-medium text-white">{title}</p>
       <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
-    </button>
+    </Link>
   );
 }

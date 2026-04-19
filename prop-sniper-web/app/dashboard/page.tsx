@@ -206,11 +206,14 @@ export default function DashboardPage() {
 
   const filteredLeads = useMemo(() => {
     return leadsSeed.filter((lead) => {
+      const searchValue = search.toLowerCase();
+
       const matchesSearch =
-        lead.address.toLowerCase().includes(search.toLowerCase()) ||
-        lead.city.toLowerCase().includes(search.toLowerCase()) ||
-        lead.state.toLowerCase().includes(search.toLowerCase()) ||
-        lead.zip.includes(search);
+        lead.address.toLowerCase().includes(searchValue) ||
+        lead.city.toLowerCase().includes(searchValue) ||
+        lead.state.toLowerCase().includes(searchValue) ||
+        lead.zip.includes(search) ||
+        lead.owner.toLowerCase().includes(searchValue);
 
       const matchesFilter =
         activeFilter === "All" ? true : lead.tags.includes(activeFilter);
@@ -235,8 +238,8 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_25%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
+
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Top Bar */}
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-sky-200 backdrop-blur">
@@ -246,8 +249,7 @@ export default function DashboardPage() {
               Find better deals faster
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
-              Track leads, score opportunities, and move properties through your
-              pipeline like a real acquisitions tool.
+              Track leads, score deals, and manage every saved property in one place.
             </p>
           </div>
 
@@ -261,7 +263,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Total Leads"
@@ -290,15 +291,13 @@ export default function DashboardPage() {
         </section>
 
         <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_0.95fr]">
-          {/* Left */}
           <section className="space-y-6">
-            {/* Finder */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
               <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <h2 className="text-xl font-semibold">Deal Finder</h2>
                   <p className="mt-1 text-sm text-slate-300">
-                    Search your pipeline and lock in the best opportunities.
+                    Search your saved leads and filter for better opportunities.
                   </p>
                 </div>
 
@@ -306,7 +305,7 @@ export default function DashboardPage() {
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by address, city, state, or ZIP..."
+                    placeholder="Search by address, city, owner, state, or ZIP..."
                     className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/20"
                   />
                 </div>
@@ -349,7 +348,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Pipeline */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
               <div className="mb-5 flex items-center justify-between">
                 <div>
@@ -371,7 +369,6 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* Right */}
           <aside className="space-y-6">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
               <div className="mb-4 flex items-start justify-between gap-4">
@@ -435,24 +432,13 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <InfoBox label="ARV" value={formatMoney(selectedLead.arv)} />
-                    <InfoBox
-                      label="Asking"
-                      value={formatMoney(selectedLead.asking)}
-                    />
-                    <InfoBox
-                      label="Repairs"
-                      value={formatMoney(selectedLead.repairs)}
-                    />
-                    <InfoBox
-                      label="Equity"
-                      value={`${selectedLead.equityPercent}%`}
-                    />
+                    <InfoBox label="Asking" value={formatMoney(selectedLead.asking)} />
+                    <InfoBox label="Repairs" value={formatMoney(selectedLead.repairs)} />
+                    <InfoBox label="Equity" value={`${selectedLead.equityPercent}%`} />
                   </div>
 
                   <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                    <p className="text-sm font-semibold text-white">
-                      Owner Info
-                    </p>
+                    <p className="text-sm font-semibold text-white">Owner Info</p>
                     <div className="mt-3 space-y-2 text-sm text-slate-300">
                       <p>
                         <span className="text-slate-400">Name:</span>{" "}
@@ -500,6 +486,109 @@ export default function DashboardPage() {
             </div>
           </aside>
         </div>
+
+        <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">All Saved Leads</h2>
+              <p className="mt-1 text-sm text-slate-300">
+                This section shows every lead saved in your dashboard.
+              </p>
+            </div>
+
+            <div className="rounded-full border border-white/10 bg-[#0d1727] px-4 py-2 text-sm text-slate-300">
+              {filteredLeads.length} lead{filteredLeads.length === 1 ? "" : "s"} shown
+            </div>
+          </div>
+
+          <div className="hidden overflow-hidden rounded-2xl border border-white/10 xl:block">
+            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1.2fr] gap-4 bg-[#0d1727] px-5 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+              <div>Property</div>
+              <div>Status</div>
+              <div>Score</div>
+              <div>ARV</div>
+              <div>Asking</div>
+              <div>Owner</div>
+            </div>
+
+            <div className="divide-y divide-white/10">
+              {filteredLeads.map((lead) => (
+                <button
+                  key={lead.id}
+                  onClick={() => setSelectedLeadId(lead.id)}
+                  className="grid w-full grid-cols-[2fr_1fr_1fr_1fr_1fr_1.2fr] gap-4 bg-[#0b1320] px-5 py-4 text-left transition hover:bg-[#0f1a2d]"
+                >
+                  <div>
+                    <p className="font-semibold text-white">{lead.address}</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {lead.city}, {lead.state} {lead.zip}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(
+                        lead.status
+                      )}`}
+                    >
+                      {lead.status}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center text-sm font-semibold text-white">
+                    {lead.score}
+                  </div>
+
+                  <div className="flex items-center text-sm text-slate-300">
+                    {formatMoney(lead.arv)}
+                  </div>
+
+                  <div className="flex items-center text-sm text-slate-300">
+                    {formatMoney(lead.asking)}
+                  </div>
+
+                  <div className="flex items-center text-sm text-slate-300">
+                    {lead.owner}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3 xl:hidden">
+            {filteredLeads.map((lead) => (
+              <button
+                key={lead.id}
+                onClick={() => setSelectedLeadId(lead.id)}
+                className="w-full rounded-2xl border border-white/10 bg-[#0b1320] p-4 text-left transition hover:bg-[#0f1a2d]"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-white">{lead.address}</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {lead.city}, {lead.state} {lead.zip}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(
+                      lead.status
+                    )}`}
+                  >
+                    {lead.status}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <MiniMetric label="Score" value={String(lead.score)} />
+                  <MiniMetric label="ARV" value={formatMoney(lead.arv)} />
+                  <MiniMetric label="Asking" value={formatMoney(lead.asking)} />
+                  <MiniMetric label="Owner" value={lead.owner} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

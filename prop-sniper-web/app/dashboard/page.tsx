@@ -35,6 +35,16 @@ type Lead = {
   phone: string;
 };
 
+type MenuItem = {
+  label: string;
+  description: string;
+};
+
+type MenuSection = {
+  title: string;
+  items: MenuItem[];
+};
+
 const leadsSeed: Lead[] = [
   {
     id: "1",
@@ -128,6 +138,63 @@ const filters: Array<LeadTag | "All"> = [
   "Tired Landlord",
 ];
 
+const menuSections: MenuSection[] = [
+  {
+    title: "Leads",
+    items: [
+      { label: "All Leads", description: "View and manage every saved lead" },
+      { label: "Add Lead", description: "Save a new property to your pipeline" },
+      { label: "Lead Statuses", description: "Track every deal by stage" },
+      { label: "Driving Leads", description: "Manage properties found in target areas" },
+    ],
+  },
+  {
+    title: "Lists",
+    items: [
+      { label: "Vacant List", description: "Filter for empty and inactive properties" },
+      { label: "High Equity", description: "See stronger seller opportunity leads" },
+      { label: "Pre-Foreclosure", description: "Review motivated owner lists" },
+      { label: "Tax Delinquent", description: "Pull distressed lead segments" },
+    ],
+  },
+  {
+    title: "Marketing",
+    items: [
+      { label: "Text Campaigns", description: "Send follow-up texts to owners" },
+      { label: "Direct Mail", description: "Prepare postcards and mail campaigns" },
+      { label: "Buyer Blasts", description: "Push deals to your buyers list" },
+      { label: "Skip Trace", description: "Get better owner contact data" },
+    ],
+  },
+  {
+    title: "Analytics",
+    items: [
+      { label: "Deal Analyzer", description: "Run ARV, repairs, and spread" },
+      { label: "Score Trends", description: "See strongest deals over time" },
+      { label: "Pipeline Stats", description: "Measure progress across stages" },
+      { label: "Market View", description: "Review city-level opportunities" },
+    ],
+  },
+  {
+    title: "Tools",
+    items: [
+      { label: "Import CSV", description: "Bring in PropStream or Batch leads" },
+      { label: "Map View", description: "See properties on a live map" },
+      { label: "Comp Finder", description: "Analyze nearby comparable sales" },
+      { label: "Repair Estimator", description: "Estimate rehab costs faster" },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      { label: "Profile", description: "Manage your account and info" },
+      { label: "Team Access", description: "Invite users and assign roles" },
+      { label: "Billing", description: "Control plans and payment settings" },
+      { label: "Settings", description: "Customize your dashboard and workflow" },
+    ],
+  },
+];
+
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -203,6 +270,8 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<LeadTag | "All">("All");
   const [selectedLeadId, setSelectedLeadId] = useState<string>(leadsSeed[0].id);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const filteredLeads = useMemo(() => {
     return leadsSeed.filter((lead) => {
@@ -240,26 +309,140 @@ export default function DashboardPage() {
       <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_25%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <header className="mb-6 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-lg font-bold shadow-lg shadow-sky-950/40">
+                PS
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-sky-200">
+                  PropSniper
+                </p>
+                <h1 className="text-xl font-semibold sm:text-2xl">
+                  Acquisitions Dashboard
+                </h1>
+              </div>
+            </div>
+
+            <div className="hidden xl:flex items-center gap-2">
+              {menuSections.map((section) => (
+                <div
+                  key={section.title}
+                  className="relative"
+                  onMouseEnter={() => setOpenMenu(section.title)}
+                  onMouseLeave={() => setOpenMenu(null)}
+                >
+                  <button
+                    onClick={() =>
+                      setOpenMenu((prev) =>
+                        prev === section.title ? null : section.title
+                      )
+                    }
+                    className="rounded-xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-sky-400/20 hover:bg-[#101b2d]"
+                  >
+                    {section.title} ▾
+                  </button>
+
+                  {openMenu === section.title && (
+                    <div className="absolute left-0 top-[calc(100%+10px)] z-50 w-[320px] rounded-2xl border border-white/10 bg-[#0c1524]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                      <div className="mb-2 px-2 text-xs uppercase tracking-[0.25em] text-slate-400">
+                        {section.title}
+                      </div>
+
+                      <div className="space-y-2">
+                        {section.items.map((item) => (
+                          <button
+                            key={item.label}
+                            className="w-full rounded-xl border border-transparent bg-white/0 px-3 py-3 text-left transition hover:border-sky-400/20 hover:bg-white/5"
+                          >
+                            <p className="text-sm font-semibold text-white">
+                              {item.label}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-400">
+                              {item.description}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="hidden sm:inline-flex rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25">
+                + Add Lead
+              </button>
+              <button className="hidden sm:inline-flex rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+                Import CSV
+              </button>
+
+              <button
+                onClick={() => setMobileMenuOpen((prev) => !prev)}
+                className="inline-flex xl:hidden rounded-xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm font-medium text-white"
+              >
+                Menu
+              </button>
+            </div>
+          </div>
+
+          {mobileMenuOpen && (
+            <div className="mt-4 xl:hidden rounded-2xl border border-white/10 bg-[#0d1727] p-3">
+              <div className="grid gap-3">
+                {menuSections.map((section) => (
+                  <div
+                    key={section.title}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-3"
+                  >
+                    <p className="mb-2 text-sm font-semibold text-white">
+                      {section.title}
+                    </p>
+                    <div className="grid gap-2">
+                      {section.items.map((item) => (
+                        <button
+                          key={item.label}
+                          className="rounded-xl bg-[#0b1320] px-3 py-3 text-left transition hover:bg-[#101b2d]"
+                        >
+                          <p className="text-sm font-medium text-white">
+                            {item.label}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            {item.description}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button className="rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25">
+                    + Add Lead
+                  </button>
+                  <button className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+                    Import CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </header>
+
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-sky-200 backdrop-blur">
-              PropSniper Dashboard
+              Competitive dashboard layout
             </p>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Find better deals faster
-            </h1>
+            </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
-              Track leads, score deals, and manage every saved property in one place.
+              Track leads, score deals, manage lists, and make the app feel more
+              like a full acquisitions platform.
             </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button className="rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25">
-              + Add Lead
-            </button>
-            <button className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10">
-              Import CSV
-            </button>
           </div>
         </div>
 
@@ -432,9 +615,18 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <InfoBox label="ARV" value={formatMoney(selectedLead.arv)} />
-                    <InfoBox label="Asking" value={formatMoney(selectedLead.asking)} />
-                    <InfoBox label="Repairs" value={formatMoney(selectedLead.repairs)} />
-                    <InfoBox label="Equity" value={`${selectedLead.equityPercent}%`} />
+                    <InfoBox
+                      label="Asking"
+                      value={formatMoney(selectedLead.asking)}
+                    />
+                    <InfoBox
+                      label="Repairs"
+                      value={formatMoney(selectedLead.repairs)}
+                    />
+                    <InfoBox
+                      label="Equity"
+                      value={`${selectedLead.equityPercent}%`}
+                    />
                   </div>
 
                   <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">

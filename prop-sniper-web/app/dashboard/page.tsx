@@ -1,53 +1,125 @@
-import AppShell from "@/components/AppShell";
-import LeadCard from "@/components/ui/LeadCard";
-import StatsRow from "@/components/ui/StatsRow";
+"use client";
 
-const sampleLeads = [
+import { useMemo, useState } from "react";
+
+type LeadStatus =
+  | "New"
+  | "Contacted"
+  | "Follow Up"
+  | "Negotiating"
+  | "Under Contract"
+  | "Dead";
+
+type LeadTag =
+  | "Absentee Owner"
+  | "High Equity"
+  | "Vacant"
+  | "Pre-Foreclosure"
+  | "Tax Delinquent"
+  | "Tired Landlord";
+
+type Lead = {
+  id: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  status: LeadStatus;
+  score: number;
+  arv: number;
+  asking: number;
+  repairs: number;
+  equityPercent: number;
+  tags: LeadTag[];
+  owner: string;
+  phone: string;
+};
+
+const leadsSeed: Lead[] = [
   {
     id: "1",
     address: "5039 Galahad Dr",
     city: "San Antonio",
     state: "TX",
+    zip: "78218",
     status: "Negotiating",
-    owner_name: "J. Harris",
-    estimated_value: 215000,
-    estimated_rent: 1850,
-    beds: 4,
-    baths: 3,
-    sqft: 1545,
     score: 84,
+    arv: 265000,
+    asking: 200000,
+    repairs: 18000,
+    equityPercent: 47,
+    tags: ["Absentee Owner", "High Equity", "Vacant"],
+    owner: "Michael R.",
+    phone: "(210) 555-0192",
   },
   {
     id: "2",
     address: "542 Bertetti Dr",
     city: "San Antonio",
     state: "TX",
+    zip: "78227",
     status: "Under Contract",
-    owner_name: "R. James",
-    estimated_value: 255000,
-    estimated_rent: 1950,
-    beds: 3,
-    baths: 2,
-    sqft: 1398,
     score: 91,
+    arv: 248000,
+    asking: 180000,
+    repairs: 22000,
+    equityPercent: 53,
+    tags: ["High Equity", "Tired Landlord"],
+    owner: "Angela P.",
+    phone: "(210) 555-0148",
   },
   {
     id: "3",
     address: "1371 S Parkway E",
     city: "Memphis",
     state: "TN",
+    zip: "38106",
     status: "Follow Up",
-    owner_name: "Unknown",
-    estimated_value: 172000,
-    estimated_rent: 1450,
-    beds: 3,
-    baths: 2,
-    sqft: 1320,
-    score: 58,
+    score: 76,
+    arv: 210000,
+    asking: 143000,
+    repairs: 30000,
+    equityPercent: 39,
+    tags: ["Tax Delinquent", "Vacant"],
+    owner: "James T.",
+    phone: "(901) 555-0123",
+  },
+  {
+    id: "4",
+    address: "1256 Cleardale Dr",
+    city: "Dallas",
+    state: "TX",
+    zip: "75232",
+    status: "Contacted",
+    score: 71,
+    arv: 295000,
+    asking: 215000,
+    repairs: 25000,
+    equityPercent: 33,
+    tags: ["Pre-Foreclosure", "Absentee Owner"],
+    owner: "Patricia S.",
+    phone: "(469) 555-0167",
+  },
+  {
+    id: "5",
+    address: "1403 Lamar Ave",
+    city: "Memphis",
+    state: "TN",
+    zip: "38104",
+    status: "New",
+    score: 80,
+    arv: 325000,
+    asking: 219000,
+    repairs: 35000,
+    equityPercent: 44,
+    tags: ["High Equity", "Tired Landlord", "Vacant"],
+    owner: "Ronald D.",
+    phone: "(901) 555-0189",
   },
 ];
 
-const filterPills = [
+const filters: Array<LeadTag | "All"> = [
+  "All",
   "Absentee Owner",
   "High Equity",
   "Vacant",
@@ -56,125 +128,550 @@ const filterPills = [
   "Tired Landlord",
 ];
 
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function statusClasses(status: LeadStatus) {
+  switch (status) {
+    case "New":
+      return "bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30";
+    case "Contacted":
+      return "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-400/30";
+    case "Follow Up":
+      return "bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30";
+    case "Negotiating":
+      return "bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30";
+    case "Under Contract":
+      return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30";
+    case "Dead":
+      return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
+    default:
+      return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
+  }
+}
+
+function tagClasses(tag: LeadTag) {
+  switch (tag) {
+    case "Absentee Owner":
+      return "bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-400/20";
+    case "High Equity":
+      return "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-400/20";
+    case "Vacant":
+      return "bg-rose-500/10 text-rose-300 ring-1 ring-rose-400/20";
+    case "Pre-Foreclosure":
+      return "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20";
+    case "Tax Delinquent":
+      return "bg-violet-500/10 text-violet-300 ring-1 ring-violet-400/20";
+    case "Tired Landlord":
+      return "bg-blue-500/10 text-blue-300 ring-1 ring-blue-400/20";
+    default:
+      return "bg-zinc-500/10 text-zinc-300 ring-1 ring-zinc-400/20";
+  }
+}
+
+function getScoreTone(score: number) {
+  if (score >= 85) {
+    return {
+      text: "Strong",
+      color: "text-emerald-300",
+      bar: "from-emerald-400 to-lime-300",
+      glow: "shadow-[0_0_30px_rgba(52,211,153,0.15)]",
+    };
+  }
+  if (score >= 70) {
+    return {
+      text: "Solid",
+      color: "text-yellow-300",
+      bar: "from-yellow-300 to-amber-400",
+      glow: "shadow-[0_0_30px_rgba(250,204,21,0.12)]",
+    };
+  }
+  return {
+    text: "Weak",
+    color: "text-rose-300",
+    bar: "from-rose-400 to-red-400",
+    glow: "shadow-[0_0_30px_rgba(244,63,94,0.12)]",
+  };
+}
+
 export default function DashboardPage() {
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<LeadTag | "All">("All");
+  const [selectedLeadId, setSelectedLeadId] = useState<string>(leadsSeed[0].id);
+
+  const filteredLeads = useMemo(() => {
+    return leadsSeed.filter((lead) => {
+      const matchesSearch =
+        lead.address.toLowerCase().includes(search.toLowerCase()) ||
+        lead.city.toLowerCase().includes(search.toLowerCase()) ||
+        lead.state.toLowerCase().includes(search.toLowerCase()) ||
+        lead.zip.includes(search);
+
+      const matchesFilter =
+        activeFilter === "All" ? true : lead.tags.includes(activeFilter);
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [search, activeFilter]);
+
+  const selectedLead =
+    filteredLeads.find((lead) => lead.id === selectedLeadId) ?? filteredLeads[0];
+
+  const totalLeads = leadsSeed.length;
+  const strongDeals = leadsSeed.filter((lead) => lead.score >= 80).length;
+  const underContract = leadsSeed.filter(
+    (lead) => lead.status === "Under Contract"
+  ).length;
+  const totalPotentialSpread = leadsSeed.reduce(
+    (sum, lead) => sum + (lead.arv - lead.asking - lead.repairs),
+    0
+  );
+
   return (
-    <AppShell>
-      <div className="space-y-6">
-        <StatsRow />
-
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_.95fr]">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h3 className="text-xl font-semibold tracking-tight">
-                  Deal Finder
-                </h3>
-                <p className="mt-1 text-sm text-white/50">
-                  Filter and sort through the best lead types faster.
-                </p>
-              </div>
-
-              <button className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15">
-                Import CSV
-              </button>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              {filterPills.map((pill) => (
-                <button
-                  key={pill}
-                  className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-white"
-                >
-                  {pill}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 space-y-4">
-              {sampleLeads.map((lead) => (
-                <LeadCard key={lead.id} lead={lead} />
-              ))}
-            </div>
+    <main className="min-h-screen bg-[#07111f] text-white">
+      <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_25%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {/* Top Bar */}
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-sky-200 backdrop-blur">
+              PropSniper Dashboard
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Find better deals faster
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
+              Track leads, score opportunities, and move properties through your
+              pipeline like a real acquisitions tool.
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 p-5 shadow-xl shadow-cyan-900/10">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-cyan-200/80">AI Deal Engine</p>
-                  <h3 className="mt-1 text-xl font-semibold">
-                    Find stronger offers
-                  </h3>
-                </div>
-
-                <div className="rounded-2xl bg-white/10 px-3 py-2 text-sm font-semibold text-cyan-100">
-                  Live
-                </div>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-black/20 p-4">
-                  <p className="text-xs text-cyan-100/60">Avg ARV</p>
-                  <p className="mt-2 text-2xl font-bold">$246K</p>
-                </div>
-
-                <div className="rounded-2xl bg-black/20 p-4">
-                  <p className="text-xs text-cyan-100/60">Best Max Offer</p>
-                  <p className="mt-2 text-2xl font-bold">$159K</p>
-                </div>
-              </div>
-
-              <button className="mt-5 w-full rounded-2xl bg-black/30 px-4 py-3 text-sm font-semibold text-white transition hover:bg-black/40">
-                Open AI Analyzer
-              </button>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold">Map View</h3>
-                  <p className="mt-1 text-sm text-white/50">
-                    Click neighborhoods and spot deals visually.
-                  </p>
-                </div>
-
-                <button className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10">
-                  Expand
-                </button>
-              </div>
-
-              <div className="mt-5 flex h-[340px] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/20">
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-white/80">
-                    Mapbox Section
-                  </p>
-                  <p className="mt-2 text-sm text-white/45">
-                    Put your live deal map here
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
-              <h3 className="text-xl font-semibold">Quick Actions</h3>
-              <div className="mt-4 grid grid-cols-1 gap-3">
-                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
-                  Add new lead
-                </button>
-                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
-                  Run batch analysis
-                </button>
-                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
-                  Send buyer blast
-                </button>
-                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
-                  Review follow ups
-                </button>
-              </div>
-            </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button className="rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25">
+              + Add Lead
+            </button>
+            <button className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+              Import CSV
+            </button>
           </div>
+        </div>
+
+        {/* Stats */}
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Total Leads"
+            value={String(totalLeads)}
+            subtext="+12 this week"
+            icon="🏠"
+          />
+          <StatCard
+            title="AI Scored Strong"
+            value={String(strongDeals)}
+            subtext="Hot opportunities"
+            icon="⚡"
+          />
+          <StatCard
+            title="Potential Spread"
+            value={formatMoney(totalPotentialSpread)}
+            subtext="Across all active leads"
+            icon="💰"
+          />
+          <StatCard
+            title="Under Contract"
+            value={String(underContract)}
+            subtext="Deals moving now"
+            icon="📄"
+          />
         </section>
+
+        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_0.95fr]">
+          {/* Left */}
+          <section className="space-y-6">
+            {/* Finder */}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
+              <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold">Deal Finder</h2>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Search your pipeline and lock in the best opportunities.
+                  </p>
+                </div>
+
+                <div className="w-full max-w-md">
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search by address, city, state, or ZIP..."
+                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/20"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-5 flex flex-wrap gap-2">
+                {filters.map((filter) => {
+                  const isActive = filter === activeFilter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                        isActive
+                          ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-900/40"
+                          : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-4">
+                {filteredLeads.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-[#0b1320] p-8 text-center text-slate-400">
+                    No leads found for this search.
+                  </div>
+                ) : (
+                  filteredLeads.map((lead) => (
+                    <LeadCard
+                      key={lead.id}
+                      lead={lead}
+                      active={selectedLead?.id === lead.id}
+                      onClick={() => setSelectedLeadId(lead.id)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Pipeline */}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold">Pipeline Snapshot</h2>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Keep track of where every lead stands.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                <PipelineBox label="New" count={1} tone="sky" />
+                <PipelineBox label="Contacted" count={1} tone="indigo" />
+                <PipelineBox label="Follow Up" count={1} tone="amber" />
+                <PipelineBox label="Negotiating" count={1} tone="fuchsia" />
+                <PipelineBox label="Under Contract" count={1} tone="emerald" />
+                <PipelineBox label="Dead" count={0} tone="zinc" />
+              </div>
+            </div>
+          </section>
+
+          {/* Right */}
+          <aside className="space-y-6">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+                    Selected Lead
+                  </p>
+                  <h3 className="mt-2 text-2xl font-semibold">
+                    {selectedLead?.address ?? "No lead selected"}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {selectedLead
+                      ? `${selectedLead.city}, ${selectedLead.state} ${selectedLead.zip}`
+                      : "Choose a lead to view details"}
+                  </p>
+                </div>
+
+                {selectedLead && (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(
+                      selectedLead.status
+                    )}`}
+                  >
+                    {selectedLead.status}
+                  </span>
+                )}
+              </div>
+
+              {selectedLead && (
+                <>
+                  <div
+                    className={`mb-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4 ${getScoreTone(
+                      selectedLead.score
+                    ).glow}`}
+                  >
+                    <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+                      Deal Score
+                    </p>
+                    <div className="mt-2 flex items-end gap-3">
+                      <span className="text-5xl font-bold">
+                        {selectedLead.score}
+                      </span>
+                      <span
+                        className={`mb-1 text-sm font-medium ${
+                          getScoreTone(selectedLead.score).color
+                        }`}
+                      >
+                        {getScoreTone(selectedLead.score).text}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${
+                          getScoreTone(selectedLead.score).bar
+                        }`}
+                        style={{ width: `${selectedLead.score}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoBox label="ARV" value={formatMoney(selectedLead.arv)} />
+                    <InfoBox
+                      label="Asking"
+                      value={formatMoney(selectedLead.asking)}
+                    />
+                    <InfoBox
+                      label="Repairs"
+                      value={formatMoney(selectedLead.repairs)}
+                    />
+                    <InfoBox
+                      label="Equity"
+                      value={`${selectedLead.equityPercent}%`}
+                    />
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                    <p className="text-sm font-semibold text-white">
+                      Owner Info
+                    </p>
+                    <div className="mt-3 space-y-2 text-sm text-slate-300">
+                      <p>
+                        <span className="text-slate-400">Name:</span>{" "}
+                        {selectedLead.owner}
+                      </p>
+                      <p>
+                        <span className="text-slate-400">Phone:</span>{" "}
+                        {selectedLead.phone}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                      <button className="flex-1 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95">
+                        View Lead
+                      </button>
+                      <button className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                        Contact Owner
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                    <p className="text-sm font-semibold text-white">
+                      Why this deal stands out
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                      <li>• Discount between asking price and ARV.</li>
+                      <li>• Good spread after repair estimate.</li>
+                      <li>• Strong investor potential based on equity.</li>
+                      <li>• Motivation tags suggest seller opportunity.</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <h3 className="text-lg font-semibold">Quick Actions</h3>
+              <div className="mt-4 grid gap-3">
+                <ActionButton title="Run AI Analyzer" subtitle="ARV, repairs, score" />
+                <ActionButton title="Import PropStream CSV" subtitle="Bring in real lead data" />
+                <ActionButton title="Skip Trace Owner" subtitle="Get better contact info" />
+                <ActionButton title="Send Buyer Blast" subtitle="Push deal to your buyers" />
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
-    </AppShell>
+    </main>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  subtext,
+  icon,
+}: {
+  title: string;
+  value: string;
+  subtext: string;
+  icon: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-sky-400/10 blur-2xl" />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-slate-400">{title}</p>
+          <h3 className="mt-3 text-3xl font-bold">{value}</h3>
+          <p className="mt-2 text-sm text-slate-300">{subtext}</p>
+        </div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0d1727] text-xl">
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LeadCard({
+  lead,
+  active,
+  onClick,
+}: {
+  lead: Lead;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const spread = lead.arv - lead.asking - lead.repairs;
+  const scoreTone = getScoreTone(lead.score);
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full rounded-3xl border p-4 text-left transition ${
+        active
+          ? "border-sky-400/40 bg-gradient-to-br from-sky-500/10 to-blue-600/10 shadow-lg shadow-sky-950/30"
+          : "border-white/10 bg-[#0b1320] hover:border-white/20 hover:bg-[#0e1727]"
+      }`}
+    >
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-lg font-semibold text-white">{lead.address}</h3>
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(
+                lead.status
+              )}`}
+            >
+              {lead.status}
+            </span>
+          </div>
+
+          <p className="mt-2 text-sm text-slate-300">
+            {lead.city}, {lead.state} {lead.zip}
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {lead.tags.map((tag) => (
+              <span
+                key={tag}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${tagClasses(
+                  tag
+                )}`}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid min-w-[220px] grid-cols-2 gap-3 xl:w-[240px]">
+          <MiniMetric label="Score" value={String(lead.score)} />
+          <MiniMetric label="Spread" value={formatMoney(spread)} />
+          <MiniMetric label="ARV" value={formatMoney(lead.arv)} />
+          <MiniMetric label="Repairs" value={formatMoney(lead.repairs)} />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+          <span>Deal strength</span>
+          <span className={scoreTone.color}>{scoreTone.text}</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div
+            className={`h-full rounded-full bg-gradient-to-r ${scoreTone.bar}`}
+            style={{ width: `${lead.score}%` }}
+          />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function MiniMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function InfoBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function PipelineBox({
+  label,
+  count,
+  tone,
+}: {
+  label: string;
+  count: number;
+  tone: "sky" | "indigo" | "amber" | "fuchsia" | "emerald" | "zinc";
+}) {
+  const toneClasses: Record<string, string> = {
+    sky: "from-sky-500/20 to-sky-400/5 border-sky-400/20 text-sky-200",
+    indigo:
+      "from-indigo-500/20 to-indigo-400/5 border-indigo-400/20 text-indigo-200",
+    amber:
+      "from-amber-500/20 to-amber-400/5 border-amber-400/20 text-amber-200",
+    fuchsia:
+      "from-fuchsia-500/20 to-fuchsia-400/5 border-fuchsia-400/20 text-fuchsia-200",
+    emerald:
+      "from-emerald-500/20 to-emerald-400/5 border-emerald-400/20 text-emerald-200",
+    zinc: "from-zinc-500/20 to-zinc-400/5 border-zinc-400/20 text-zinc-200",
+  };
+
+  return (
+    <div
+      className={`rounded-2xl border bg-gradient-to-br p-4 ${toneClasses[tone]}`}
+    >
+      <p className="text-sm">{label}</p>
+      <p className="mt-3 text-2xl font-bold text-white">{count}</p>
+    </div>
+  );
+}
+
+function ActionButton({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <button className="rounded-2xl border border-white/10 bg-[#0d1727] p-4 text-left transition hover:border-sky-400/30 hover:bg-[#101b2d]">
+      <p className="font-medium text-white">{title}</p>
+      <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+    </button>
   );
 }

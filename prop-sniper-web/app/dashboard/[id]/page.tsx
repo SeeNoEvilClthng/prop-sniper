@@ -1,462 +1,141 @@
-import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
-import AppShell from '@/components/AppShell'
-import SendToBuyersButton from '@/components/SendToBuyersButton'
-import RunDealAnalyzerButton from '@/components/RunDealAnalyzerButton'
-import { getBuyerMatch } from '@/lib/buyer-matching'
-import PropertyPhotos from '@/components/PropertyPhotos'
+import ContactActions from "@/components/ContactActions";
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import DealAnalyzer from "@/components/DealAnalyzer";
 
-type Props = {
-  params: Promise<{ id: string }>
-}
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
-function badge(text: string, className: string) {
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${className}`}>
-      {text}
-    </span>
-  )
-}
+export default async function LeadDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const supabase = await createClient();
 
-function ratingBadgeClass(rating: string | null) {
-  if (rating === 'Hot') return 'bg-red-600 text-white'
-  if (rating === 'Strong') return 'bg-orange-500 text-white'
-  if (rating === 'Good') return 'bg-blue-600 text-white'
-  if (rating === 'Fair') return 'bg-gray-600 text-white'
-  return 'bg-black text-white'
-}
+  const { data: lead, error: leadError } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-function matchBadgeClass(label: string) {
-  if (label === 'Best Buyer Match') return 'bg-red-100 text-red-700'
-  if (label === 'Strong Fit') return 'bg-orange-100 text-orange-700'
-  if (label === 'Likely Fit') return 'bg-blue-100 text-blue-700'
-  return 'bg-gray-100 text-gray-700'
-}
-
-export default async function LeadDetailsPage({ params }: Props) {
-  const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: lead, error } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single()
-
-  if (error || !lead) {
-    notFound()
-  }
-
-  const { data: investors } = await supabase
-    .from('investors')
-    .select('*')
-    .or(`user_id.eq.${user.id},is_public.eq.true`)
-    .order('created_at', { ascending: false })
-
-  const buyerMatches =
-    (investors || [])
-      .map((investor) => ({
-        investor,
-        match: getBuyerMatch(lead, investor),
-      }))
-      .sort((a, b) => b.match.score - a.match.score)
-      .slice(0, 8)
-
-  return (
-    <AppShell
-      title="Lead Details"
-      subtitle="Review property intelligence, motivation, buyer matches, and deal numbers."
-    >
-      <div className="flex flex-wrap gap-3">
-        <Link
-          href={`/dashboard/${lead.id}/edit`}
-          className="rounded-xl bg-black px-4 py-2 font-semibold shadow-md"
-          style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
-        >
-          Edit Lead
+  if (leadError || !lead) {
+    return (
+      <div className="p-6">
+        <Link href="/dashboard" className="text-blue-600 underline">
+          Back to Dashboard
         </Link>
+        <p className="mt-4 text-red-600">Lead not found.</p>
+      </div>
+    );
+  }
 
-        <SendToBuyersButton leadId={lead.id} />
+  const { data: contactAttempts, error: attemptsError } = await supabase
+    .from("contact_attempts")
+    .select("*")
+    .eq("lead_id", id)
+    .order("created_at", { ascending: false });
 
-        <RunDealAnalyzerButton leadId={lead.id} />
-
-        <Link href="/dashboard" className="rounded-xl border px-4 py-2">
-          Back
+  return (
+    <div className="space-y-6 p-6">
+      <div>
+        <Link href="/dashboard" className="text-blue-600 underline">
+          Back to Dashboard
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-2xl border bg-white p-6">
+      <div className="rounded-2xl border p-6">
+        <h1 className="text-2xl font-bold">{lead.address || "No address"}</h1>
+        <p className="text-gray-600">
+          {[lead.city, lead.state, lead.zip].filter(Boolean).join(", ") || "No location"}
+        </p>
+      </div>
+
+      <div className="rounded-2xl border p-6">
+        <h2 className="mb-4 text-xl font-semibold">Lead Info</h2>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
-            <p className="text-sm text-gray-500">Address</p>
-            <p className="font-medium">{lead.address}</p>
+            <p className="text-sm text-gray-500">Owner Name</p>
+            <p>{lead.owner_name || "No owner saved"}</p>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="text-sm text-gray-500">City</p>
-              <p>{lead.city || '—'}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">State</p>
-              <p>{lead.state || '—'}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">ZIP Code</p>
-              <p>{lead.zip_code || '—'}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Status</p>
-              <p>{lead.status || 'New'}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Follow Up Date</p>
-              <p>{lead.follow_up_date || 'None'}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Estimated Value</p>
-              <p>
-                {lead.estimated_value
-                  ? `$${Number(lead.estimated_value).toLocaleString()}`
-                  : 'Not available'}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Bedrooms</p>
-              <p>{lead.bedrooms ?? '—'}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Bathrooms</p>
-              <p>{lead.bathrooms ?? '—'}</p>
-            </div>
+          <div>
+            <p className="text-sm text-gray-500">Status</p>
+            <p>{lead.status || "No status"}</p>
           </div>
 
-          <div className="mt-6 rounded-xl border bg-gray-50 p-4">
-            <p className="text-sm text-gray-500">Lead Score</p>
-
-            <div className="mt-2 flex items-center gap-3">
-              <span className="text-2xl font-bold">{lead.lead_score ?? '—'}</span>
-
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${ratingBadgeClass(
-                  lead.lead_rating
-                )}`}
-              >
-                {lead.lead_rating || 'Unrated'}
-              </span>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              {lead.lead_signals
-                ?.split(',')
-                .map((s: string) => s.trim())
-                .filter(Boolean)
-                .map((signal: string) => (
-                  <span
-                    key={signal}
-                    className="rounded-full border px-3 py-1 text-xs"
-                  >
-                    {signal}
-                  </span>
-                ))}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <p className="text-sm text-gray-500">Motivation Signals</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {lead.is_absentee_owner &&
-                badge('Absentee Owner', 'bg-blue-100 text-blue-700')}
-              {lead.owner_occupied &&
-                badge('Owner Occupied', 'bg-green-100 text-green-700')}
-              {lead.long_term_owner &&
-                badge('Long-Term Owner', 'bg-gray-100 text-gray-700')}
-              {lead.senior_owner_likely &&
-                badge('Senior Owner Likely', 'bg-orange-100 text-orange-700')}
-              {lead.likely_distressed &&
-                badge('Possible Distress', 'bg-red-100 text-red-700')}
-              {(lead.property_age || 0) >= 40 &&
-                badge('Older Property', 'bg-purple-100 text-purple-700')}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <p className="text-sm text-gray-500">Notes</p>
-            <p className="mt-2 whitespace-pre-wrap">{lead.notes || 'No notes yet'}</p>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="rounded-2xl border bg-white p-6">
-            <h2 className="text-xl font-semibold">Property Intelligence</h2>
-
-            <div className="mt-5 space-y-4">
-              <div>
-                <p className="text-sm text-gray-500">Owner Name</p>
-                <p>{lead.owner_name || 'Not available'}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Owner Type</p>
-                <p>{lead.owner_type || 'Not available'}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Years Owned</p>
-                <p>{lead.years_owned ?? 'Not available'}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Last Sale Date</p>
-                <p>{lead.last_sale_date || 'Not available'}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Property Age</p>
-                <p>{lead.property_age ?? 'Not available'}</p>
-              </div>
-            </div>
-          </div>
-<div className="mt-8">
-  <PropertyPhotos
-    address={lead.address}
-    city={lead.city}
-    state={lead.state}
-    zipCode={lead.zip_code}
-  />
-</div>
-          <div className="rounded-2xl border bg-white p-6">
-            <h2 className="text-xl font-semibold">Contact Panel</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Ready for owner outreach data.
+          <div>
+            <p className="text-sm text-gray-500">Estimated Value</p>
+            <p>
+              {lead.estimated_value
+                ? `$${Number(lead.estimated_value).toLocaleString()}`
+                : "No value yet"}
             </p>
+          </div>
 
-            <div className="mt-5 space-y-4">
-              <div>
-                <p className="text-sm text-gray-500">Phone</p>
-                <p>{lead.owner_phone || 'Not available yet'}</p>
-              </div>
+          <div>
+            <p className="text-sm text-gray-500">Estimated Rent</p>
+            <p>
+              {lead.estimated_rent
+                ? `$${Number(lead.estimated_rent).toLocaleString()}`
+                : "No rent yet"}
+            </p>
+          </div>
 
-              <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <p>{lead.owner_email || 'Not available yet'}</p>
-              </div>
-            </div>
+          <div>
+            <p className="text-sm text-gray-500">Beds / Baths</p>
+            <p>
+              {lead.beds || "—"} / {lead.baths || "—"}
+            </p>
+          </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                disabled={!lead.owner_phone}
-                className="rounded-xl bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Call Owner
-              </button>
-
-              <button
-                disabled={!lead.owner_phone}
-                className="rounded-xl border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Text Owner
-              </button>
-
-              <button
-                disabled={!lead.owner_email}
-                className="rounded-xl border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Email Owner
-              </button>
-            </div>
+          <div>
+            <p className="text-sm text-gray-500">Square Feet</p>
+            <p>{lead.sqft ? Number(lead.sqft).toLocaleString() : "—"}</p>
           </div>
         </div>
       </div>
+      <DealAnalyzer
+  sqft={lead.sqft}
+  estimatedValue={lead.estimated_value}
+/>
 
-      <div className="mt-8 rounded-2xl border bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold">Deal Analyzer</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              ARV, repairs, target offer, and AI summary.
-            </p>
-          </div>
 
-          <RunDealAnalyzerButton leadId={lead.id} />
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div>
-            <p className="text-sm text-gray-500">ARV</p>
-            <p className="font-medium">
-              {lead.arv ? `$${Number(lead.arv).toLocaleString()}` : 'Not available'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Estimated Repairs</p>
-            <p className="font-medium">
-              {lead.estimated_repairs
-                ? `$${Number(lead.estimated_repairs).toLocaleString()}`
-                : 'Not available'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Target Offer</p>
-            <p className="font-medium">
-              {lead.target_offer
-                ? `$${Number(lead.target_offer).toLocaleString()}`
-                : 'Not available'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Rehab Level</p>
-            <p className="capitalize">{lead.rehab_level || 'medium'}</p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Comp Count</p>
-            <p>{lead.comp_count ?? 0}</p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Confidence</p>
-            <p className="capitalize">{lead.value_confidence || 'low'}</p>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <p className="text-sm text-gray-500">AI Analysis</p>
-          <p className="mt-2 whitespace-pre-wrap">
-            {lead.ai_analysis || 'Run the deal analyzer to generate a summary.'}
-          </p>
-        </div>
-
-        <div className="mt-6">
-          <p className="text-sm text-gray-500">Last Analysis Run</p>
-          <p>{lead.analysis_ran_at || 'Not run yet'}</p>
-        </div>
+      <div className="rounded-2xl border p-6">
+        <h2 className="mb-4 text-xl font-semibold">Outreach</h2>
+        <ContactActions
+          leadId={lead.id}
+          phones={Array.isArray(lead.owner_phones) ? lead.owner_phones : []}
+          emails={Array.isArray(lead.owner_emails) ? lead.owner_emails : []}
+        />
       </div>
 
-      <div className="mt-8 rounded-2xl border bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold">Best Buyer Matches</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Investors that best fit this lead based on market, price, and buy box.
-            </p>
+      <div className="rounded-2xl border p-6">
+        <h2 className="mb-4 text-xl font-semibold">Contact History</h2>
+
+        {attemptsError ? (
+          <p className="text-red-600">Could not load contact history.</p>
+        ) : contactAttempts && contactAttempts.length > 0 ? (
+          <div className="space-y-3">
+            {contactAttempts.map((attempt) => (
+              <div key={attempt.id} className="rounded-xl border p-3">
+                <p className="font-medium">
+                  {attempt.method?.toUpperCase() || "UNKNOWN"} •{" "}
+                  {attempt.status || "sent"}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">
+                  {attempt.message || "No message saved"}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  {attempt.created_at
+                    ? new Date(attempt.created_at).toLocaleString()
+                    : ""}
+                </p>
+              </div>
+            ))}
           </div>
-
-          <Link
-            href="/investors/new"
-            className="rounded-xl bg-black px-4 py-2 font-semibold shadow-md"
-            style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
-          >
-            Add Investor
-          </Link>
-        </div>
-
-        <div className="mt-6 space-y-4">
-          {buyerMatches.length === 0 && (
-            <div className="rounded-xl border p-4">
-              <p className="text-sm text-gray-600">No investors found yet.</p>
-            </div>
-          )}
-
-          {buyerMatches.map(({ investor, match }) => (
-            <Link
-              key={investor.id}
-              href={`/investors/${investor.id}`}
-              className="block rounded-xl border p-5 hover:bg-gray-50"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-semibold">{investor.company_name}</h3>
-
-                  {investor.has_contact === false && (
-                    <span className="mt-1 inline-block rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold">
-                      Market Buyer (No Contact)
-                    </span>
-                  )}
-
-                  {investor.has_contact === true && (
-                    <span className="mt-1 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                      Your Buyer
-                    </span>
-                  )}
-
-                  <p className="mt-2 text-sm text-gray-600">
-                    {investor.contact_name || 'No contact name'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${matchBadgeClass(
-                      match.label
-                    )}`}
-                  >
-                    {match.label}
-                  </span>
-                  <span className="rounded-full border px-3 py-1 text-xs font-semibold">
-                    Match {match.score}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm md:grid-cols-3">
-                <div>
-                  <strong>Phone:</strong> {investor.phone || '—'}
-                </div>
-                <div>
-                  <strong>Email:</strong> {investor.email || '—'}
-                </div>
-                <div>
-                  <strong>Max Price:</strong>{' '}
-                  {investor.max_price != null
-                    ? `$${Number(investor.max_price).toLocaleString()}`
-                    : '—'}
-                </div>
-              </div>
-
-              <div className="mt-3 grid gap-3 text-sm md:grid-cols-2">
-                <div>
-                  <strong>Markets:</strong> {investor.markets || '—'}
-                </div>
-                <div>
-                  <strong>Property Types:</strong> {investor.property_types || '—'}
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {match.reasons.map((reason) => (
-                  <span
-                    key={reason}
-                    className="rounded-full border px-3 py-1 text-xs"
-                  >
-                    {reason}
-                  </span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
+        ) : (
+          <p className="text-gray-500">No contact attempts yet.</p>
+        )}
       </div>
-    </AppShell>
-  )
+    </div>
+  );
 }

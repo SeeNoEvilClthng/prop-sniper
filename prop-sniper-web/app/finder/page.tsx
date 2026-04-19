@@ -15,11 +15,12 @@ export default async function FinderPage() {
   }
 
   return (
-    <AppShell
-      title="City Deal Finder"
-      subtitle="Search a city and find properties worth looking at."
-    >
-      <CityFinder />
+    <AppShell>
+      <div>
+        <h1>City Deal Finder</h1>
+        <p>Search a city and find properties worth looking at.</p>
+        <CityFinder />
+      </div>
     </AppShell>
   )
 }

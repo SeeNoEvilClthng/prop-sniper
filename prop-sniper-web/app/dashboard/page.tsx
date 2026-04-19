@@ -1,160 +1,180 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import AppShell from '@/components/AppShell'
+import AppShell from "@/components/AppShell";
+import LeadCard from "@/components/ui/LeadCard";
+import StatsRow from "@/components/ui/StatsRow";
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
+const sampleLeads = [
+  {
+    id: "1",
+    address: "5039 Galahad Dr",
+    city: "San Antonio",
+    state: "TX",
+    status: "Negotiating",
+    owner_name: "J. Harris",
+    estimated_value: 215000,
+    estimated_rent: 1850,
+    beds: 4,
+    baths: 3,
+    sqft: 1545,
+    score: 84,
+  },
+  {
+    id: "2",
+    address: "542 Bertetti Dr",
+    city: "San Antonio",
+    state: "TX",
+    status: "Under Contract",
+    owner_name: "R. James",
+    estimated_value: 255000,
+    estimated_rent: 1950,
+    beds: 3,
+    baths: 2,
+    sqft: 1398,
+    score: 91,
+  },
+  {
+    id: "3",
+    address: "1371 S Parkway E",
+    city: "Memphis",
+    state: "TN",
+    status: "Follow Up",
+    owner_name: "Unknown",
+    estimated_value: 172000,
+    estimated_rent: 1450,
+    beds: 3,
+    baths: 2,
+    sqft: 1320,
+    score: 58,
+  },
+];
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+const filterPills = [
+  "Absentee Owner",
+  "High Equity",
+  "Vacant",
+  "Pre-Foreclosure",
+  "Tax Delinquent",
+  "Tired Landlord",
+];
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: leads, error } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error(error)
-  }
-
+export default function DashboardPage() {
   return (
-    <AppShell
-      title="Dashboard"
-      subtitle="Track your leads, follow-ups, and strongest opportunities."
-    >
-      <div className="flex flex-wrap gap-3">
-    <Link
-  href="/dashboard/new"
-  className="rounded-xl bg-black px-4 py-2 font-semibold shadow-md"
-  style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
->
-  Add Lead
-</Link>
+    <AppShell>
+      <div className="space-y-6">
+        <StatsRow />
 
-        <Link href="/map" className="rounded-xl border px-4 py-2">
-          Open Map
-        </Link>
-
-        <Link href="/finder" className="rounded-xl border px-4 py-2">
-          City Finder
-        </Link>
-      </div>
-
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-gray-500">Total Leads</p>
-          <p className="mt-2 text-3xl font-bold">{leads?.length || 0}</p>
-        </div>
-
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-gray-500">Hot / Strong Leads</p>
-          <p className="mt-2 text-3xl font-bold">
-            {(leads || []).filter(
-              (lead) => lead.lead_rating === 'Hot' || lead.lead_rating === 'Strong'
-            ).length}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-gray-500">Under Contract</p>
-          <p className="mt-2 text-3xl font-bold">
-            {(leads || []).filter((lead) => lead.status === 'Under Contract').length}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-8 space-y-4">
-        {!leads?.length && (
-          <div className="rounded-2xl border bg-white p-5">
-            <p className="text-sm text-gray-600">No leads yet.</p>
-          </div>
-        )}
-
-        {leads?.map((lead) => (
-          <Link
-            key={lead.id}
-            href={`/dashboard/${lead.id}`}
-            className="block rounded-2xl border bg-white p-5 hover:bg-gray-50"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_.95fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="font-semibold">{lead.address}</h2>
-                <p className="mt-1 text-sm text-gray-600">
-                  {lead.city || 'Unknown city'}, {lead.state || 'Unknown state'}
+                <h3 className="text-xl font-semibold tracking-tight">
+                  Deal Finder
+                </h3>
+                <p className="mt-1 text-sm text-white/50">
+                  Filter and sort through the best lead types faster.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                {lead.lead_rating && (
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${
-                      lead.lead_rating === 'Hot'
-                        ? 'bg-red-600'
-                        : lead.lead_rating === 'Strong'
-                        ? 'bg-orange-500'
-                        : lead.lead_rating === 'Good'
-                        ? 'bg-blue-600'
-                        : lead.lead_rating === 'Fair'
-                        ? 'bg-gray-600'
-                        : 'bg-black'
-                    }`}
-                  >
-                    {lead.lead_rating}
-                  </span>
-                )}
+              <button className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15">
+                Import CSV
+              </button>
+            </div>
 
-                <span className="rounded-full border px-3 py-1 text-xs font-semibold">
-                  Score {lead.lead_score ?? '—'}
-                </span>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {filterPills.map((pill) => (
+                <button
+                  key={pill}
+                  className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-white"
+                >
+                  {pill}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 space-y-4">
+              {sampleLeads.map((lead) => (
+                <LeadCard key={lead.id} lead={lead} />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 p-5 shadow-xl shadow-cyan-900/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-cyan-200/80">AI Deal Engine</p>
+                  <h3 className="mt-1 text-xl font-semibold">
+                    Find stronger offers
+                  </h3>
+                </div>
+
+                <div className="rounded-2xl bg-white/10 px-3 py-2 text-sm font-semibold text-cyan-100">
+                  Live
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-black/20 p-4">
+                  <p className="text-xs text-cyan-100/60">Avg ARV</p>
+                  <p className="mt-2 text-2xl font-bold">$246K</p>
+                </div>
+
+                <div className="rounded-2xl bg-black/20 p-4">
+                  <p className="text-xs text-cyan-100/60">Best Max Offer</p>
+                  <p className="mt-2 text-2xl font-bold">$159K</p>
+                </div>
+              </div>
+
+              <button className="mt-5 w-full rounded-2xl bg-black/30 px-4 py-3 text-sm font-semibold text-white transition hover:bg-black/40">
+                Open AI Analyzer
+              </button>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Map View</h3>
+                  <p className="mt-1 text-sm text-white/50">
+                    Click neighborhoods and spot deals visually.
+                  </p>
+                </div>
+
+                <button className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10">
+                  Expand
+                </button>
+              </div>
+
+              <div className="mt-5 flex h-[340px] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/20">
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-white/80">
+                    Mapbox Section
+                  </p>
+                  <p className="mt-2 text-sm text-white/45">
+                    Put your live deal map here
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 text-sm md:grid-cols-3">
-              <div>
-                <strong>Status:</strong> {lead.status || 'New'}
-              </div>
-              <div>
-                <strong>Follow up:</strong> {lead.follow_up_date || 'None'}
-              </div>
-              <div>
-                <strong>Estimated Value:</strong>{' '}
-                {lead.estimated_value
-                  ? `$${Number(lead.estimated_value).toLocaleString()}`
-                  : '—'}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
+              <h3 className="text-xl font-semibold">Quick Actions</h3>
+              <div className="mt-4 grid grid-cols-1 gap-3">
+                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
+                  Add new lead
+                </button>
+                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
+                  Run batch analysis
+                </button>
+                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
+                  Send buyer blast
+                </button>
+                <button className="rounded-2xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15">
+                  Review follow ups
+                </button>
               </div>
             </div>
-
-            {lead.lead_signals && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {lead.lead_signals
-                  .split(',')
-                  .map((signal: string) => signal.trim())
-                  .filter(Boolean)
-                  .slice(0, 5)
-                  .map((signal: string) => (
-                    <span
-                      key={signal}
-                      className="rounded-full border px-2 py-1 text-xs"
-                    >
-                      {signal}
-                    </span>
-                  ))}
-              </div>
-            )}
-
-            <p className="mt-3 text-sm text-gray-700">
-              <strong>Notes:</strong> {lead.notes || 'No notes yet'}
-            </p>
-          </Link>
-        ))}
+          </div>
+        </section>
       </div>
     </AppShell>
-  )
+  );
 }

@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import "mapbox-gl/dist/mapbox-gl.css";
 
 export const metadata: Metadata = {
   title: 'PropSniper',

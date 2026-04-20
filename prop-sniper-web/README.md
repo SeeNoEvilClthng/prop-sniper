@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PropSniper Web
 
-## Getting Started
+PropSniper is a real-estate wholesaling operating system built with Next.js, Supabase, Stripe, Mapbox, and AI-assisted lead intelligence.
 
-First, run the development server:
+## What It Includes
+
+- acquisitions dashboard
+- lead queue and lead workspace
+- motivation signals and AI summaries
+- deal analysis and buyer matching
+- team assignment, notes, workflow, and tasks
+- dispo send flow
+- manager/team performance views
+
+## Local Development
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy the environment template:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Fill in the required values in `.env.local`.
+
+4. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Run lint before shipping changes:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Required Environment Variables
 
-## Learn More
+Core app:
 
-To learn more about Next.js, take a look at the following resources:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_APP_URL`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Billing:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PRICE_ID`
+- `STRIPE_STARTER_PRICE_ID`
+- `STRIPE_WEBHOOK_SECRET`
 
-## Deploy on Vercel
+Maps and property data:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `NEXT_PUBLIC_MAPBOX_TOKEN`
+- `RENTCAST_API_KEY`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+AI and outbound:
+
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL` optional, defaults in code
+- `RESEND_API_KEY`
+
+Optional server-side auth fallback:
+
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+## Deployment
+
+Recommended path:
+
+1. Push `main` to GitHub.
+2. Import the repo into Vercel.
+3. Add the production environment variables from `.env.example`.
+4. Set your production URL in:
+   - `NEXT_PUBLIC_SITE_URL`
+   - `NEXT_PUBLIC_APP_URL`
+5. Trigger a production deploy.
+
+Detailed deployment notes are in [docs/deployment-guide.md](/Users/wunmanbandxay._/Documents/Codex/2026-04-19-am-i-able-to-connect-you/prop-sniper/prop-sniper-web/docs/deployment-guide.md).
+
+## Current Product Docs
+
+- Roadmap: [docs/product-roadmap.md](/Users/wunmanbandxay._/Documents/Codex/2026-04-19-am-i-able-to-connect-you/prop-sniper/prop-sniper-web/docs/product-roadmap.md)
+- Deployment: [docs/deployment-guide.md](/Users/wunmanbandxay._/Documents/Codex/2026-04-19-am-i-able-to-connect-you/prop-sniper/prop-sniper-web/docs/deployment-guide.md)

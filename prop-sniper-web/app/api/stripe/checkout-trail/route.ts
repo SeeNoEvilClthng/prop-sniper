@@ -57,10 +57,7 @@ export async function POST(req: NextRequest) {
       allow_promotion_codes: true,
     });
 
-    return NextResponse.json({
-      sessionId: session.id,
-      url: session.url,
-    });
+    return NextResponse.json({ sessionId: session.id });
   } catch (error) {
     console.error("checkout-trial error:", error);
     return NextResponse.json(

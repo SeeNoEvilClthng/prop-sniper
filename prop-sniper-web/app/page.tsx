@@ -58,30 +58,67 @@ const features = [
 ];
 
 const comparison = [
+  { label: "Lead tracking", propsniper: true, oldWay: false },
+  { label: "Deal scoring", propsniper: true, oldWay: false },
+  { label: "Pipeline stages", propsniper: true, oldWay: false },
+  { label: "Fast dashboard view", propsniper: true, oldWay: false },
+  { label: "Spreadsheet-free workflow", propsniper: true, oldWay: false },
+];
+
+const pricingPlans = [
   {
-    label: "Lead tracking",
-    propsniper: true,
-    oldWay: false,
+    name: "Starter",
+    price: "$29",
+    period: "/month",
+    badge: "Best for beginners",
+    description:
+      "Good for solo wholesalers who want a clean system for lead tracking and pipeline management.",
+    features: [
+      "Lead dashboard access",
+      "Saved leads tracking",
+      "Basic deal scoring",
+      "Pipeline management",
+      "Search and filter tools",
+      "Email support",
+    ],
+    cta: "Start Starter Plan",
+    highlighted: false,
   },
   {
-    label: "Deal scoring",
-    propsniper: true,
-    oldWay: false,
+    name: "Pro",
+    price: "$79",
+    period: "/month",
+    badge: "Most Popular",
+    description:
+      "Best for serious users who want stronger tools, better organization, and more deal control.",
+    features: [
+      "Everything in Starter",
+      "Advanced deal analyzer",
+      "CSV imports",
+      "Marketing tools",
+      "Buyer blast tools",
+      "Priority support",
+    ],
+    cta: "Choose Pro",
+    highlighted: true,
   },
   {
-    label: "Pipeline stages",
-    propsniper: true,
-    oldWay: false,
-  },
-  {
-    label: "Fast dashboard view",
-    propsniper: true,
-    oldWay: false,
-  },
-  {
-    label: "Spreadsheet-free workflow",
-    propsniper: true,
-    oldWay: false,
+    name: "Team",
+    price: "$149",
+    period: "/month",
+    badge: "For teams",
+    description:
+      "Built for acquisitions teams that need collaboration, shared workflows, and more room to grow.",
+    features: [
+      "Everything in Pro",
+      "Team access controls",
+      "Shared lead workflows",
+      "Expanded analytics",
+      "Account tools",
+      "Higher usage limits",
+    ],
+    cta: "Start Team Plan",
+    highlighted: false,
   },
 ];
 
@@ -104,7 +141,6 @@ export default function HomePage() {
     <main className="min-h-screen overflow-x-hidden bg-[#07111f] text-white">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_24%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
 
-      {/* NAV */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07111f]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
@@ -123,14 +159,14 @@ export default function HomePage() {
             <a href="#features" className="text-sm text-slate-300 transition hover:text-white">
               Features
             </a>
+            <a href="#pricing" className="text-sm text-slate-300 transition hover:text-white">
+              Pricing
+            </a>
             <a href="#why" className="text-sm text-slate-300 transition hover:text-white">
               Why PropSniper
             </a>
             <a href="#reviews" className="text-sm text-slate-300 transition hover:text-white">
               Reviews
-            </a>
-            <a href="#pricing" className="text-sm text-slate-300 transition hover:text-white">
-              Pricing
             </a>
           </nav>
 
@@ -151,7 +187,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* HERO */}
       <section className="relative">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pb-24 lg:pt-20">
           <div className="flex flex-col justify-center">
@@ -173,13 +208,13 @@ export default function HomePage() {
                 href="/signup"
                 className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-4 text-center text-sm font-semibold text-white shadow-xl shadow-sky-950/30 transition hover:opacity-95"
               >
-                Start Free
+                Start for $29/month
               </a>
               <a
-                href="/dashboard"
+                href="#pricing"
                 className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                View Dashboard
+                See Pricing
               </a>
             </div>
 
@@ -187,13 +222,13 @@ export default function HomePage() {
               <TrustPill text="Lead Tracking" />
               <TrustPill text="AI Deal Scores" />
               <TrustPill text="Pipeline Management" />
-              <TrustPill text="Investor Workflow" />
+              <TrustPill text="Starts at $29/mo" />
             </div>
 
             <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">
               <MiniStat value="10x" label="Cleaner workflow" />
               <MiniStat value="24/7" label="Deal visibility" />
-              <MiniStat value="All-in-1" label="Lead management" />
+              <MiniStat value="$29" label="Starting price" />
             </div>
           </div>
 
@@ -259,19 +294,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
       <section className="border-y border-white/10 bg-white/[0.03]">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-slate-400">
             <span>Trusted by growing wholesalers</span>
             <span>Used for acquisitions workflows</span>
             <span>Built for faster deal review</span>
-            <span>Made for lead-heavy teams</span>
+            <span>Plans start at $29/month</span>
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
       <section id="features" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
@@ -301,7 +334,83 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHY */}
+      <section id="pricing" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
+            Pricing
+          </p>
+          <h2 className="mt-4 text-4xl font-bold sm:text-5xl">
+            Choose your plan
+          </h2>
+          <p className="mt-4 text-lg text-slate-300">
+            Starter starts at $29/month and gives you a clean way to manage your lead workflow.
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <div className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-5 py-2 text-sm font-medium text-emerald-200">
+            Starter $29/month • Pro $79/month • Team $149/month
+          </div>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {pricingPlans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`rounded-[30px] border p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-7 ${
+                plan.highlighted
+                  ? "border-sky-400/30 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-violet-500/10"
+                  : "border-white/10 bg-white/5"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    plan.highlighted
+                      ? "bg-sky-500/15 text-sky-200 ring-1 ring-sky-400/30"
+                      : "bg-white/5 text-slate-300 ring-1 ring-white/10"
+                  }`}
+                >
+                  {plan.badge}
+                </span>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/10 bg-[#0d1727] p-5 text-center">
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                  Monthly Price
+                </p>
+                <div className="mt-3 flex items-end justify-center gap-2">
+                  <span className="text-6xl font-bold text-white">{plan.price}</span>
+                  <span className="pb-2 text-slate-400">{plan.period}</span>
+                </div>
+              </div>
+
+              <p className="mt-5 min-h-[88px] leading-7 text-slate-300">
+                {plan.description}
+              </p>
+
+              <div className="mt-6 space-y-3">
+                {plan.features.map((feature) => (
+                  <PricingLine key={feature} text={feature} />
+                ))}
+              </div>
+
+              <a
+                href="/signup"
+                className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 text-sm font-semibold transition ${
+                  plan.highlighted
+                    ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-95"
+                    : "border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                }`}
+              >
+                {plan.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section id="why" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
@@ -363,7 +472,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* REVIEWS */}
       <section id="reviews" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
@@ -398,66 +506,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section id="pricing" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
-        <div className="rounded-[34px] border border-sky-400/20 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-violet-500/10 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-10 lg:p-12">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
-                Start building your system
-              </p>
-              <h2 className="mt-4 max-w-2xl text-3xl font-bold sm:text-4xl">
-                Make your app feel like a real wholesaling platform.
-              </h2>
-              <p className="mt-4 max-w-2xl text-slate-300">
-                Use this landing page to make a stronger first impression, build trust faster, and make visitors want to try the dashboard.
-              </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="/signup"
-                  className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg shadow-sky-950/30 transition hover:opacity-95"
-                >
-                  Start Free
-                </a>
-                <a
-                  href="/dashboard"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Go to Dashboard
-                </a>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-[#0d1727]/80 p-6">
-              <p className="text-sm uppercase tracking-[0.25em] text-slate-400">
-                Launch package
-              </p>
-              <h3 className="mt-3 text-3xl font-bold">$0</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Use this as a starter pricing card for now.
-              </p>
-
-              <div className="mt-6 space-y-3">
-                <PricingLine text="Clean landing page" />
-                <PricingLine text="Modern dashboard feel" />
-                <PricingLine text="Fake review section" />
-                <PricingLine text="Stronger conversion layout" />
-                <PricingLine text="Mobile responsive sections" />
-              </div>
-
-              <a
-                href="/signup"
-                className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-4 text-sm font-semibold text-white transition hover:opacity-95"
-              >
-                Get Started Now
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-slate-400 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <p>© 2026 PropSniper. Built for smarter lead management.</p>

@@ -532,10 +532,11 @@ export default function HomePage() {
                 Start building your system
               </p>
               <h2 className="mt-4 max-w-2xl text-3xl font-bold sm:text-4xl">
-                Move your wholesaling workflow into one platform.
+                Make your app feel like a real wholesaling platform.
               </h2>
               <p className="mt-4 max-w-2xl text-slate-300">
-                Track leads, organize your pipeline, and start with a plan that begins at $29 per month.
+                Start using PropSniper to track leads, manage your pipeline, and stay
+                organized with pricing that starts at just $29 per month.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -556,26 +557,31 @@ export default function HomePage() {
 
             <div className="rounded-3xl border border-white/10 bg-[#0d1727]/80 p-6">
               <p className="text-sm uppercase tracking-[0.25em] text-slate-400">
-                Best entry point
+                Starter Plan
               </p>
-              <h3 className="mt-3 text-3xl font-bold">$29/month</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Start with the Starter plan and upgrade later as your business grows.
+              <div className="mt-3 flex items-end gap-2">
+                <h3 className="text-4xl font-bold text-white">$29</h3>
+                <span className="pb-1 text-slate-400">/month</span>
+              </div>
+              <p className="mt-3 text-sm text-slate-300">
+                Perfect for wholesalers who want a clean dashboard, lead tracking, and
+                an easier way to manage deals.
               </p>
 
               <div className="mt-6 space-y-3">
                 <PricingLine text="Lead dashboard access" />
+                <PricingLine text="Saved leads tracking" />
                 <PricingLine text="Basic deal scoring" />
                 <PricingLine text="Pipeline management" />
                 <PricingLine text="Search and filter tools" />
-                <PricingLine text="Upgrade anytime" />
+                <PricingLine text="Email support" />
               </div>
 
               <a
                 href="/signup"
                 className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-4 text-sm font-semibold text-white transition hover:opacity-95"
               >
-                Get Started Now
+                Get Started for $29
               </a>
             </div>
           </div>

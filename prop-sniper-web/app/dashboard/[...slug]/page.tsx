@@ -90,9 +90,9 @@ const pricingPlans = [
     name: "Starter",
     price: "$29",
     period: "/month",
-    badge: "Starts here",
+    badge: "Best for beginners",
     description:
-      "Best for solo wholesalers who want a clean system to track leads and manage their pipeline.",
+      "Great for solo wholesalers who want a clean system for lead tracking and pipeline management.",
     features: [
       "Lead dashboard access",
       "Saved leads tracking",
@@ -110,12 +110,12 @@ const pricingPlans = [
     period: "/month",
     badge: "Most Popular",
     description:
-      "Built for serious users who want more power, better organization, and faster lead management.",
+      "Best for serious users who want stronger tools, better organization, and more deal control.",
     features: [
       "Everything in Starter",
       "Advanced deal analyzer",
-      "List imports",
-      "Marketing tools access",
+      "CSV imports",
+      "Marketing tools",
       "Buyer blast tools",
       "Priority support",
     ],
@@ -126,15 +126,15 @@ const pricingPlans = [
     name: "Team",
     price: "$149",
     period: "/month",
-    badge: "For growing teams",
+    badge: "For teams",
     description:
-      "For acquisitions teams that need more structure, collaboration, and room to scale operations.",
+      "Built for acquisitions teams that need collaboration, shared workflows, and more room to grow.",
     features: [
       "Everything in Pro",
       "Team access controls",
       "Shared lead workflows",
       "Expanded analytics",
-      "Account management tools",
+      "Account tools",
       "Higher usage limits",
     ],
     cta: "Start Team Plan",
@@ -179,14 +179,14 @@ export default function HomePage() {
             <a href="#features" className="text-sm text-slate-300 transition hover:text-white">
               Features
             </a>
+            <a href="#pricing" className="text-sm text-slate-300 transition hover:text-white">
+              Pricing
+            </a>
             <a href="#why" className="text-sm text-slate-300 transition hover:text-white">
               Why PropSniper
             </a>
             <a href="#reviews" className="text-sm text-slate-300 transition hover:text-white">
               Reviews
-            </a>
-            <a href="#pricing" className="text-sm text-slate-300 transition hover:text-white">
-              Pricing
             </a>
           </nav>
 
@@ -231,10 +231,10 @@ export default function HomePage() {
                 Start for $29/month
               </a>
               <a
-                href="/dashboard"
+                href="#pricing"
                 className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                View Dashboard
+                See Pricing
               </a>
             </div>
 
@@ -354,6 +354,94 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="pricing" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
+            Pricing
+          </p>
+          <h2 className="mt-4 text-4xl font-bold sm:text-5xl">
+            Simple plans you can actually see
+          </h2>
+          <p className="mt-4 text-lg text-slate-300">
+            PropSniper starts at <span className="font-semibold text-white">$29/month</span>.
+            Pick the plan that matches where you are right now.
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <div className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-5 py-2 text-sm font-medium text-emerald-200">
+            Visible pricing: Starter $29 • Pro $79 • Team $149
+          </div>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {pricingPlans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`rounded-[30px] border p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-7 ${
+                plan.highlighted
+                  ? "border-sky-400/30 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-violet-500/10"
+                  : "border-white/10 bg-white/5"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    plan.highlighted
+                      ? "bg-sky-500/15 text-sky-200 ring-1 ring-sky-400/30"
+                      : "bg-white/5 text-slate-300 ring-1 ring-white/10"
+                  }`}
+                >
+                  {plan.badge}
+                </span>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/10 bg-[#0d1727] p-5 text-center">
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                  Monthly Price
+                </p>
+                <div className="mt-3 flex items-end justify-center gap-2">
+                  <span className="text-6xl font-bold text-white">{plan.price}</span>
+                  <span className="pb-2 text-slate-400">{plan.period}</span>
+                </div>
+              </div>
+
+              <p className="mt-5 min-h-[88px] leading-7 text-slate-300">
+                {plan.description}
+              </p>
+
+              <div className="mt-6 space-y-3">
+                {plan.features.map((feature) => (
+                  <PricingLine key={feature} text={feature} />
+                ))}
+              </div>
+
+              <a
+                href="/signup"
+                className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 text-sm font-semibold transition ${
+                  plan.highlighted
+                    ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-95"
+                    : "border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                }`}
+              >
+                {plan.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 rounded-[30px] border border-white/10 bg-white/5 p-6 text-center shadow-2xl shadow-black/20 backdrop-blur-xl">
+          <h3 className="text-2xl font-bold text-white">
+            Pricing starts at $29/month
+          </h3>
+          <p className="mt-3 text-slate-300">
+            Starter is for solo users, Pro is for stronger workflows, and Team is for
+            growing acquisitions teams.
+          </p>
+        </div>
+      </section>
+
       <section id="why" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
@@ -446,81 +534,6 @@ export default function HomePage() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section id="pricing" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
-            Pricing
-          </p>
-          <h2 className="mt-4 text-3xl font-bold sm:text-4xl">
-            Straightforward pricing for every stage
-          </h2>
-          <p className="mt-4 text-slate-300">
-            PropSniper starts at <span className="font-semibold text-white">$29/month</span> for users who want a cleaner way to track leads and manage deals.
-          </p>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
-          {pricingPlans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`rounded-[30px] border p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-7 ${
-                plan.highlighted
-                  ? "border-sky-400/30 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-violet-500/10"
-                  : "border-white/10 bg-white/5"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    plan.highlighted
-                      ? "bg-sky-500/15 text-sky-200 ring-1 ring-sky-400/30"
-                      : "bg-white/5 text-slate-300 ring-1 ring-white/10"
-                  }`}
-                >
-                  {plan.badge}
-                </span>
-              </div>
-
-              <div className="mt-6 flex items-end gap-2">
-                <span className="text-5xl font-bold text-white">{plan.price}</span>
-                <span className="pb-1 text-slate-400">{plan.period}</span>
-              </div>
-
-              <p className="mt-4 min-h-[72px] leading-7 text-slate-300">
-                {plan.description}
-              </p>
-
-              <div className="mt-6 space-y-3">
-                {plan.features.map((feature) => (
-                  <PricingLine key={feature} text={feature} />
-                ))}
-              </div>
-
-              <a
-                href="/signup"
-                className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 text-sm font-semibold transition ${
-                  plan.highlighted
-                    ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-95"
-                    : "border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                }`}
-              >
-                {plan.cta}
-              </a>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 text-center shadow-2xl shadow-black/20 backdrop-blur-xl">
-          <p className="text-lg font-semibold text-white">
-            Get started with PropSniper for just <span className="text-sky-300">$29/month</span>
-          </p>
-          <p className="mt-2 text-slate-300">
-            Built for wholesalers who want a better system for lead tracking, pipeline management, and deal review.
-          </p>
         </div>
       </section>
 

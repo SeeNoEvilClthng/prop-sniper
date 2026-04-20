@@ -63,18 +63,23 @@ function flattenPhotoCandidates(input: unknown): string[] {
 function extractPhotosFromListing(listing: JsonObject | null | undefined): string[] {
   if (!listing) return []
 
+  const media =
+    typeof listing['media'] === 'object' && listing['media'] !== null
+      ? (listing['media'] as JsonObject)
+      : null
+
   const candidateFields = [
-    listing.photos,
-    listing.images,
-    listing.imageUrls,
-    listing.photoUrls,
-    listing.media,
-    listing.media?.photos,
-    listing.media?.images,
-    listing.gallery,
-    listing.galleryPhotos,
-    listing.listingPhotos,
-    listing.propertyPhotos,
+    listing['photos'],
+    listing['images'],
+    listing['imageUrls'],
+    listing['photoUrls'],
+    listing['media'],
+    media?.['photos'],
+    media?.['images'],
+    listing['gallery'],
+    listing['galleryPhotos'],
+    listing['listingPhotos'],
+    listing['propertyPhotos'],
   ]
 
   const urls = candidateFields.flatMap((field) => flattenPhotoCandidates(field))
@@ -106,8 +111,8 @@ async function fetchListingPhotos(endpoint: string, fullAddress: string) {
 
     const data: unknown = await res.json()
     const root = typeof data === 'object' && data !== null ? (data as JsonObject) : null
-    const listings = Array.isArray(root?.listings) ? root.listings : null
-    const results = Array.isArray(root?.results) ? root.results : null
+    const listings = root && Array.isArray(root['listings']) ? root['listings'] : null
+    const results = root && Array.isArray(root['results']) ? root['results'] : null
     const listing =
       Array.isArray(data)
         ? (data[0] as JsonObject | undefined)

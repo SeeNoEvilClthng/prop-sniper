@@ -58,31 +58,11 @@ const features = [
 ];
 
 const comparison = [
-  {
-    label: "Lead tracking",
-    propsniper: true,
-    oldWay: false,
-  },
-  {
-    label: "Deal scoring",
-    propsniper: true,
-    oldWay: false,
-  },
-  {
-    label: "Pipeline stages",
-    propsniper: true,
-    oldWay: false,
-  },
-  {
-    label: "Fast dashboard view",
-    propsniper: true,
-    oldWay: false,
-  },
-  {
-    label: "Spreadsheet-free workflow",
-    propsniper: true,
-    oldWay: false,
-  },
+  { label: "Lead tracking", propsniper: true, oldWay: false },
+  { label: "Deal scoring", propsniper: true, oldWay: false },
+  { label: "Pipeline stages", propsniper: true, oldWay: false },
+  { label: "Fast dashboard view", propsniper: true, oldWay: false },
+  { label: "Spreadsheet-free workflow", propsniper: true, oldWay: false },
 ];
 
 const pricingPlans = [
@@ -92,7 +72,7 @@ const pricingPlans = [
     period: "/month",
     badge: "Best for beginners",
     description:
-      "Great for solo wholesalers who want a clean system for lead tracking and pipeline management.",
+      "Good for solo wholesalers who want a clean system for lead tracking and pipeline management.",
     features: [
       "Lead dashboard access",
       "Saved leads tracking",
@@ -360,17 +340,16 @@ export default function HomePage() {
             Pricing
           </p>
           <h2 className="mt-4 text-4xl font-bold sm:text-5xl">
-            Simple plans you can actually see
+            Choose your plan
           </h2>
           <p className="mt-4 text-lg text-slate-300">
-            PropSniper starts at <span className="font-semibold text-white">$29/month</span>.
-            Pick the plan that matches where you are right now.
+            Clear pricing with no $0 placeholder card.
           </p>
         </div>
 
         <div className="mt-6 flex justify-center">
           <div className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-5 py-2 text-sm font-medium text-emerald-200">
-            Visible pricing: Starter $29 • Pro $79 • Team $149
+            Starter $29/month • Pro $79/month • Team $149/month
           </div>
         </div>
 
@@ -429,16 +408,6 @@ export default function HomePage() {
               </a>
             </div>
           ))}
-        </div>
-
-        <div className="mt-10 rounded-[30px] border border-white/10 bg-white/5 p-6 text-center shadow-2xl shadow-black/20 backdrop-blur-xl">
-          <h3 className="text-2xl font-bold text-white">
-            Pricing starts at $29/month
-          </h3>
-          <p className="mt-3 text-slate-300">
-            Starter is for solo users, Pro is for stronger workflows, and Team is for
-            growing acquisitions teams.
-          </p>
         </div>
       </section>
 
@@ -534,70 +503,6 @@ export default function HomePage() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
-        <div className="rounded-[34px] border border-sky-400/20 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-violet-500/10 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-10 lg:p-12">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.3em] text-sky-200">
-                Start building your system
-              </p>
-              <h2 className="mt-4 max-w-2xl text-3xl font-bold sm:text-4xl">
-                Make your app feel like a real wholesaling platform.
-              </h2>
-              <p className="mt-4 max-w-2xl text-slate-300">
-                Start using PropSniper to track leads, manage your pipeline, and stay
-                organized with pricing that starts at just $29 per month.
-              </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="/signup"
-                  className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg shadow-sky-950/30 transition hover:opacity-95"
-                >
-                  Start at $29/month
-                </a>
-                <a
-                  href="/dashboard"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Go to Dashboard
-                </a>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-[#0d1727]/80 p-6">
-              <p className="text-sm uppercase tracking-[0.25em] text-slate-400">
-                Starter Plan
-              </p>
-              <div className="mt-3 flex items-end gap-2">
-                <h3 className="text-4xl font-bold text-white">$29</h3>
-                <span className="pb-1 text-slate-400">/month</span>
-              </div>
-              <p className="mt-3 text-sm text-slate-300">
-                Perfect for wholesalers who want a clean dashboard, lead tracking, and
-                an easier way to manage deals.
-              </p>
-
-              <div className="mt-6 space-y-3">
-                <PricingLine text="Lead dashboard access" />
-                <PricingLine text="Saved leads tracking" />
-                <PricingLine text="Basic deal scoring" />
-                <PricingLine text="Pipeline management" />
-                <PricingLine text="Search and filter tools" />
-                <PricingLine text="Email support" />
-              </div>
-
-              <a
-                href="/signup"
-                className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-4 text-sm font-semibold text-white transition hover:opacity-95"
-              >
-                Get Started for $29
-              </a>
-            </div>
-          </div>
         </div>
       </section>
 

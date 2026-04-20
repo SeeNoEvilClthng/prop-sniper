@@ -75,10 +75,10 @@ export default function LeadWorkflowActions({
   }
 
   return (
-    <div className="space-y-4 rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <div className="space-y-4 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
       <div>
-        <h2 className="text-2xl font-bold text-white">Workflow Controls</h2>
-        <p className="mt-2 text-slate-300">
+        <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">Workflow Controls</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-400">
           Update deal stage and set the next seller touchpoint without leaving the workspace.
         </p>
       </div>
@@ -113,7 +113,7 @@ export default function LeadWorkflowActions({
           type="button"
           onClick={() => void saveWorkflow({ status, followUpDate: followUpDate || null })}
           disabled={loading}
-          className="rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-50"
+          className="rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-4 py-3 text-sm font-semibold text-[#10151f] transition hover:translate-y-[-1px] disabled:opacity-50"
         >
           {loading ? 'Saving...' : 'Save Workflow'}
         </button>
@@ -122,7 +122,7 @@ export default function LeadWorkflowActions({
           type="button"
           onClick={() => handleQuickFollowUp(1)}
           disabled={loading}
-          className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+          className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:opacity-50"
         >
           Follow Up Tomorrow
         </button>
@@ -131,7 +131,7 @@ export default function LeadWorkflowActions({
           type="button"
           onClick={() => handleQuickFollowUp(3)}
           disabled={loading}
-          className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+          className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:opacity-50"
         >
           Follow Up In 3 Days
         </button>
@@ -140,7 +140,7 @@ export default function LeadWorkflowActions({
           type="button"
           onClick={() => void saveWorkflow({ followUpDate: null })}
           disabled={loading}
-          className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+          className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:opacity-50"
         >
           Clear Follow Up
         </button>

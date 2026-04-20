@@ -74,10 +74,10 @@ function StatCard({
   subtext: string
 }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-white">{value}</p>
-      <p className="mt-2 text-sm text-slate-300">{subtext}</p>
+    <div className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{subtext}</p>
     </div>
   )
 }
@@ -235,14 +235,14 @@ export default function CityFinder() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-sky-200">
+            <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
               Sourcing Engine
             </p>
-            <h2 className="mt-2 text-3xl font-bold text-white">City Deal Finder</h2>
-            <p className="mt-2 max-w-3xl text-slate-300">
+            <h2 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">City Deal Finder</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
               Search a market, rank likely motivated sellers, and push the best
               opportunities directly into your acquisitions queue.
             </p>
@@ -338,11 +338,11 @@ export default function CityFinder() {
         />
       </section>
 
-      <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h3 className="text-2xl font-bold text-white">Result Controls</h3>
-            <p className="mt-2 text-slate-300">
+            <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">Result Controls</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
               Sort and narrow the market to focus on the most actionable leads.
             </p>
           </div>
@@ -389,7 +389,7 @@ export default function CityFinder() {
         {visibleResults.map((result) => (
           <div
             key={result.id}
-            className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl"
+            className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl"
           >
             <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex-1">
@@ -455,7 +455,7 @@ export default function CityFinder() {
                     signal('Older Property', 'bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30')}
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0c1522,#0a1320)] p-4">
                   <p className="text-sm font-semibold text-white">
                     Why this may be a motivated seller lead
                   </p>
@@ -468,7 +468,7 @@ export default function CityFinder() {
               </div>
 
               <div className="min-w-full xl:min-w-[260px]">
-                <div className="rounded-3xl border border-white/10 bg-[#0d1727] p-5">
+                <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,#0c1522,#0a1320)] p-5 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
                     Next Action
                   </p>

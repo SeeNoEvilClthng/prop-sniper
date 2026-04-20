@@ -83,24 +83,22 @@ export default async function InvestorDetailsPage({ params }: Props) {
     .slice(0, 10)
 
   return (
-    <main className="min-h-screen bg-[#07111f] text-white">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_22%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
-
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <main className="text-white">
+      <div className="mx-auto max-w-7xl">
+        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
             <div>
               <Link
                 href="/investors"
-                className="text-sm font-medium text-sky-200 transition hover:text-white"
+                className="text-sm font-medium text-[#ead9a8] transition hover:text-white"
               >
                 Back to Investors
               </Link>
 
-              <p className="mt-4 text-sm uppercase tracking-[0.25em] text-sky-200">
+              <p className="mt-4 text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
                 Buyer Profile
               </p>
-              <h1 className="mt-2 text-3xl font-bold text-white">
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
                 {investor.company_name || investor.contact_name || 'Unnamed investor'}
               </h1>
               <div className="mt-3 flex flex-wrap gap-3">
@@ -126,13 +124,13 @@ export default async function InvestorDetailsPage({ params }: Props) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href={`/investors/${investor.id}/edit`}
-                className="rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+                className="rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] transition hover:translate-y-[-1px]"
               >
                 Edit Investor
               </Link>
               <Link
                 href="/leads"
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Open Queue
               </Link>
@@ -142,8 +140,8 @@ export default async function InvestorDetailsPage({ params }: Props) {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.15fr]">
           <section className="space-y-6">
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold text-white">Investor Info</h2>
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">Investor Info</h2>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
@@ -172,15 +170,15 @@ export default async function InvestorDetailsPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Buy Box</p>
+              <div className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Buy Box</p>
                 <p className="mt-2 text-sm leading-7 text-slate-300">
                   {investor.buy_box || 'No buy box listed.'}
                 </p>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Notes</p>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Notes</p>
                 <p className="mt-2 text-sm leading-7 text-slate-300">
                   {investor.notes || 'No notes saved.'}
                 </p>
@@ -188,9 +186,9 @@ export default async function InvestorDetailsPage({ params }: Props) {
             </div>
           </section>
 
-          <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-            <h2 className="text-2xl font-bold text-white">Best Lead Matches</h2>
-            <p className="mt-2 text-slate-300">
+          <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">Best Lead Matches</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
               These are the best current deals for this buyer based on market, price, and profile fit.
             </p>
 
@@ -204,7 +202,7 @@ export default async function InvestorDetailsPage({ params }: Props) {
                   <Link
                     key={lead.id}
                     href={`/dashboard/${lead.id}`}
-                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-5 transition hover:bg-[#101b2d]"
+                    className="block rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-5 transition hover:bg-[#101b2d]"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>

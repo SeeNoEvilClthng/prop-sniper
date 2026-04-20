@@ -117,9 +117,9 @@ export default function QueueLeadTaskCard({ leadId, tasks }: Props) {
   }
 
   return (
-    <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Lead Tasks</p>
+        <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Lead Tasks</p>
         <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300">
           {openTasks.length} open
         </span>
@@ -142,7 +142,7 @@ export default function QueueLeadTaskCard({ leadId, tasks }: Props) {
           <button
             type="submit"
             disabled={loading || !title.trim()}
-            className="rounded-xl bg-sky-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-3 py-2 text-sm font-semibold text-[#10151f] disabled:opacity-50"
           >
             Add
           </button>
@@ -152,7 +152,7 @@ export default function QueueLeadTaskCard({ leadId, tasks }: Props) {
       <div className="mt-4 space-y-2">
         {openTasks.length > 0 ? (
           openTasks.slice(0, 3).map((task) => (
-            <div key={task.id} className="rounded-xl border border-white/10 bg-[#07111f] p-3">
+            <div key={task.id} className="rounded-xl border border-white/10 bg-[#07111f] p-3 shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-white">{task.title}</p>
@@ -168,7 +168,7 @@ export default function QueueLeadTaskCard({ leadId, tasks }: Props) {
                   type="button"
                   onClick={() => void completeTask(task.id)}
                   disabled={loading}
-                  className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+                  className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/[0.08] disabled:opacity-50"
                 >
                   Done
                 </button>

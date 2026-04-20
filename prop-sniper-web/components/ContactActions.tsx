@@ -37,7 +37,7 @@ export default function ContactActions({ leadId, phones, emails }: Props) {
       <textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        className="w-full border rounded-xl p-2"
+        className="min-h-[130px] w-full rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-[#d7bf7c]/40"
       />
 
       <div className="space-y-2">
@@ -46,7 +46,7 @@ export default function ContactActions({ leadId, phones, emails }: Props) {
             key={i}
             href={`sms:${typeof p === "string" ? p : p.number}?body=${encodeURIComponent(message)}`}
             onClick={() => logAttempt("sms")}
-            className="block bg-green-600 text-white px-3 py-2 rounded-xl text-center"
+            className="block rounded-2xl border border-emerald-400/20 bg-emerald-500/12 px-4 py-3 text-center text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/18"
           >
             Text {typeof p === "string" ? p : p.number}
           </a>
@@ -59,7 +59,7 @@ export default function ContactActions({ leadId, phones, emails }: Props) {
             key={i}
             href={`mailto:${typeof e === "string" ? e : e.email}?subject=Property Inquiry&body=${encodeURIComponent(message)}`}
             onClick={() => logAttempt("email")}
-            className="block bg-blue-600 text-white px-3 py-2 rounded-xl text-center"
+            className="block rounded-2xl border border-sky-400/20 bg-sky-500/12 px-4 py-3 text-center text-sm font-semibold text-sky-300 transition hover:bg-sky-500/18"
           >
             Email {typeof e === "string" ? e : e.email}
           </a>

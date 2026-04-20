@@ -154,10 +154,10 @@ function StatCard({
   subtext: string
 }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-white">{value}</p>
-      <p className="mt-2 text-sm text-slate-300">{subtext}</p>
+    <div className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{subtext}</p>
     </div>
   )
 }
@@ -283,18 +283,16 @@ export default async function LeadsPage({ searchParams }: PageProps) {
   ).length
 
   return (
-    <main className="min-h-screen bg-[#07111f] text-white">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_22%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
-
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <main className="text-white">
+      <div className="mx-auto max-w-7xl">
+        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-sky-200">
+              <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
                 Acquisition Queue
               </p>
-              <h1 className="mt-2 text-3xl font-bold">Lead Pipeline</h1>
-              <p className="mt-2 max-w-3xl text-slate-300">
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">Lead Pipeline</h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
                 Work the highest-priority opportunities first, stay on top of follow-up,
                 and move from sourced lead to active deal faster.
               </p>
@@ -303,19 +301,19 @@ export default async function LeadsPage({ searchParams }: PageProps) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/dashboard/new"
-                className="rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+                className="rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] transition hover:translate-y-[-1px]"
               >
                 Add Lead
               </Link>
               <Link
                 href="/finder"
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Open Finder
               </Link>
               <Link
                 href="/map"
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Map Leads
               </Link>
@@ -346,11 +344,11 @@ export default async function LeadsPage({ searchParams }: PageProps) {
           />
         </section>
 
-        <section className="mt-6 rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <section className="mt-6 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Queue Filters</h2>
-              <p className="mt-2 text-slate-300">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Queue Filters</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
                 Narrow the pipeline by urgency, motivation, and lead quality.
               </p>
             </div>
@@ -447,7 +445,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
               return (
                 <article
                   key={lead.id}
-                  className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl"
+                  className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl"
                 >
                   <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div className="flex-1">
@@ -550,7 +548,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                     </div>
 
                     <div className="min-w-full xl:min-w-[260px]">
-                      <div className="rounded-3xl border border-white/10 bg-[#0d1727] p-5">
+                      <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,#0c1522,#0a1320)] p-5 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
                           Quick Actions
                         </p>

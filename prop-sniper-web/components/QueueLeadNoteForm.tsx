@@ -49,9 +49,9 @@ export default function QueueLeadNoteForm({ leadId }: { leadId: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4"
+      className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.18)]"
     >
-      <label className="mb-2 block text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
+      <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500">
         Quick Note
       </label>
       <textarea
@@ -65,7 +65,7 @@ export default function QueueLeadNoteForm({ leadId }: { leadId: string }) {
         <button
           type="submit"
           disabled={loading || !note.trim()}
-          className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-4 py-2 text-sm font-semibold text-[#10151f] disabled:opacity-50"
         >
           {loading ? 'Saving...' : 'Save Note'}
         </button>

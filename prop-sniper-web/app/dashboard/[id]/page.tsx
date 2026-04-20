@@ -150,12 +150,12 @@ function StatCard({
   subtext?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+    <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
+      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
-      <p className="mt-2 text-xl font-semibold text-white">{value}</p>
-      {subtext ? <p className="mt-1 text-sm text-slate-400">{subtext}</p> : null}
+      <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-white">{value}</p>
+      {subtext ? <p className="mt-1 text-sm leading-6 text-slate-400">{subtext}</p> : null}
     </div>
   );
 }
@@ -181,8 +181,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
   if (leadError || !lead) {
     return (
-      <main className="min-h-screen bg-[#07111f] px-6 py-10 text-white">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <main className="px-6 py-10 text-white">
+        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
           <Link href="/leads" className="text-sm text-sky-300 underline">
             Back to Leads
           </Link>
@@ -329,27 +329,25 @@ export default async function LeadDetailPage({ params }: PageProps) {
     );
 
   return (
-    <main className="min-h-screen bg-[#07111f] text-white">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_22%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
-
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <main className="text-white">
+      <div className="mx-auto max-w-7xl">
+        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
             <div>
               <Link
                 href="/leads"
-                className="text-sm font-medium text-sky-200 transition hover:text-white"
+                className="text-sm font-medium text-[#ead9a8] transition hover:text-white"
               >
                 Back to Leads
               </Link>
 
-              <p className="mt-4 text-sm uppercase tracking-[0.25em] text-sky-200">
+              <p className="mt-4 text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
                 Acquisition Workspace
               </p>
-              <h1 className="mt-2 text-3xl font-bold">
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
                 {lead.address || "No address"}
               </h1>
-              <p className="mt-2 text-slate-300">
+              <p className="mt-3 text-sm leading-7 text-slate-400">
                 {[lead.city, lead.state, zip].filter(Boolean).join(", ") || "No location"}
               </p>
 
@@ -380,7 +378,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href={`/dashboard/${lead.id}/edit`}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Edit Lead
               </Link>
@@ -418,13 +416,13 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
           <section className="space-y-6">
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     AI Lead Brief
                   </p>
-                  <h2 className="mt-2 text-2xl font-bold">What matters here</h2>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">What matters here</h2>
                 </div>
               </div>
 
@@ -433,8 +431,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
               </p>
 
               {lead.ai_analysis ? (
-                <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                <div className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Deal Analysis On File
                   </p>
                   <p className="mt-2 text-sm leading-7 text-slate-300">
@@ -444,9 +442,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
               ) : null}
             </div>
 
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold">Motivation Signals</h2>
-              <p className="mt-2 text-slate-300">
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Motivation Signals</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
                 These are the main reasons this property may be worth pursuing.
               </p>
 
@@ -497,9 +495,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold">Deal Desk</h2>
-              <p className="mt-2 text-slate-300">
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Deal Desk</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
                 Underwrite the deal, pressure-test the numbers, and prep seller or buyer messaging.
               </p>
 
@@ -516,8 +514,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold">Activity Timeline</h2>
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Activity Timeline</h2>
 
               <div className="mt-4">
                 <LeadTimelineNoteForm leadId={lead.id} />
@@ -532,7 +530,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                   {activityFeed.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl border border-white/10 bg-[#0d1727] p-4"
+                      className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4"
                     >
                       <p className="font-medium text-white">
                         {item.title}
@@ -553,12 +551,12 @@ export default async function LeadDetailPage({ params }: PageProps) {
           </section>
 
           <aside className="space-y-6">
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold">Lead Snapshot</h2>
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Lead Snapshot</h2>
 
               <div className="mt-5 space-y-4 text-sm text-slate-300">
-                <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Owner
                   </p>
                   <p className="mt-2 text-base font-semibold text-white">
@@ -568,8 +566,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
                   <p>Email: {emails[0] || "—"}</p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Property
                   </p>
                   <p className="mt-2">
@@ -580,8 +578,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
                   <p>Last Sale: {formatDate(lead.last_sale_date)}</p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Notes
                   </p>
                   <p className="mt-2 leading-7 text-slate-300">
@@ -591,9 +589,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold">Seller Outreach</h2>
-              <p className="mt-2 text-slate-300">
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Seller Outreach</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
                 Log contact attempts and keep seller communication in one place.
               </p>
 
@@ -617,7 +615,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
             <LeadTaskPanel leadId={lead.id} tasks={leadTasks} />
 
-            <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-bold">Buyer Matches</h2>

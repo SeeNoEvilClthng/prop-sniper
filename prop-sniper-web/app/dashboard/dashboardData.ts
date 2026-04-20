@@ -35,114 +35,14 @@ export type NavItem = {
   label: string;
   href: string;
   description: string;
+  section: string;
   icon: string;
 };
 
-export type NavSection = {
+export type NavGroup = {
   title: string;
   items: NavItem[];
 };
-
-export const navSections: NavSection[] = [
-  {
-    title: "Home",
-    items: [
-      {
-        label: "Dashboard",
-        href: "/dashboard",
-        description: "Main overview of your pipeline",
-        icon: "🏠",
-      },
-    ],
-  },
-  {
-    title: "Leads",
-    items: [
-      {
-        label: "All Leads",
-        href: "/dashboard/leads",
-        description: "View every saved lead",
-        icon: "📋",
-      },
-      {
-        label: "Add Lead",
-        href: "/dashboard/add-lead",
-        description: "Create a new lead manually",
-        icon: "➕",
-      },
-      {
-        label: "Lead Statuses",
-        href: "/dashboard/status",
-        description: "See leads grouped by stage",
-        icon: "📊",
-      },
-      {
-        label: "Driving Leads",
-        href: "/dashboard/driving",
-        description: "Track driving-for-dollars targets",
-        icon: "🚗",
-      },
-    ],
-  },
-  {
-    title: "Lists",
-    items: [
-      {
-        label: "Vacant List",
-        href: "/dashboard/lists/vacant",
-        description: "Vacant property opportunities",
-        icon: "🏚️",
-      },
-      {
-        label: "High Equity",
-        href: "/dashboard/lists/equity",
-        description: "Owners with strong equity",
-        icon: "💰",
-      },
-      {
-        label: "Pre-Foreclosure",
-        href: "/dashboard/lists/preforeclosure",
-        description: "Motivated owner segment",
-        icon: "⚠️",
-      },
-      {
-        label: "Tax Delinquent",
-        href: "/dashboard/lists/tax",
-        description: "Tax delinquent properties",
-        icon: "🧾",
-      },
-    ],
-  },
-  {
-    title: "Analytics",
-    items: [
-      {
-        label: "Deal Analyzer",
-        href: "/dashboard/analyzer",
-        description: "Review ARV, repairs, and spread",
-        icon: "📈",
-      },
-      {
-        label: "Score Trends",
-        href: "/dashboard/analytics/scores",
-        description: "See strongest deal scores",
-        icon: "📉",
-      },
-      {
-        label: "Pipeline Stats",
-        href: "/dashboard/analytics/pipeline",
-        description: "Track progress by stage",
-        icon: "📌",
-      },
-      {
-        label: "Market View",
-        href: "/dashboard/analytics/market",
-        description: "View opportunity by city",
-        icon: "🌎",
-      },
-    ],
-  },
-];
 
 export const leadsSeed: Lead[] = [
   {
@@ -225,23 +125,227 @@ export const leadsSeed: Lead[] = [
     owner: "Ronald D.",
     phone: "(901) 555-0189",
   },
+];
+
+export const filters: Array<LeadTag | "All"> = [
+  "All",
+  "Absentee Owner",
+  "High Equity",
+  "Vacant",
+  "Pre-Foreclosure",
+  "Tax Delinquent",
+  "Tired Landlord",
+];
+
+export const navGroups: NavGroup[] = [
   {
-    id: "6",
-    address: "8754 Wilcrest Dr",
-    city: "Houston",
-    state: "TX",
-    zip: "77099",
-    status: "New",
-    score: 74,
-    arv: 255000,
-    asking: 182000,
-    repairs: 24000,
-    equityPercent: 41,
-    tags: ["Absentee Owner", "Tax Delinquent"],
-    owner: "Sandra K.",
-    phone: "(713) 555-0108",
+    title: "Leads",
+    items: [
+      {
+        label: "All Leads",
+        href: "/dashboard/leads",
+        description: "View and manage every saved lead",
+        section: "Leads",
+        icon: "🏠",
+      },
+      {
+        label: "Add Lead",
+        href: "/dashboard/add-lead",
+        description: "Save a new property to your pipeline",
+        section: "Leads",
+        icon: "➕",
+      },
+      {
+        label: "Lead Statuses",
+        href: "/dashboard/status",
+        description: "Track every deal by stage",
+        section: "Leads",
+        icon: "📊",
+      },
+      {
+        label: "Driving Leads",
+        href: "/dashboard/driving",
+        description: "Manage properties found while driving for dollars",
+        section: "Leads",
+        icon: "🚗",
+      },
+    ],
+  },
+  {
+    title: "Lists",
+    items: [
+      {
+        label: "Vacant List",
+        href: "/dashboard/lists/vacant",
+        description: "Review vacant property opportunities",
+        section: "Lists",
+        icon: "🏚️",
+      },
+      {
+        label: "High Equity",
+        href: "/dashboard/lists/equity",
+        description: "See stronger equity-based opportunities",
+        section: "Lists",
+        icon: "💰",
+      },
+      {
+        label: "Pre-Foreclosure",
+        href: "/dashboard/lists/preforeclosure",
+        description: "Review motivated owner leads",
+        section: "Lists",
+        icon: "⚠️",
+      },
+      {
+        label: "Tax Delinquent",
+        href: "/dashboard/lists/tax",
+        description: "Find distressed property segments",
+        section: "Lists",
+        icon: "🧾",
+      },
+    ],
+  },
+  {
+    title: "Marketing",
+    items: [
+      {
+        label: "Text Campaigns",
+        href: "/dashboard/marketing/text",
+        description: "Follow up with owners faster",
+        section: "Marketing",
+        icon: "💬",
+      },
+      {
+        label: "Direct Mail",
+        href: "/dashboard/marketing/mail",
+        description: "Prepare postcard-style campaigns",
+        section: "Marketing",
+        icon: "📬",
+      },
+      {
+        label: "Buyer Blasts",
+        href: "/dashboard/marketing/blast",
+        description: "Push deals to your buyer list",
+        section: "Marketing",
+        icon: "📣",
+      },
+      {
+        label: "Skip Trace",
+        href: "/dashboard/marketing/skiptrace",
+        description: "Improve owner contact information",
+        section: "Marketing",
+        icon: "🔎",
+      },
+    ],
+  },
+  {
+    title: "Analytics",
+    items: [
+      {
+        label: "Deal Analyzer",
+        href: "/dashboard/analyzer",
+        description: "Review ARV, repairs, and spread",
+        section: "Analytics",
+        icon: "📈",
+      },
+      {
+        label: "Score Trends",
+        href: "/dashboard/analytics/scores",
+        description: "Watch top opportunities over time",
+        section: "Analytics",
+        icon: "📉",
+      },
+      {
+        label: "Pipeline Stats",
+        href: "/dashboard/analytics/pipeline",
+        description: "Track your lead movement",
+        section: "Analytics",
+        icon: "📋",
+      },
+      {
+        label: "Market View",
+        href: "/dashboard/analytics/market",
+        description: "See city and market performance",
+        section: "Analytics",
+        icon: "🌎",
+      },
+    ],
+  },
+  {
+    title: "Tools",
+    items: [
+      {
+        label: "Import CSV",
+        href: "/dashboard/tools/import",
+        description: "Bring in PropStream or Batch leads",
+        section: "Tools",
+        icon: "📂",
+      },
+      {
+        label: "Map View",
+        href: "/dashboard/map",
+        description: "See saved leads on a map",
+        section: "Tools",
+        icon: "🗺️",
+      },
+      {
+        label: "Comp Finder",
+        href: "/dashboard/tools/comps",
+        description: "Analyze nearby comparable sales",
+        section: "Tools",
+        icon: "📍",
+      },
+      {
+        label: "Repair Estimator",
+        href: "/dashboard/tools/repairs",
+        description: "Estimate rehab numbers faster",
+        section: "Tools",
+        icon: "🛠️",
+      },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      {
+        label: "Profile",
+        href: "/dashboard/account/profile",
+        description: "Manage your account details",
+        section: "Account",
+        icon: "👤",
+      },
+      {
+        label: "Team Access",
+        href: "/dashboard/account/team",
+        description: "Control user access and roles",
+        section: "Account",
+        icon: "👥",
+      },
+      {
+        label: "Billing",
+        href: "/dashboard/account/billing",
+        description: "Manage plan and payment settings",
+        section: "Account",
+        icon: "💳",
+      },
+      {
+        label: "Settings",
+        href: "/dashboard/account/settings",
+        description: "Customize your dashboard workflow",
+        section: "Account",
+        icon: "⚙️",
+      },
+    ],
   },
 ];
+
+export function findNavMeta(pathname: string): NavItem | null {
+  for (const group of navGroups) {
+    for (const item of group.items) {
+      if (item.href === pathname) return item;
+    }
+  }
+  return null;
+}
 
 export function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -253,6 +357,31 @@ export function formatMoney(value: number) {
 
 export function getSpread(lead: Lead) {
   return lead.arv - lead.asking - lead.repairs;
+}
+
+export function getScoreTone(score: number) {
+  if (score >= 85) {
+    return {
+      text: "Strong",
+      color: "text-emerald-300",
+      bar: "from-emerald-400 to-lime-300",
+      glow: "shadow-[0_0_30px_rgba(52,211,153,0.15)]",
+    };
+  }
+  if (score >= 70) {
+    return {
+      text: "Solid",
+      color: "text-yellow-300",
+      bar: "from-yellow-300 to-amber-400",
+      glow: "shadow-[0_0_30px_rgba(250,204,21,0.12)]",
+    };
+  }
+  return {
+    text: "Weak",
+    color: "text-rose-300",
+    bar: "from-rose-400 to-red-400",
+    glow: "shadow-[0_0_30px_rgba(244,63,94,0.12)]",
+  };
 }
 
 export function statusClasses(status: LeadStatus) {
@@ -272,42 +401,4 @@ export function statusClasses(status: LeadStatus) {
     default:
       return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
   }
-}
-
-export function getScoreTone(score: number) {
-  if (score >= 85) {
-    return {
-      label: "Strong",
-      color: "text-emerald-300",
-      bar: "from-emerald-400 to-lime-300",
-    };
-  }
-  if (score >= 70) {
-    return {
-      label: "Solid",
-      color: "text-yellow-300",
-      bar: "from-yellow-300 to-amber-400",
-    };
-  }
-  return {
-    label: "Weak",
-    color: "text-rose-300",
-    bar: "from-rose-400 to-red-400",
-  };
-}
-
-export function findNavMeta(pathname: string) {
-  for (const section of navSections) {
-    for (const item of section.items) {
-      if (item.href === pathname) {
-        return {
-          title: item.label,
-          description: item.description,
-          section: section.title,
-          icon: item.icon,
-        };
-      }
-    }
-  }
-  return null;
 }

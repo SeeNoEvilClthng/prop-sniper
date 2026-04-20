@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { createClient } from '@/lib/supabase/client'
@@ -79,6 +79,48 @@ export default function MapView() {
     return savedLeads.filter((lead) => (lead.status || 'New') === statusFilter)
   }, [savedLeads, statusFilter])
 
+  const fetchSavedLeads = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('id, address, city, state, status, notes, latitude, longitude, lead_score, lead_rating, lead_signals')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    setSavedLeads((data || []) as Lead[])
+  }, [supabase])
+
+  const reverseGeocode = useEffectEvent(async (lng: number, lat: number) => {
+    try {
+      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+      const res = await fetch(
+        `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${token}`
+      )
+      const data = await res.json()
+
+      const feature = data.features?.[0]
+      const props = feature?.properties || {}
+      const context = props.context || {}
+
+      const fullAddress = props.full_address || props.name || ''
+      const parts = fullAddress.split(',').map((part: string) => part.trim())
+
+      setAddress(props.name || parts[0] || '')
+      setCity(context.place?.name || parts[1] || '')
+      setState(context.region?.name || parts[2] || '')
+      setZipCode(context.postcode?.name || '')
+    } catch {
+      setAddress('')
+      setCity('')
+      setState('')
+      setZipCode('')
+    }
+  })
+
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return
 
@@ -122,8 +164,23 @@ export default function MapView() {
   }, [])
 
   useEffect(() => {
-    fetchSavedLeads()
-  }, [])
+    async function loadInitialLeads() {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, address, city, state, status, notes, latitude, longitude, lead_score, lead_rating, lead_signals')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      setSavedLeads((data || []) as Lead[])
+    }
+
+    void loadInitialLeads()
+  }, [supabase])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -159,48 +216,6 @@ export default function MapView() {
       leadMarkersRef.current.push(marker)
     })
   }, [filteredLeads])
-
-  async function fetchSavedLeads() {
-    const { data, error } = await supabase
-      .from('leads')
-      .select('id, address, city, state, status, notes, latitude, longitude, lead_score, lead_rating, lead_signals')
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
-
-    if (error) {
-      console.error(error)
-      return
-    }
-
-    setSavedLeads((data || []) as Lead[])
-  }
-
-  async function reverseGeocode(lng: number, lat: number) {
-    try {
-      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-      const res = await fetch(
-        `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${token}`
-      )
-      const data = await res.json()
-
-      const feature = data.features?.[0]
-      const props = feature?.properties || {}
-      const context = props.context || {}
-
-      const fullAddress = props.full_address || props.name || ''
-      const parts = fullAddress.split(',').map((part: string) => part.trim())
-
-      setAddress(props.name || parts[0] || '')
-      setCity(context.place?.name || parts[1] || '')
-      setState(context.region?.name || parts[2] || '')
-      setZipCode(context.postcode?.name || '')
-    } catch {
-      setAddress('')
-      setCity('')
-      setState('')
-      setZipCode('')
-    }
-  }
 
   async function handleSearch(value: string) {
     setSearch(value)

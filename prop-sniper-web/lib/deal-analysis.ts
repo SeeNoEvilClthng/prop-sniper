@@ -26,6 +26,19 @@ type ValueResponseLike = {
   comps?: ComparableLike[]
 }
 
+type ResponseContentItem = {
+  text?: string
+}
+
+type ResponseOutputItem = {
+  content?: ResponseContentItem[]
+}
+
+type OpenAIResponseLike = {
+  output_text?: string
+  output?: ResponseOutputItem[]
+}
+
 export type DealAnalysisInput = {
   fullAddress: string
   currentEstimatedValue?: number | null
@@ -132,6 +145,10 @@ function getTargetOffer(
   return Math.round(arv * investorPercent - repairs - assignmentFee - closingCosts)
 }
 
+function getResponseText(response: OpenAIResponseLike) {
+  return response.output_text || response.output?.[0]?.content?.[0]?.text || ''
+}
+
 async function fetchPropertyRecord(address: string): Promise<PropertyRecord | null> {
   if (!process.env.RENTCAST_API_KEY) return null
 
@@ -215,10 +232,7 @@ Do not use bullets.
       input: prompt,
     })
 
-    const text =
-      (response as any).output_text ||
-      (response as any).output?.[0]?.content?.[0]?.text ||
-      ''
+    const text = getResponseText(response as OpenAIResponseLike)
 
     return text || `ARV: ${args.arv ?? 'N/A'}. Repairs: ${args.repairs ?? 'N/A'}. Target Offer: ${args.targetOffer ?? 'N/A'}. Confidence: ${args.confidence}.`
   } catch {

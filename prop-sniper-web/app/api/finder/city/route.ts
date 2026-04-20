@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return 'Something went wrong.'
+}
+
 type RentCastProperty = {
   id?: string
   formattedAddress?: string
@@ -217,9 +222,9 @@ export async function POST(req: Request) {
       .sort((a, b) => b.score - a.score)
 
     return NextResponse.json({ results })
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || 'Something went wrong.' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     )
   }

@@ -143,14 +143,14 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         label: "All Leads",
-        href: "/dashboard/leads",
+        href: "/leads",
         description: "View and manage every saved lead",
         section: "Leads",
         icon: "🏠",
       },
       {
         label: "Add Lead",
-        href: "/dashboard/add-lead",
+        href: "/dashboard/new",
         description: "Save a new property to your pipeline",
         section: "Leads",
         icon: "➕",
@@ -209,7 +209,7 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         label: "Text Campaigns",
-        href: "/dashboard/marketing/text",
+        href: "/investors",
         description: "Follow up with owners faster",
         section: "Marketing",
         icon: "💬",
@@ -242,7 +242,7 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         label: "Deal Analyzer",
-        href: "/dashboard/analyzer",
+        href: "/leads",
         description: "Review ARV, repairs, and spread",
         section: "Analytics",
         icon: "📈",
@@ -275,21 +275,21 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         label: "Import CSV",
-        href: "/dashboard/tools/import",
+        href: "/finder",
         description: "Bring in PropStream or Batch leads",
         section: "Tools",
         icon: "📂",
       },
       {
         label: "Map View",
-        href: "/dashboard/map",
+        href: "/map",
         description: "See saved leads on a map",
         section: "Tools",
         icon: "🗺️",
       },
       {
         label: "Comp Finder",
-        href: "/dashboard/tools/comps",
+        href: "/finder",
         description: "Analyze nearby comparable sales",
         section: "Tools",
         icon: "📍",
@@ -315,14 +315,14 @@ export const navGroups: NavGroup[] = [
       },
       {
         label: "Team Access",
-        href: "/dashboard/account/team",
+        href: "/team",
         description: "Control user access and roles",
         section: "Account",
         icon: "👥",
       },
       {
         label: "Billing",
-        href: "/dashboard/account/billing",
+        href: "/billing",
         description: "Manage plan and payment settings",
         section: "Account",
         icon: "💳",

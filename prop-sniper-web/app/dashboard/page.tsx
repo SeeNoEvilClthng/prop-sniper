@@ -1,487 +1,1330 @@
-"use client";
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import {
-  filters,
-  formatMoney,
-  getScoreTone,
-  getSpread,
-  leadsSeed,
-  navGroups,
-  statusClasses,
-  type Lead,
-  type LeadTag,
-} from "./dashboardData";
+import { navGroups } from './dashboardData'
+import { parseLeadAssignmentMessage } from '@/lib/lead-assignment'
+import { parseLeadTaskMessage } from '@/lib/lead-tasks'
+import { createClient } from '@/lib/supabase/server'
 
-export default function DashboardPage() {
-  const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<LeadTag | "All">("All");
-  const [selectedLeadId, setSelectedLeadId] = useState<string>(leadsSeed[0].id);
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+type LeadRecord = {
+  id: string
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  status?: string | null
+  owner_name?: string | null
+  lead_score?: number | null
+  lead_rating?: string | null
+  lead_signals?: string | null
+  follow_up_date?: string | null
+  estimated_value?: number | null
+  target_offer?: number | null
+  created_at?: string | null
+}
 
-  const filteredLeads = useMemo(() => {
-    return leadsSeed.filter((lead) => {
-      const searchValue = search.toLowerCase();
+type ContactAttemptRecord = {
+  id: string
+  lead_id?: string | null
+  method?: string | null
+  message?: string | null
+  status?: string | null
+  created_at?: string | null
+}
 
-      const matchesSearch =
-        lead.address.toLowerCase().includes(searchValue) ||
-        lead.city.toLowerCase().includes(searchValue) ||
-        lead.state.toLowerCase().includes(searchValue) ||
-        lead.zip.includes(search) ||
-        lead.owner.toLowerCase().includes(searchValue);
+const pipelineStages = [
+  'New',
+  'Contacted',
+  'Follow Up',
+  'Negotiating',
+  'Under Contract',
+  'Dead',
+] as const
 
-      const matchesFilter =
-        activeFilter === "All" ? true : lead.tags.includes(activeFilter);
+function formatMoney(value?: number | null) {
+  if (value == null || !Number.isFinite(Number(value))) return '—'
 
-      return matchesSearch && matchesFilter;
-    });
-  }, [search, activeFilter]);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(Number(value))
+}
 
-  const selectedLead =
-    filteredLeads.find((lead) => lead.id === selectedLeadId) ?? filteredLeads[0];
+function formatDate(value?: string | null) {
+  if (!value) return '—'
 
-  const totalLeads = leadsSeed.length;
-  const strongDeals = leadsSeed.filter((lead) => lead.score >= 80).length;
-  const underContract = leadsSeed.filter(
-    (lead) => lead.status === "Under Contract"
-  ).length;
-  const totalPotentialSpread = leadsSeed.reduce(
-    (sum, lead) => sum + getSpread(lead),
-    0
-  );
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString()
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '—'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function isDueTodayOrEarlier(value?: string | null) {
+  if (!value) return false
+
+  const input = new Date(value)
+  if (Number.isNaN(input.getTime())) return false
+
+  const today = new Date()
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const due = new Date(input.getFullYear(), input.getMonth(), input.getDate())
+
+  return due <= current
+}
+
+function isOpenTaskOverdue(dueDate?: string | null, status?: string | null) {
+  if (status === 'completed') return false
+  return isDueTodayOrEarlier(dueDate)
+}
+
+function getMethodLabel(method?: string | null, status?: string | null) {
+  switch (method) {
+    case 'note':
+      return 'Manual note added'
+    case 'workflow':
+      return 'Workflow updated'
+    case 'sms':
+      return 'Text outreach logged'
+    case 'email':
+      return 'Email outreach logged'
+    case 'call':
+      return 'Call activity logged'
+    default:
+      return `${method?.toUpperCase() || 'CRM'} ${status || 'activity'}`
+    }
+}
+
+function getMethodClasses(method?: string | null) {
+  switch (method) {
+    case 'note':
+      return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
+    case 'workflow':
+      return 'bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30'
+    case 'sms':
+      return 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30'
+    case 'email':
+      return 'bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-400/30'
+    case 'call':
+      return 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30'
+    default:
+      return 'bg-white/10 text-slate-200 ring-1 ring-white/10'
+  }
+}
+
+function getSignals(value?: string | null) {
+  return (value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+}
+
+function getStatusClasses(status?: string | null) {
+  switch (status) {
+    case 'New':
+      return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
+    case 'Contacted':
+      return 'bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-400/30'
+    case 'Follow Up':
+      return 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30'
+    case 'Negotiating':
+      return 'bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30'
+    case 'Under Contract':
+      return 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30'
+    case 'Dead':
+      return 'bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30'
+    default:
+      return 'bg-white/10 text-slate-200 ring-1 ring-white/10'
+  }
+}
+
+function getRatingClasses(rating?: string | null) {
+  switch (rating) {
+    case 'Hot':
+      return 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
+    case 'Strong':
+      return 'bg-orange-500/15 text-orange-300 ring-1 ring-orange-400/30'
+    case 'Good':
+      return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
+    case 'Fair':
+      return 'bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30'
+    default:
+      return 'bg-white/10 text-slate-200 ring-1 ring-white/10'
+  }
+}
+
+function getPercent(value: number, total: number) {
+  if (!total) return '0%'
+  return `${Math.round((value / total) * 100)}%`
+}
+
+function formatOwnerLabel(email?: string | null) {
+  if (!email) return 'Unassigned'
+
+  const [name] = email.split('@')
+  if (!name) return email
+
+  return name
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function StatCard({
+  label,
+  value,
+  subtext,
+}: {
+  label: string
+  value: string
+  subtext: string
+}) {
+  return (
+    <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20 backdrop-blur-xl">
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-white">{value}</p>
+      <p className="mt-2 text-sm text-slate-300">{subtext}</p>
+    </div>
+  )
+}
+
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <h2 className="text-2xl font-bold text-white">{title}</h2>
+      <p className="mt-2 text-slate-300">{description}</p>
+      <div className="mt-5">{children}</div>
+    </section>
+  )
+}
+
+export default async function DashboardPage() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const [{ data: leads }, { count: investorCount }] = await Promise.all([
+    supabase
+      .from('leads')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('investors')
+      .select('*', { count: 'exact', head: true })
+      .or(`user_id.eq.${user.id},is_public.eq.true`),
+  ])
+
+  const allLeads = (leads || []) as LeadRecord[]
+  const leadIds = allLeads.map((lead) => lead.id)
+  const leadMap = new Map(allLeads.map((lead) => [lead.id, lead]))
+
+  let recentAttempts: ContactAttemptRecord[] = []
+  let workflowAttempts: ContactAttemptRecord[] = []
+  let contactAttemptCount = 0
+
+  if (leadIds.length > 0) {
+    const [{ data: attempts }, { count }, { data: workflowEvents }] = await Promise.all([
+      supabase
+        .from('contact_attempts')
+        .select('id, lead_id, method, message, status, created_at')
+        .in('lead_id', leadIds)
+        .order('created_at', { ascending: false })
+        .limit(12),
+      supabase
+        .from('contact_attempts')
+        .select('id', { count: 'exact', head: true })
+        .in('lead_id', leadIds),
+      supabase
+        .from('contact_attempts')
+        .select('id, lead_id, method, message, status, created_at')
+        .in('lead_id', leadIds)
+        .in('method', ['assignment', 'task'])
+        .order('created_at', { ascending: false }),
+    ])
+
+    recentAttempts = (attempts || []) as ContactAttemptRecord[]
+    workflowAttempts = (workflowEvents || []) as ContactAttemptRecord[]
+    contactAttemptCount = count || 0
+  }
+
+  const followUpsDue = allLeads.filter((lead) => isDueTodayOrEarlier(lead.follow_up_date))
+  const scheduledFollowUps = allLeads.filter((lead) => Boolean(lead.follow_up_date))
+  const hotLeads = allLeads
+    .filter((lead) => (lead.lead_score ?? 0) >= 80)
+    .sort((a, b) => (b.lead_score ?? 0) - (a.lead_score ?? 0))
+    .slice(0, 5)
+  const underContract = allLeads
+    .filter((lead) => (lead.status || 'New') === 'Under Contract')
+    .slice(0, 5)
+  const newLeads = allLeads
+    .filter((lead) => (lead.status || 'New') === 'New')
+    .slice(0, 5)
+  const recentActivity = recentAttempts
+    .map((attempt) => {
+      const lead = attempt.lead_id ? leadMap.get(attempt.lead_id) : undefined
+
+      return {
+        id: attempt.id,
+        leadId: attempt.lead_id || '',
+        leadAddress: lead?.address || 'Unknown lead',
+        market: [lead?.city, lead?.state].filter(Boolean).join(', ') || 'Market unknown',
+        title: getMethodLabel(attempt.method, attempt.status),
+        detail: attempt.message || 'No activity detail recorded.',
+        timestamp: attempt.created_at || '',
+        method: attempt.method || 'activity',
+      }
+    })
+    .filter((item) => item.timestamp)
+  const recentInternalUpdates = recentActivity.filter(
+    (item) => item.method === 'note' || item.method === 'workflow'
+  )
+  const assignmentMap = new Map(
+    allLeads.map((lead) => {
+      const latestAssignment = workflowAttempts.find(
+        (attempt) => attempt.lead_id === lead.id && attempt.method === 'assignment'
+      )
+
+      return [
+        lead.id,
+        latestAssignment
+          ? parseLeadAssignmentMessage(latestAssignment.message)
+          : {
+              assigneeId: user.id,
+              assigneeEmail: user.email || 'Current user',
+              assigneeRole: 'user',
+            },
+      ]
+    })
+  )
+  const openTasks = workflowAttempts
+    .filter((attempt) => attempt.method === 'task')
+    .map((attempt) => {
+      const parsed = parseLeadTaskMessage(attempt.message)
+      const lead = attempt.lead_id ? leadMap.get(attempt.lead_id) : undefined
+
+      return {
+        id: attempt.id,
+        leadId: attempt.lead_id || '',
+        leadAddress: lead?.address || 'Unknown lead',
+        market: [lead?.city, lead?.state].filter(Boolean).join(', ') || 'Market unknown',
+        assigneeId: lead?.id ? assignmentMap.get(lead.id)?.assigneeId || '' : '',
+        title: parsed.title,
+        dueDate: parsed.dueDate,
+        details: parsed.details,
+        status: attempt.status || 'open',
+        createdAt: attempt.created_at || '',
+      }
+    })
+    .filter((task) => task.status !== 'completed')
+    .sort((a, b) => {
+      const aOverdue = isOpenTaskOverdue(a.dueDate, a.status) ? 1 : 0
+      const bOverdue = isOpenTaskOverdue(b.dueDate, b.status) ? 1 : 0
+
+      if (aOverdue !== bOverdue) return bOverdue - aOverdue
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      }
+      if (a.dueDate) return -1
+      if (b.dueDate) return 1
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+  const overdueTasks = openTasks.filter((task) => isOpenTaskOverdue(task.dueDate, task.status))
+  const myAssignedLeads = allLeads
+    .filter((lead) => {
+      const assignment = assignmentMap.get(lead.id)
+      return assignment?.assigneeId
+        ? assignment.assigneeId === user.id
+        : true
+    })
+    .sort((a, b) => {
+      const aDue = isDueTodayOrEarlier(a.follow_up_date) ? 1 : 0
+      const bDue = isDueTodayOrEarlier(b.follow_up_date) ? 1 : 0
+      if (aDue !== bDue) return bDue - aDue
+      return (b.lead_score ?? 0) - (a.lead_score ?? 0)
+    })
+  const myOpenTasks = openTasks.filter((task) => (task.assigneeId ? task.assigneeId === user.id : true))
+  const myOverdueTasks = myOpenTasks.filter((task) => isOpenTaskOverdue(task.dueDate, task.status))
+  const ownerMetrics = Array.from(
+    assignmentMap.entries().reduce(
+      (map, [leadId, assignment]) => {
+        const lead = leadMap.get(leadId)
+        if (!lead) return map
+
+        const key = assignment?.assigneeId || `email:${assignment?.assigneeEmail || 'unassigned'}`
+        const existing = map.get(key) || {
+          ownerId: assignment?.assigneeId || '',
+          ownerEmail: assignment?.assigneeEmail || 'Unassigned',
+          ownerLabel: formatOwnerLabel(assignment?.assigneeEmail || 'Unassigned'),
+          leadCount: 0,
+          hotLeadCount: 0,
+          followUpsDue: 0,
+          underContractCount: 0,
+          totalScore: 0,
+        }
+
+        existing.leadCount += 1
+        existing.totalScore += lead.lead_score ?? 0
+        if ((lead.lead_score ?? 0) >= 80) existing.hotLeadCount += 1
+        if (isDueTodayOrEarlier(lead.follow_up_date)) existing.followUpsDue += 1
+        if ((lead.status || 'New') === 'Under Contract') existing.underContractCount += 1
+
+        map.set(key, existing)
+        return map
+      },
+      new Map<
+        string,
+        {
+          ownerId: string
+          ownerEmail: string
+          ownerLabel: string
+          leadCount: number
+          hotLeadCount: number
+          followUpsDue: number
+          underContractCount: number
+          totalScore: number
+        }
+      >()
+    )
+  )
+    .map(([key, metric]) => {
+      const ownerTasks = openTasks.filter((task) =>
+        metric.ownerId ? task.assigneeId === metric.ownerId : !task.assigneeId
+      )
+      const overdueOwnerTasks = ownerTasks.filter((task) => isOpenTaskOverdue(task.dueDate, task.status))
+
+      return {
+        key,
+        ...metric,
+        avgScore: metric.leadCount ? Math.round(metric.totalScore / metric.leadCount) : 0,
+        openTaskCount: ownerTasks.length,
+        overdueTaskCount: overdueOwnerTasks.length,
+      }
+    })
+    .sort((a, b) => {
+      if (b.overdueTaskCount !== a.overdueTaskCount) return b.overdueTaskCount - a.overdueTaskCount
+      if (b.hotLeadCount !== a.hotLeadCount) return b.hotLeadCount - a.hotLeadCount
+      return b.leadCount - a.leadCount
+    })
+  const mostLoadedOwner = ownerMetrics[0]
+  const mostOverdueOwner = [...ownerMetrics].sort((a, b) => b.overdueTaskCount - a.overdueTaskCount)[0]
+  const mostActiveCloser = [...ownerMetrics].sort(
+    (a, b) => b.underContractCount - a.underContractCount || b.hotLeadCount - a.hotLeadCount
+  )[0]
+  const stageMetrics = pipelineStages.map((stage) => {
+    const count = allLeads.filter((lead) => (lead.status || 'New') === stage).length
+
+    return {
+      stage,
+      count,
+      percent: getPercent(count, allLeads.length),
+    }
+  })
+  const avgLeadScore = allLeads.length
+    ? Math.round(
+        allLeads.reduce((sum, lead) => sum + (lead.lead_score ?? 0), 0) / allLeads.length
+      )
+    : 0
+  const activeLeadCount = allLeads.filter(
+    (lead) => !['Dead', 'Under Contract'].includes(lead.status || 'New')
+  ).length
+  const contactCoverage = allLeads.length
+    ? Math.round((recentAttempts.length / allLeads.length) * 100)
+    : 0
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_25%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_22%),linear-gradient(to_bottom,#08111c,#07111f,#050b14)]" />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-6 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-lg font-bold shadow-lg shadow-sky-950/40"
-              >
-                PS
-              </Link>
+        <section className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.25em] text-sky-200">
+                Action Dashboard
+              </p>
+              <h1 className="mt-2 text-3xl font-bold">What Needs Attention Today</h1>
+              <p className="mt-2 max-w-3xl text-slate-300">
+                Run acquisitions from one place: follow up with overdue sellers,
+                prioritize the hottest leads, and move active deals toward dispo.
+              </p>
+            </div>
 
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-sky-200">
-                  PropSniper
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/new"
+                className="rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                Add Lead
+              </Link>
+              <Link
+                href="/leads?follow_up=Due"
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Open Follow Ups
+              </Link>
+              <Link
+                href="/finder"
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Source More Leads
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Total Leads"
+            value={String(allLeads.length)}
+            subtext="Current acquisition pipeline"
+          />
+          <StatCard
+            label="Follow Ups Due"
+            value={String(followUpsDue.length)}
+            subtext="Needs seller attention now"
+          />
+          <StatCard
+            label="Hot Leads"
+            value={String(allLeads.filter((lead) => (lead.lead_score ?? 0) >= 80).length)}
+            subtext="High-priority opportunities"
+          />
+          <StatCard
+            label="Buyer Network"
+            value={String(investorCount || 0)}
+            subtext={`Open tasks: ${openTasks.length} • CRM events: ${contactAttemptCount || 0}`}
+          />
+        </section>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-3">
+          <StatCard
+            label="Most Loaded Rep"
+            value={mostLoadedOwner?.ownerLabel || '—'}
+            subtext={
+              mostLoadedOwner
+                ? `${mostLoadedOwner.leadCount} leads • ${mostLoadedOwner.openTaskCount} open tasks`
+                : 'No ownership data yet'
+            }
+          />
+          <StatCard
+            label="Most At Risk"
+            value={mostOverdueOwner?.ownerLabel || '—'}
+            subtext={
+              mostOverdueOwner
+                ? `${mostOverdueOwner.overdueTaskCount} overdue tasks • ${mostOverdueOwner.followUpsDue} due follow-ups`
+                : 'No overdue workflow yet'
+            }
+          />
+          <StatCard
+            label="Top Closer Lane"
+            value={mostActiveCloser?.ownerLabel || '—'}
+            subtext={
+              mostActiveCloser
+                ? `${mostActiveCloser.underContractCount} under contract • ${mostActiveCloser.hotLeadCount} hot leads`
+                : 'No contract activity yet'
+            }
+          />
+        </section>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="My Leads"
+            value={String(myAssignedLeads.length)}
+            subtext="Currently owned by you"
+          />
+          <StatCard
+            label="My Open Tasks"
+            value={String(myOpenTasks.length)}
+            subtext="Unfinished tasks in your inbox"
+          />
+          <StatCard
+            label="My Overdue Tasks"
+            value={String(myOverdueTasks.length)}
+            subtext="Tasks you should clear today"
+          />
+          <StatCard
+            label="My Hot Leads"
+            value={String(myAssignedLeads.filter((lead) => (lead.lead_score ?? 0) >= 80).length)}
+            subtext="High-score leads assigned to you"
+          />
+        </section>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <SectionCard
+            title="My Leads"
+            description="Your owned leads, sorted so due follow-ups and stronger opportunities surface first."
+          >
+            {myAssignedLeads.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                No leads are assigned to you yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myAssignedLeads.slice(0, 6).map((lead) => (
+                  <Link
+                    key={lead.id}
+                    href={`/dashboard/${lead.id}`}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{lead.address}</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          {lead.city}, {lead.state}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
+                        {lead.lead_score ?? '—'}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                          lead.status
+                        )}`}
+                      >
+                        {lead.status || 'New'}
+                      </span>
+                      {lead.follow_up_date ? (
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            isDueTodayOrEarlier(lead.follow_up_date)
+                              ? 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
+                              : 'bg-white/10 text-slate-200 ring-1 ring-white/10'
+                          }`}
+                        >
+                          {isDueTodayOrEarlier(lead.follow_up_date) ? 'Due ' : 'Next '}
+                          {formatDate(lead.follow_up_date)}
+                        </span>
+                      ) : null}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="My Tasks"
+            description="Your task inbox, with overdue work pushed to the top so you can execute fast."
+          >
+            {myOpenTasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                No open tasks are assigned to you yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myOpenTasks.slice(0, 6).map((task) => (
+                  <Link
+                    key={task.id}
+                    href={task.leadId ? `/dashboard/${task.leadId}` : '/leads'}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{task.title}</p>
+                        <p className="mt-1 text-sm text-slate-300">{task.leadAddress}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                          {task.market}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          isOpenTaskOverdue(task.dueDate, task.status)
+                            ? 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
+                            : 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
+                        }`}
+                      >
+                        {task.dueDate ? `Due ${formatDate(task.dueDate)}` : 'No due date'}
+                      </span>
+                    </div>
+                    {task.details ? (
+                      <p className="mt-3 text-sm text-slate-300">{task.details}</p>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <SectionCard
+            title="Overdue Follow Ups"
+            description="These leads should be touched today so momentum does not slip."
+          >
+            {followUpsDue.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                Nothing overdue right now. Your follow-up queue is clear.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {followUpsDue.slice(0, 6).map((lead) => (
+                  <Link
+                    key={lead.id}
+                    href={`/dashboard/${lead.id}`}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{lead.address}</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          {lead.city}, {lead.state}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-rose-500/15 px-3 py-1 text-xs font-semibold text-rose-300 ring-1 ring-rose-400/30">
+                        Due {formatDate(lead.follow_up_date)}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                          lead.status
+                        )}`}
+                      >
+                        {lead.status || 'New'}
+                      </span>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getRatingClasses(
+                          lead.lead_rating
+                        )}`}
+                      >
+                        {lead.lead_rating || 'Unrated'}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="Quick Navigation"
+            description="Jump straight into the workflows that matter most this week."
+          >
+            <div className="grid gap-3">
+              {navGroups.flatMap((group) => group.items).slice(0, 8).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg">{item.icon}</span>
+                    <div>
+                      <p className="font-semibold text-white">{item.label}</p>
+                      <p className="mt-1 text-sm text-slate-400">{item.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          <SectionCard
+            title="Task Queue"
+            description="The most important lead tasks to knock out next, with overdue work pushed to the top."
+          >
+            {openTasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                No open lead tasks yet. Create tasks inside a lead workspace to turn follow-up into a real checklist.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {openTasks.slice(0, 8).map((task) => (
+                  <Link
+                    key={task.id}
+                    href={task.leadId ? `/dashboard/${task.leadId}` : '/leads'}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{task.title}</p>
+                        <p className="mt-1 text-sm text-slate-300">{task.leadAddress}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                          {task.market}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          isOpenTaskOverdue(task.dueDate, task.status)
+                            ? 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
+                            : 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
+                        }`}
+                      >
+                        {task.dueDate ? `Due ${formatDate(task.dueDate)}` : 'No due date'}
+                      </span>
+                    </div>
+                    {task.details ? (
+                      <p className="mt-3 text-sm text-slate-300">{task.details}</p>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="Task Health"
+            description="A quick read on whether lead tasks are keeping pace with the rest of the pipeline."
+          >
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Open Tasks</p>
+                <p className="mt-2 text-2xl font-bold text-white">{openTasks.length}</p>
+                <p className="mt-1 text-sm text-slate-400">Current unfinished lead tasks</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Overdue Tasks</p>
+                <p className="mt-2 text-2xl font-bold text-white">{overdueTasks.length}</p>
+                <p className="mt-1 text-sm text-slate-400">Tasks that should already be handled</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Task Coverage</p>
+                <p className="mt-2 text-2xl font-bold text-white">
+                  {getPercent(openTasks.length, allLeads.length)}
                 </p>
-                <h1 className="text-xl font-semibold sm:text-2xl">
-                  Acquisitions Dashboard
-                </h1>
+                <p className="mt-1 text-sm text-slate-400">Open tasks relative to lead volume</p>
               </div>
             </div>
 
-            <div className="hidden xl:flex items-center gap-2">
-              {navGroups.map((group) => (
-                <div
-                  key={group.title}
-                  className="relative"
-                  onMouseEnter={() => setOpenMenu(group.title)}
-                  onMouseLeave={() => setOpenMenu(null)}
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenMenu((prev) =>
-                        prev === group.title ? null : group.title
-                      )
-                    }
-                    className="rounded-xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-sky-400/20 hover:bg-[#101b2d]"
+            <div className="mt-5 space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Overdue share</p>
+                  <p className="text-sm font-semibold text-rose-300">
+                    {overdueTasks.length} / {openTasks.length}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-rose-500 to-orange-500"
+                    style={{ width: getPercent(overdueTasks.length, openTasks.length || 1) }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  When this rises, reps are setting next steps but not clearing them fast enough.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Leads with no open task</p>
+                  <p className="text-sm font-semibold text-amber-300">
+                    {Math.max(allLeads.length - openTasks.length, 0)} / {allLeads.length}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500"
+                    style={{
+                      width: getPercent(Math.max(allLeads.length - openTasks.length, 0), allLeads.length || 1),
+                    }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  This highlights how much of the pipeline still lacks a concrete next action.
+                </p>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <SectionCard
+            title="Team Ownership"
+            description="A manager-level view of rep load, lead quality, and who is carrying the most overdue workflow risk."
+          >
+            {ownerMetrics.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                No assignment activity yet. Assign leads to teammates to unlock team tracking here.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {ownerMetrics.slice(0, 6).map((owner) => (
+                  <div
+                    key={owner.key}
+                    className="rounded-2xl border border-white/10 bg-[#0d1727] p-4"
                   >
-                    {group.title} ▾
-                  </button>
-
-                  {openMenu === group.title && (
-                    <div className="absolute left-0 top-[calc(100%+10px)] z-50 w-[340px] rounded-2xl border border-white/10 bg-[#0c1524]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl">
-                      <div className="mb-2 px-2 text-xs uppercase tracking-[0.25em] text-slate-400">
-                        {group.title}
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{owner.ownerLabel}</p>
+                        <p className="mt-1 text-sm text-slate-400">{owner.ownerEmail}</p>
                       </div>
-
-                      <div className="space-y-2">
-                        {group.items.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="block rounded-xl border border-transparent bg-white/0 px-3 py-3 transition hover:border-sky-400/20 hover:bg-white/5"
-                          >
-                            <div className="flex items-start gap-3">
-                              <span className="text-lg">{item.icon}</span>
-                              <div>
-                                <p className="text-sm font-semibold text-white">
-                                  {item.label}
-                                </p>
-                                <p className="mt-1 text-xs text-slate-400">
-                                  {item.description}
-                                </p>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200 ring-1 ring-white/10">
+                          {owner.leadCount} leads
+                        </span>
+                        <span className="rounded-full bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-300 ring-1 ring-sky-400/30">
+                          {owner.openTaskCount} open tasks
+                        </span>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            owner.overdueTaskCount > 0
+                              ? 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
+                              : 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30'
+                          }`}
+                        >
+                          {owner.overdueTaskCount} overdue
+                        </span>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
 
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard/add-lead"
-                className="hidden sm:inline-flex rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25"
-              >
-                + Add Lead
-              </Link>
-
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen((prev) => !prev)}
-                className="inline-flex xl:hidden rounded-xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm font-medium text-white"
-              >
-                Menu
-              </button>
-            </div>
-          </div>
-
-          {mobileMenuOpen && (
-            <div className="mt-4 xl:hidden rounded-2xl border border-white/10 bg-[#0d1727] p-3">
-              <div className="grid gap-3">
-                {navGroups.map((group) => (
-                  <div
-                    key={group.title}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-3"
-                  >
-                    <p className="mb-2 text-sm font-semibold text-white">
-                      {group.title}
-                    </p>
-                    <div className="grid gap-2">
-                      {group.items.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className="rounded-xl bg-[#0b1320] px-3 py-3 transition hover:bg-[#101b2d]"
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className="text-lg">{item.icon}</span>
-                            <div>
-                              <p className="text-sm font-medium text-white">
-                                {item.label}
-                              </p>
-                              <p className="mt-1 text-xs text-slate-400">
-                                {item.description}
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="mt-4 grid gap-3 sm:grid-cols-4 text-sm text-slate-300">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Hot Leads</p>
+                        <p className="mt-1 font-semibold text-white">{owner.hotLeadCount}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Due Follow Ups</p>
+                        <p className="mt-1 font-semibold text-white">{owner.followUpsDue}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Avg Score</p>
+                        <p className="mt-1 font-semibold text-white">{owner.avgScore}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Under Contract</p>
+                        <p className="mt-1 font-semibold text-white">{owner.underContractCount}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </header>
+            )}
+          </SectionCard>
 
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-sky-200 backdrop-blur">
-              Competitive dashboard layout
-            </p>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Find better deals faster
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
-              Track leads, score deals, and manage your pipeline in one place.
-            </p>
-          </div>
-        </div>
-
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard title="Total Leads" value={String(totalLeads)} subtext="+12 this week" icon="🏠" />
-          <StatCard title="AI Scored Strong" value={String(strongDeals)} subtext="Hot opportunities" icon="⚡" />
-          <StatCard title="Potential Spread" value={formatMoney(totalPotentialSpread)} subtext="Across all active leads" icon="💰" />
-          <StatCard title="Under Contract" value={String(underContract)} subtext="Deals moving now" icon="📄" />
-        </section>
-
-        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_0.95fr]">
-          <section className="space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
-              <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">Deal Finder</h2>
-                  <p className="mt-1 text-sm text-slate-300">
-                    Search your saved leads and filter for better opportunities.
+          <SectionCard
+            title="Manager Snapshot"
+            description="Use this to spot coaching needs fast: overloaded reps, stale follow-ups, and where the strongest deals are concentrated."
+          >
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Team task risk</p>
+                  <p className="text-sm font-semibold text-rose-300">
+                    {overdueTasks.length} / {openTasks.length}
                   </p>
                 </div>
-
-                <div className="w-full max-w-md">
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by address, city, owner, state, or ZIP..."
-                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/20"
+                <div className="mt-3 h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-rose-500 to-orange-500"
+                    style={{ width: getPercent(overdueTasks.length, openTasks.length || 1) }}
                   />
                 </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  This shows how much team workflow is already behind, not just scheduled.
+                </p>
               </div>
 
-              <div className="mb-5 flex flex-wrap gap-2">
-                {filters.map((filter) => {
-                  const isActive = filter === activeFilter;
-                  return (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => setActiveFilter(filter)}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                        isActive
-                          ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-900/40"
-                          : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
-                      }`}
-                    >
-                      {filter}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-4">
-                {filteredLeads.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-[#0b1320] p-8 text-center text-slate-400">
-                    No leads found for this search.
-                  </div>
-                ) : (
-                  filteredLeads.map((lead) => (
-                    <LeadCard
-                      key={lead.id}
-                      lead={lead}
-                      active={selectedLead?.id === lead.id}
-                      onClick={() => setSelectedLeadId(lead.id)}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
-          </section>
-
-          <aside className="space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-                    Selected Lead
-                  </p>
-                  <h3 className="mt-2 text-2xl font-semibold">
-                    {selectedLead?.address ?? "No lead selected"}
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-300">
-                    {selectedLead
-                      ? `${selectedLead.city}, ${selectedLead.state} ${selectedLead.zip}`
-                      : "Choose a lead to view details"}
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Hot leads assigned</p>
+                  <p className="text-sm font-semibold text-sky-300">
+                    {ownerMetrics.reduce((sum, owner) => sum + owner.hotLeadCount, 0)} / {allLeads.length}
                   </p>
                 </div>
-
-                {selectedLead && (
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(
-                      selectedLead.status
-                    )}`}
-                  >
-                    {selectedLead.status}
-                  </span>
-                )}
+                <div className="mt-3 h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600"
+                    style={{
+                      width: getPercent(
+                        ownerMetrics.reduce((sum, owner) => sum + owner.hotLeadCount, 0),
+                        allLeads.length || 1
+                      ),
+                    }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  Strong lead concentration helps you decide whether your best opportunities are evenly distributed.
+                </p>
               </div>
 
-              {selectedLead && (
-                <>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Owned pipeline coverage</p>
+                  <p className="text-sm font-semibold text-amber-300">
+                    {ownerMetrics.reduce((sum, owner) => sum + owner.leadCount, 0)} / {allLeads.length}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-white/10">
                   <div
-                    className={`mb-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4 ${getScoreTone(
-                      selectedLead.score
-                    ).glow}`}
+                    className="h-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500"
+                    style={{
+                      width: getPercent(
+                        ownerMetrics.reduce((sum, owner) => sum + owner.leadCount, 0),
+                        allLeads.length || 1
+                      ),
+                    }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  Every lead should have clear ownership so accountability does not disappear between follow-ups.
+                </p>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <SectionCard
+            title="Recent CRM Activity"
+            description="The latest seller outreach, notes, and pipeline changes across your leads."
+          >
+            {recentActivity.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                No CRM activity yet. As your team logs outreach and notes, it will show up here.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.slice(0, 8).map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.leadId ? `/dashboard/${item.leadId}` : '/leads'}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
                   >
-                    <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-                      Deal Score
-                    </p>
-                    <div className="mt-2 flex items-end gap-3">
-                      <span className="text-5xl font-bold">
-                        {selectedLead.score}
-                      </span>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{item.title}</p>
+                        <p className="mt-1 text-sm text-slate-300">{item.leadAddress}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                          {item.market}
+                        </p>
+                      </div>
                       <span
-                        className={`mb-1 text-sm font-medium ${
-                          getScoreTone(selectedLead.score).color
-                        }`}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getMethodClasses(
+                          item.method
+                        )}`}
                       >
-                        {getScoreTone(selectedLead.score).text}
+                        {item.method}
                       </span>
                     </div>
+                    <p className="mt-3 text-sm text-slate-300">{item.detail}</p>
+                    <p className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-500">
+                      {formatDateTime(item.timestamp)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
 
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r ${
-                          getScoreTone(selectedLead.score).bar
-                        }`}
-                        style={{ width: `${selectedLead.score}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <InfoBox label="ARV" value={formatMoney(selectedLead.arv)} />
-                    <InfoBox label="Asking" value={formatMoney(selectedLead.asking)} />
-                    <InfoBox label="Repairs" value={formatMoney(selectedLead.repairs)} />
-                    <InfoBox label="Equity" value={`${selectedLead.equityPercent}%`} />
-                  </div>
-
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-                    <p className="text-sm font-semibold text-white">Owner Info</p>
-                    <div className="mt-3 space-y-2 text-sm text-slate-300">
-                      <p>
-                        <span className="text-slate-400">Name:</span>{" "}
-                        {selectedLead.owner}
-                      </p>
-                      <p>
-                        <span className="text-slate-400">Phone:</span>{" "}
-                        {selectedLead.phone}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                      <Link
-                        href="/dashboard/leads"
-                        className="flex-1 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:opacity-95"
+          <SectionCard
+            title="Recent Notes And Workflow"
+            description="Internal updates your team made most recently, so nothing slips between follow-ups."
+          >
+            {recentInternalUpdates.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                No notes or workflow changes have been logged yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentInternalUpdates.slice(0, 6).map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.leadId ? `/dashboard/${item.leadId}` : '/leads'}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{item.leadAddress}</p>
+                        <p className="mt-1 text-sm text-slate-300">{item.detail}</p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getMethodClasses(
+                          item.method
+                        )}`}
                       >
-                        View Lead
-                      </Link>
-                      <Link
-                        href="/dashboard/marketing/text"
-                        className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                      >
-                        Contact Owner
-                      </Link>
+                        {item.method}
+                      </span>
                     </div>
+                    <p className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-500">
+                      {formatDateTime(item.timestamp)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <SectionCard
+            title="Pipeline Analytics"
+            description="See where your deals are clustering so you can spot bottlenecks and momentum."
+          >
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Avg Lead Score
+                </p>
+                <p className="mt-2 text-2xl font-bold text-white">{avgLeadScore}</p>
+                <p className="mt-1 text-sm text-slate-400">Average deal quality in queue</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Active Leads
+                </p>
+                <p className="mt-2 text-2xl font-bold text-white">{activeLeadCount}</p>
+                <p className="mt-1 text-sm text-slate-400">Still being worked by acquisitions</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Under Contract Rate
+                </p>
+                <p className="mt-2 text-2xl font-bold text-white">
+                  {getPercent(underContract.length, allLeads.length)}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">Share of queue now in dispo</p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {stageMetrics.map((item) => (
+                <div
+                  key={item.stage}
+                  className="rounded-2xl border border-white/10 bg-[#0d1727] p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                          item.stage
+                        )}`}
+                      >
+                        {item.stage}
+                      </span>
+                      <p className="text-sm text-slate-300">{item.count} leads</p>
+                    </div>
+                    <p className="text-sm font-semibold text-white">{item.percent}</p>
                   </div>
-                </>
+                  <div className="mt-3 h-2 rounded-full bg-white/10">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600"
+                      style={{ width: item.percent }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Follow Up Performance"
+            description="Track how disciplined the team is with next touches and whether the queue is staying organized."
+          >
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Scheduled
+                </p>
+                <p className="mt-2 text-2xl font-bold text-white">{scheduledFollowUps.length}</p>
+                <p className="mt-1 text-sm text-slate-400">Leads with a next touch date</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Due Rate
+                </p>
+                <p className="mt-2 text-2xl font-bold text-white">
+                  {getPercent(followUpsDue.length, scheduledFollowUps.length)}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">Share of scheduled follow-ups now due</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  CRM Coverage
+                </p>
+                <p className="mt-2 text-2xl font-bold text-white">{contactCoverage}%</p>
+                <p className="mt-1 text-sm text-slate-400">Recent logged activity vs lead count</p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Follow-ups due now</p>
+                  <p className="text-sm font-semibold text-rose-300">
+                    {followUpsDue.length} / {scheduledFollowUps.length || 0}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-rose-500 to-orange-500"
+                    style={{
+                      width: getPercent(followUpsDue.length, scheduledFollowUps.length || 1),
+                    }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  High due rates usually mean the team needs a stronger same-day follow-up push.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Leads without next step</p>
+                  <p className="text-sm font-semibold text-amber-300">
+                    {allLeads.length - scheduledFollowUps.length} / {allLeads.length}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500"
+                    style={{
+                      width: getPercent(
+                        allLeads.length - scheduledFollowUps.length,
+                        allLeads.length || 1
+                      ),
+                    }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-400">
+                  This is the part of the queue most likely to stall without tighter task discipline.
+                </p>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-3">
+          <SectionCard
+            title="Hot Lead Board"
+            description="The best opportunities to underwrite and work today."
+          >
+            <div className="space-y-3">
+              {hotLeads.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                  No hot leads yet. Use Finder and Map to source more opportunities.
+                </div>
+              ) : (
+                hotLeads.map((lead) => (
+                  <Link
+                    key={lead.id}
+                    href={`/dashboard/${lead.id}`}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{lead.address}</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          {lead.city}, {lead.state}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
+                        {lead.lead_score ?? '—'}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {getSignals(lead.lead_signals).map((signal) => (
+                        <span
+                          key={signal}
+                          className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300"
+                        >
+                          {signal}
+                        </span>
+                      ))}
+                    </div>
+                  </Link>
+                ))
               )}
             </div>
-          </aside>
+          </SectionCard>
+
+          <SectionCard
+            title="New In Queue"
+            description="Fresh leads that still need qualification and first contact."
+          >
+            <div className="space-y-3">
+              {newLeads.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                  No new leads waiting right now.
+                </div>
+              ) : (
+                newLeads.map((lead) => (
+                  <Link
+                    key={lead.id}
+                    href={`/dashboard/${lead.id}`}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <p className="font-semibold text-white">{lead.address}</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {lead.city}, {lead.state}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between text-sm text-slate-300">
+                      <span>{lead.owner_name || 'Unknown owner'}</span>
+                      <span>{formatDate(lead.created_at)}</span>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Under Contract"
+            description="Deals that need dispo and close coordination."
+          >
+            <div className="space-y-3">
+              {underContract.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
+                  No deals under contract yet.
+                </div>
+              ) : (
+                underContract.map((lead) => (
+                  <Link
+                    key={lead.id}
+                    href={`/dashboard/${lead.id}`}
+                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
+                  >
+                    <p className="font-semibold text-white">{lead.address}</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {lead.city}, {lead.state}
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-300">
+                      <div>
+                        <strong>Value:</strong> {formatMoney(lead.estimated_value)}
+                      </div>
+                      <div>
+                        <strong>Offer:</strong> {formatMoney(lead.target_offer)}
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </SectionCard>
         </div>
       </div>
     </main>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  subtext,
-  icon,
-}: {
-  title: string;
-  value: string;
-  subtext: string;
-  icon: string;
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
-      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-sky-400/10 blur-2xl" />
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-slate-400">{title}</p>
-          <h3 className="mt-3 text-3xl font-bold">{value}</h3>
-          <p className="mt-2 text-sm text-slate-300">{subtext}</p>
-        </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0d1727] text-xl">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LeadCard({
-  lead,
-  active,
-  onClick,
-}: {
-  lead: Lead;
-  active: boolean;
-  onClick: () => void;
-}) {
-  const spread = getSpread(lead);
-  const scoreTone = getScoreTone(lead.score);
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`w-full rounded-3xl border p-4 text-left transition ${
-        active
-          ? "border-sky-400/40 bg-gradient-to-br from-sky-500/10 to-blue-600/10 shadow-lg shadow-sky-950/30"
-          : "border-white/10 bg-[#0b1320] hover:border-white/20 hover:bg-[#0e1727]"
-      }`}
-    >
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-semibold text-white">{lead.address}</h3>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(
-                lead.status
-              )}`}
-            >
-              {lead.status}
-            </span>
-          </div>
-
-          <p className="mt-2 text-sm text-slate-300">
-            {lead.city}, {lead.state} {lead.zip}
-          </p>
-        </div>
-
-        <div className="grid min-w-[220px] grid-cols-2 gap-3 xl:w-[240px]">
-          <MiniMetric label="Score" value={String(lead.score)} />
-          <MiniMetric label="Spread" value={formatMoney(spread)} />
-          <MiniMetric label="ARV" value={formatMoney(lead.arv)} />
-          <MiniMetric label="Repairs" value={formatMoney(lead.repairs)} />
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
-          <span>Deal strength</span>
-          <span className={scoreTone.color}>{scoreTone.text}</span>
-        </div>
-        <div className="h-2 overflow-hidden rounded-full bg-white/10">
-          <div
-            className={`h-full rounded-full bg-gradient-to-r ${scoreTone.bar}`}
-            style={{ width: `${lead.score}%` }}
-          />
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function MiniMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-      <p className="text-xs text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function InfoBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-        {label}
-      </p>
-      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
-    </div>
-  );
+  )
 }

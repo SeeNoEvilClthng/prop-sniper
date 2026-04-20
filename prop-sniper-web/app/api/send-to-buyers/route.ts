@@ -5,6 +5,11 @@ import { getBuyerMatch } from '@/lib/buyer-matching'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return 'Something went wrong'
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
@@ -71,6 +76,28 @@ ${lead.notes || 'No notes'}
 📩 Reply for details or to secure this deal.
     `
 
+    const summary = {
+      recipientCount: emails.length,
+      topMatches: validBuyers.slice(0, 5).map((item) => ({
+        id: item.investor.id,
+        company_name: item.investor.company_name,
+        contact_name: item.investor.contact_name,
+        email: item.investor.email,
+        score: item.match.score,
+        label: item.match.label,
+        reasons: item.match.reasons,
+      })),
+    }
+
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json({
+        success: true,
+        preview: true,
+        message: 'Preview generated. Add RESEND_API_KEY to send emails.',
+        ...summary,
+      })
+    }
+
     await resend.emails.send({
       from: 'Deals <onboarding@resend.dev>',
       to: emails,
@@ -78,9 +105,14 @@ ${lead.notes || 'No notes'}
       text: dealText,
     })
 
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    return NextResponse.json({
+      success: true,
+      preview: false,
+      message: `Deal sent to ${emails.length} buyers.`,
+      ...summary,
+    })
+  } catch (error: unknown) {
+    console.error(error)
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 })
   }
 }

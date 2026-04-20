@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { analyzeDeal } from '@/lib/deal-analysis'
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return 'Something went wrong.'
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
@@ -64,9 +69,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, analysis })
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || 'Something went wrong.' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     )
   }

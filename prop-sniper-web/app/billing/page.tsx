@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AppShell from '@/components/AppShell'
-import UpgradeButton from '@/components/UpgradeButton'
 
 export default async function BillingPage() {
   const supabase = await createClient()
@@ -12,7 +11,7 @@ export default async function BillingPage() {
 
   if (!user) redirect('/login')
 
-  const { data: subscription } = await supabase
+  await supabase
     .from('subscriptions')
     .select('*')
     .eq('user_id', user.id)

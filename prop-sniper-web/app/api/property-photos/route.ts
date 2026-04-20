@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-type AnyRecord = Record<string, any>
+type JsonObject = Record<string, unknown>
 
 function buildFullAddress(address: string, city?: string | null, state?: string | null, zipCode?: string | null) {
   return `${address}, ${city || ''}, ${state || ''} ${zipCode || ''}`
@@ -13,10 +13,10 @@ function isUrl(value: unknown): value is string {
   return typeof value === 'string' && /^https?:\/\//i.test(value)
 }
 
-function flattenPhotoCandidates(input: any): string[] {
+function flattenPhotoCandidates(input: unknown): string[] {
   const results: string[] = []
 
-  const visit = (value: any) => {
+  const visit = (value: unknown) => {
     if (!value) return
 
     if (Array.isArray(value)) {
@@ -30,6 +30,7 @@ function flattenPhotoCandidates(input: any): string[] {
     }
 
     if (typeof value === 'object') {
+      const record = value as JsonObject
       const directKeys = [
         'url',
         'href',
@@ -43,10 +44,11 @@ function flattenPhotoCandidates(input: any): string[] {
       ]
 
       for (const key of directKeys) {
-        if (isUrl(value[key])) results.push(value[key])
+        const candidate = record[key]
+        if (isUrl(candidate)) results.push(candidate)
       }
 
-      for (const nested of Object.values(value)) {
+      for (const nested of Object.values(record)) {
         if (typeof nested === 'object' || typeof nested === 'string') {
           visit(nested)
         }
@@ -58,7 +60,7 @@ function flattenPhotoCandidates(input: any): string[] {
   return results
 }
 
-function extractPhotosFromListing(listing: AnyRecord | null | undefined): string[] {
+function extractPhotosFromListing(listing: JsonObject | null | undefined): string[] {
   if (!listing) return []
 
   const candidateFields = [
@@ -102,8 +104,17 @@ async function fetchListingPhotos(endpoint: string, fullAddress: string) {
       return { source: endpoint, photos: [] as string[], ok: false }
     }
 
-    const data = await res.json()
-    const listing = Array.isArray(data) ? data[0] : data?.listings?.[0] || data?.results?.[0] || data
+    const data: unknown = await res.json()
+    const root = typeof data === 'object' && data !== null ? (data as JsonObject) : null
+    const listings = Array.isArray(root?.listings) ? root.listings : null
+    const results = Array.isArray(root?.results) ? root.results : null
+    const listing =
+      Array.isArray(data)
+        ? (data[0] as JsonObject | undefined)
+        : ((listings?.[0] as JsonObject | undefined) ||
+          (results?.[0] as JsonObject | undefined) ||
+          root ||
+          undefined)
     const photos = extractPhotosFromListing(listing)
 
     return { source: endpoint, photos, ok: true }

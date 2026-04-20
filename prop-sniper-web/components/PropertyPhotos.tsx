@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 
 type Props = {
@@ -104,10 +105,13 @@ export default function PropertyPhotos({ address, city, state, zipCode }: Props)
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {photos.slice(0, 6).map((photo, index) => (
             <div key={`${photo}-${index}`} className="overflow-hidden rounded-xl border bg-gray-100">
-              <img
+              <Image
                 src={photo}
                 alt={`Property photo ${index + 1}`}
+                width={960}
+                height={640}
                 className="h-64 w-full object-cover"
+                unoptimized
                 loading="lazy"
               />
             </div>

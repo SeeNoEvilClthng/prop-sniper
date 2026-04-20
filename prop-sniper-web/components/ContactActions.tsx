@@ -8,8 +8,8 @@ type Phone = {
 
 type Props = {
   leadId: string;
-  phones: Phone[];
-  emails: { email?: string }[];
+  phones: Array<Phone | string>;
+  emails: Array<{ email?: string } | string>;
 };
 
 export default function ContactActions({ leadId, phones, emails }: Props) {
@@ -20,6 +20,9 @@ export default function ContactActions({ leadId, phones, emails }: Props) {
   async function logAttempt(method: string) {
     await fetch("/api/contact/log", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         lead_id: leadId,
         method,
@@ -41,11 +44,11 @@ export default function ContactActions({ leadId, phones, emails }: Props) {
         {phones?.map((p, i) => (
           <a
             key={i}
-            href={`sms:${p.number}?body=${encodeURIComponent(message)}`}
+            href={`sms:${typeof p === "string" ? p : p.number}?body=${encodeURIComponent(message)}`}
             onClick={() => logAttempt("sms")}
             className="block bg-green-600 text-white px-3 py-2 rounded-xl text-center"
           >
-            Text {p.number}
+            Text {typeof p === "string" ? p : p.number}
           </a>
         ))}
       </div>
@@ -54,11 +57,11 @@ export default function ContactActions({ leadId, phones, emails }: Props) {
         {emails?.map((e, i) => (
           <a
             key={i}
-            href={`mailto:${e.email}?subject=Property Inquiry&body=${encodeURIComponent(message)}`}
+            href={`mailto:${typeof e === "string" ? e : e.email}?subject=Property Inquiry&body=${encodeURIComponent(message)}`}
             onClick={() => logAttempt("email")}
             className="block bg-blue-600 text-white px-3 py-2 rounded-xl text-center"
           >
-            Email {e.email}
+            Email {typeof e === "string" ? e : e.email}
           </a>
         ))}
       </div>

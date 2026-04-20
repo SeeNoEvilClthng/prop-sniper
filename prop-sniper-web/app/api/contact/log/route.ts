@@ -22,14 +22,14 @@ export async function POST(req: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { error } = await supabase.from("contact_logs").insert([body]);
+    const { error } = await supabase.from("contact_attempts").insert([body]);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to log contact event." },
       { status: 500 }

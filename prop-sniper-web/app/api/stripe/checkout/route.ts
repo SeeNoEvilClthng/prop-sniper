@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return 'Checkout failed'
+}
+
 export async function POST() {
   try {
     const supabase = await createClient()
@@ -28,8 +33,8 @@ export async function POST() {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('STRIPE ERROR:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 })
   }
 }

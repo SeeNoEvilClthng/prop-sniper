@@ -1,19 +1,12 @@
-import { notFound } from "next/navigation";
-import { findNavMeta } from "../dashboardData";
-import DashboardRouteClient from "../DashboardRouteClient";
+import { NextResponse } from "next/server";
 
-export default async function DashboardRoutePage({
-  params,
-}: {
-  params: Promise<{ slug: string[] }>;
-}) {
-  const { slug } = await params;
-  const pathname = `/dashboard/${slug.join("/")}`;
-  const meta = findNavMeta(pathname);
+import { createClient } from "@/lib/supabase/server";
 
-  if (!meta) {
-    notFound();
-  }
+export async function GET(request: Request) {
+  const supabase = await createClient();
 
-  return <DashboardRouteClient pathname={pathname} />;
+  await supabase.auth.signOut();
+
+  const redirectUrl = new URL("/login", request.url);
+  return NextResponse.redirect(redirectUrl);
 }

@@ -23,15 +23,15 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="futuristic-grid hidden w-[290px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(7,15,24,0.96),rgba(10,18,29,0.92))] md:block">
+    <aside className="futuristic-grid hidden w-[290px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(6,7,13,0.98),rgba(10,11,20,0.94))] md:block">
       <div className="sticky top-0 flex h-screen flex-col px-5 py-6">
-        <div className="luxe-panel edge-glow sheen rounded-[28px] p-4">
+        <div className="luxe-panel edge-glow sheen rounded-[28px] p-4 xleads-vibe">
           <div className="flex items-center gap-3">
-            <div className="edge-glow flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b1522,#163b63)] text-sm font-semibold text-white">
+            <div className="edge-glow flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b0d16,#4c1d95)] text-sm font-semibold text-white">
               PS
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
+              <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
                 PropSniper
               </p>
               <p className="mt-1 text-sm text-slate-300">
@@ -40,11 +40,11 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-[#d7bf7c]/16 bg-[#0a1320] p-4">
+          <div className="mt-4 rounded-2xl border border-fuchsia-400/16 bg-[#0b0d19] p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
               Focus today
             </p>
-            <p className="mt-2 text-sm font-semibold text-[#ead9a8]">
+            <p className="mt-2 text-sm font-semibold text-fuchsia-200">
               Work hot leads, clear overdue tasks, and move clean deals toward buyer review.
             </p>
           </div>
@@ -65,11 +65,11 @@ export default function Sidebar() {
                     href={item.href}
                     className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
                       active
-                        ? "border border-[#d7bf7c]/18 bg-[#d7bf7c]/10 text-white shadow-[0_12px_24px_rgba(0,0,0,0.16)]"
+                        ? "border border-fuchsia-400/18 bg-fuchsia-500/10 text-white shadow-[0_12px_24px_rgba(0,0,0,0.16)]"
                         : "border border-transparent bg-white/[0.03] text-slate-300 hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
                     }`}
                   >
-                    <span className={`text-base ${active ? "text-[#ead9a8]" : "text-slate-500"}`}>
+                    <span className={`text-base ${active ? "text-fuchsia-200" : "text-slate-500"}`}>
                       {item.icon}
                     </span>
                     <span>{item.label}</span>
@@ -113,7 +113,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="luxe-panel edge-glow mt-6 rounded-[26px] p-4">
+        <div className="luxe-panel edge-glow mt-6 rounded-[26px] p-4 xleads-vibe">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Operator note</p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
             The fastest teams work from one system. Keep lead context, next step, and buyer angle visible before every call.

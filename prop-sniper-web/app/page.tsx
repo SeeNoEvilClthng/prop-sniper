@@ -148,18 +148,18 @@ const pricingPlans = [
 
 export default function HomePage() {
   return (
-    <main className="futuristic-grid min-h-screen overflow-x-hidden bg-[#08111d] text-white">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(38,138,255,0.24),transparent_28%),radial-gradient(circle_at_70%_0%,rgba(240,180,80,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(26,114,89,0.16),transparent_22%),linear-gradient(180deg,#08111d_0%,#0a1321_35%,#07101a_100%)]" />
+    <main className="futuristic-grid min-h-screen overflow-x-hidden bg-[#06070d] text-white">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.24),transparent_28%),radial-gradient(circle_at_70%_0%,rgba(99,102,241,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.16),transparent_22%),linear-gradient(180deg,#06070d_0%,#090b14_35%,#070910_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent)] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
 
-      <header className="sticky top-0 z-50 border-b border-white/8 bg-[#08111d]/78 backdrop-blur-2xl">
+      <header className="sticky top-0 z-50 border-b border-white/8 bg-[#06070d]/78 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="edge-glow sheen flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#091321,#163b63)] text-sm font-semibold shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+            <div className="edge-glow sheen flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b0d16,#4c1d95)] text-sm font-semibold shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
               PS
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.36em] text-[#d7bf7c]">
+              <p className="text-[11px] uppercase tracking-[0.36em] text-[#c4b5fd]">
                 PropSniper
               </p>
               <p className="text-sm text-slate-300">Wholesaling operating system</p>
@@ -201,7 +201,7 @@ export default function HomePage() {
       <section className="relative">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:pb-28 lg:pt-20">
           <div className="flex flex-col justify-center">
-            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-[#d7bf7c]/20 bg-[#d7bf7c]/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-[#ead9a8]">
+            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-fuchsia-200">
               Built for acquisitions, dispositions, and investor teams
             </div>
 
@@ -218,7 +218,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href="/signup"
-                className="rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-6 py-4 text-center text-sm font-semibold text-[#10151f] shadow-[0_24px_44px_rgba(215,181,111,0.20)] transition hover:translate-y-[-1px]"
+                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-6 py-4 text-center text-sm font-semibold text-white shadow-[0_24px_44px_rgba(147,51,234,0.28)] transition hover:translate-y-[-1px]"
               >
                 Start for $29/month
               </a>
@@ -245,19 +245,19 @@ export default function HomePage() {
           </div>
 
           <div className="relative">
-            <div className="absolute -left-6 top-10 h-32 w-32 rounded-full bg-[#d7bf7c]/10 blur-3xl" />
-            <div className="absolute -right-8 top-28 h-44 w-44 rounded-full bg-sky-500/12 blur-3xl" />
+            <div className="absolute -left-6 top-10 h-32 w-32 rounded-full bg-fuchsia-500/12 blur-3xl" />
+            <div className="absolute -right-8 top-28 h-44 w-44 rounded-full bg-violet-500/14 blur-3xl" />
 
-            <div className="luxe-panel-strong edge-glow hover-float relative rounded-[34px] p-4">
-              <div className="sheen rounded-[28px] border border-white/10 bg-[#091321] p-5">
+            <div className="luxe-panel-strong edge-glow hover-float relative rounded-[34px] p-4 xleads-vibe">
+              <div className="sheen rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,#0a0b13,#111126)] p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.34em] text-slate-500">
+                    <p className="text-[11px] uppercase tracking-[0.34em] text-violet-200/60">
                       Live Command Center
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold">Acquisitions + Dispo</h2>
                   </div>
-                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                  <span className="rounded-full border border-fuchsia-400/20 bg-fuchsia-500/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-fuchsia-200">
                     Team view active
                   </span>
                 </div>

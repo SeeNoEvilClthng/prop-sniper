@@ -50,11 +50,11 @@ export default function TopBar() {
   const meta = getHeaderMeta(pathname);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/8 bg-[#08111d]/82 backdrop-blur-2xl">
+    <header className="sticky top-0 z-20 border-b border-white/8 bg-[#06070d]/82 backdrop-blur-2xl">
       <div className="flex flex-col gap-5 px-4 py-5 md:px-6 lg:px-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
+            <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
               PropSniper Workspace
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">
@@ -69,7 +69,7 @@ export default function TopBar() {
             <input
               type="text"
               placeholder="Search address, owner, city, or market..."
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-[#d7bf7c]/40 focus:bg-white/[0.06]"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-fuchsia-400/40 focus:bg-white/[0.06]"
             />
 
             <Link
@@ -81,7 +81,7 @@ export default function TopBar() {
 
             <Link
               href="/dashboard/new"
-              className="edge-glow inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] shadow-[0_14px_26px_rgba(215,181,111,0.18)] transition hover:translate-y-[-1px]"
+              className="edge-glow inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_26px_rgba(147,51,234,0.28)] transition hover:translate-y-[-1px]"
             >
               + Add Lead
             </Link>
@@ -89,9 +89,9 @@ export default function TopBar() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <StatusChip label="AI summaries ready" tone="gold" />
+          <StatusChip label="AI summaries ready" tone="purple" />
           <StatusChip label="Tasks and follow-up live" tone="slate" />
-          <StatusChip label="Buyer matching connected" tone="emerald" />
+          <StatusChip label="Buyer matching connected" tone="blue" />
         </div>
       </div>
     </header>
@@ -103,13 +103,13 @@ function StatusChip({
   tone,
 }: {
   label: string;
-  tone: "gold" | "slate" | "emerald";
+  tone: "purple" | "slate" | "blue";
 }) {
   const className =
-    tone === "gold"
-      ? "border-[#d7bf7c]/20 bg-[#d7bf7c]/10 text-[#ead9a8]"
-      : tone === "emerald"
-        ? "border-emerald-400/20 bg-emerald-500/12 text-emerald-300"
+    tone === "purple"
+      ? "border-fuchsia-400/20 bg-fuchsia-500/12 text-fuchsia-200"
+      : tone === "blue"
+        ? "border-sky-400/20 bg-sky-500/12 text-sky-300"
         : "border-white/10 bg-white/[0.05] text-slate-300";
 
   return (

@@ -162,6 +162,31 @@ function StatCard({
   )
 }
 
+function QueueInfoChip({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className: string
+}) {
+  return <span className={`rounded-full px-3 py-1 text-xs font-semibold ${className}`}>{children}</span>
+}
+
+function QueueMetric({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0d1727]/88 p-3">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+    </div>
+  )
+}
+
 export default async function LeadsPage({ searchParams }: PageProps) {
   const params = (await searchParams) || {}
   const supabase = await createClient()
@@ -288,7 +313,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
         <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
+              <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
                 Acquisition Queue
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">Lead Pipeline</h1>
@@ -301,7 +326,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/dashboard/new"
-                className="rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] transition hover:translate-y-[-1px]"
+                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
               >
                 Add Lead
               </Link>
@@ -318,6 +343,21 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                 Map Leads
               </Link>
             </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href="#queue-filters"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+            >
+              Filters
+            </a>
+            <a
+              href="#queue-list"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+            >
+              Queue
+            </a>
           </div>
         </section>
 
@@ -344,7 +384,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
           />
         </section>
 
-        <section className="mt-6 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+        <section id="queue-filters" className="mt-6 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Queue Filters</h2>
@@ -430,7 +470,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
           </form>
         </section>
 
-        <section className="mt-6 space-y-4">
+        <section id="queue-list" className="mt-6 space-y-4">
           {leads.length === 0 ? (
             <div className="rounded-[30px] border border-dashed border-white/10 bg-[#0d1727] p-10 text-center text-slate-400">
               No leads match the current filters.
@@ -454,16 +494,12 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                           {lead.address || 'No address'}
                         </h3>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                            lead.status
-                          )}`}
+                          className={getStatusClasses(lead.status) + ' rounded-full px-3 py-1 text-xs font-semibold'}
                         >
                           {lead.status || 'New'}
                         </span>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getRatingClasses(
-                            lead.lead_rating
-                          )}`}
+                          className={getRatingClasses(lead.lead_rating) + ' rounded-full px-3 py-1 text-xs font-semibold'}
                         >
                           {lead.lead_rating || 'Weak'}
                         </span>
@@ -484,63 +520,28 @@ export default async function LeadsPage({ searchParams }: PageProps) {
                           'No location'}
                       </p>
 
-                      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                            Owner
-                          </p>
-                          <p className="mt-2 font-medium text-white">
-                            {lead.owner_name || 'Unknown'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                            Score
-                          </p>
-                          <p className="mt-2 font-medium text-white">
-                            {lead.lead_score ?? '—'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                            Est. Value
-                          </p>
-                          <p className="mt-2 font-medium text-white">
-                            {formatMoney(lead.estimated_value)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                            Target Offer
-                          </p>
-                          <p className="mt-2 font-medium text-white">
-                            {formatMoney(lead.target_offer)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                            Next Follow Up
-                          </p>
-                          <p className="mt-2 font-medium text-white">
-                            {formatDate(lead.follow_up_date)}
-                          </p>
-                        </div>
+                      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                        <QueueMetric label="Owner" value={lead.owner_name || 'Unknown'} />
+                        <QueueMetric label="Score" value={String(lead.lead_score ?? '—')} />
+                        <QueueMetric label="Est. Value" value={formatMoney(lead.estimated_value)} />
+                        <QueueMetric label="Target Offer" value={formatMoney(lead.target_offer)} />
+                        <QueueMetric label="Next Follow Up" value={formatDate(lead.follow_up_date)} />
                       </div>
 
                       {signals.length > 0 ? (
                         <div className="mt-5 flex flex-wrap gap-2">
                           {signals.map((signal) => (
-                            <span
+                            <QueueInfoChip
                               key={signal}
-                              className="rounded-full bg-sky-500/15 px-3 py-1 text-xs font-medium text-sky-200 ring-1 ring-sky-400/30"
+                              className="bg-sky-500/15 text-sky-200 ring-1 ring-sky-400/30"
                             >
                               {signal}
-                            </span>
+                            </QueueInfoChip>
                           ))}
                         </div>
                       ) : null}
 
-                      <p className="mt-5 max-w-4xl text-sm leading-7 text-slate-300">
+                      <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300">
                         {lead.ai_analysis ||
                           lead.notes ||
                           'No analysis saved yet. Open the workspace to review motivation, underwriting, and outreach history.'}

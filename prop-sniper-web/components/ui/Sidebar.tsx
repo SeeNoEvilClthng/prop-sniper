@@ -3,15 +3,40 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { navGroups } from "@/app/dashboard/dashboardData";
-
 const featuredLinks = [
   { label: "Dashboard", href: "/dashboard", icon: "◌" },
   { label: "Leads", href: "/leads", icon: "◎" },
+  { label: "CRM", href: "/leads?follow_up=Due", icon: "◔" },
   { label: "Finder", href: "/finder", icon: "✦" },
-  { label: "Map", href: "/map", icon: "▣" },
+  { label: "Buyers", href: "/investors", icon: "↗" },
   { label: "Team", href: "/team", icon: "◈" },
-  { label: "Investors", href: "/investors", icon: "↗" },
+];
+
+const quickTools = [
+  {
+    label: "Add Lead",
+    href: "/dashboard/new",
+    description: "Save a new opportunity fast",
+    icon: "＋",
+  },
+  {
+    label: "Map View",
+    href: "/map",
+    description: "See lead clusters by area",
+    icon: "▣",
+  },
+  {
+    label: "Deal Analyzer",
+    href: "/dashboard/analyzer",
+    description: "Run spread and offer math",
+    icon: "◌",
+  },
+  {
+    label: "Lead Statuses",
+    href: "/dashboard/status",
+    description: "Check every stage quickly",
+    icon: "◍",
+  },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -79,38 +104,36 @@ export default function Sidebar() {
             </div>
           </div>
 
-          {navGroups.map((group) => (
-            <div key={group.title}>
-              <p className="mb-3 px-2 text-[11px] uppercase tracking-[0.3em] text-slate-500">
-                {group.title}
-              </p>
-              <div className="space-y-2">
-                {group.items.slice(0, 4).map((item) => {
-                  const active = isActivePath(pathname, item.href);
+          <div>
+            <p className="mb-3 px-2 text-[11px] uppercase tracking-[0.3em] text-slate-500">
+              Quick Tools
+            </p>
+            <div className="space-y-2">
+              {quickTools.map((item) => {
+                const active = isActivePath(pathname, item.href);
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-start gap-3 rounded-2xl px-4 py-3 transition ${
-                        active
-                          ? "border border-white/10 bg-white/[0.08]"
-                          : "border border-transparent hover:border-white/8 hover:bg-white/[0.04]"
-                      }`}
-                    >
-                      <span className="mt-0.5 text-base">{item.icon}</span>
-                      <div>
-                        <p className="text-sm font-medium text-white">{item.label}</p>
-                        <p className="mt-1 text-xs leading-5 text-slate-500">
-                          {item.description}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-start gap-3 rounded-2xl px-4 py-3 transition ${
+                      active
+                        ? "border border-white/10 bg-white/[0.08]"
+                        : "border border-transparent hover:border-white/8 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    <span className="mt-0.5 text-base">{item.icon}</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">{item.label}</p>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        {item.description}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          ))}
+          </div>
         </nav>
 
         <div className="luxe-panel edge-glow mt-6 rounded-[26px] p-4 xleads-vibe">

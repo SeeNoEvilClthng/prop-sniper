@@ -160,6 +160,21 @@ function StatCard({
   );
 }
 
+function MiniInfoCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
+      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
 export default async function LeadDetailPage({ params }: PageProps) {
   const { id } = await params;
   const supabase = await createClient();
@@ -341,7 +356,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                 Back to Leads
               </Link>
 
-              <p className="mt-4 text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
+              <p className="mt-4 text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
                 Acquisition Workspace
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
@@ -372,6 +387,27 @@ export default async function LeadDetailPage({ params }: PageProps) {
                 <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200 ring-1 ring-white/10">
                   Owner {currentAssignment.assigneeEmail}
                 </span>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a
+                  href="#lead-summary"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+                >
+                  Summary
+                </a>
+                <a
+                  href="#deal-desk"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+                >
+                  Deal Desk
+                </a>
+                <a
+                  href="#timeline"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+                >
+                  Timeline
+                </a>
               </div>
             </div>
 
@@ -416,7 +452,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
           <section className="space-y-6">
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+            <div id="lead-summary" className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
@@ -465,8 +501,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
                 )}
               </div>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <StatCard
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <MiniInfoCard
                   label="Owner Occupied"
                   value={
                     lead.owner_occupied == null
@@ -476,7 +512,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                       : "No"
                   }
                 />
-                <StatCard
+                <MiniInfoCard
                   label="Years Owned"
                   value={
                     lead.years_owned != null
@@ -484,7 +520,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                       : "Unknown"
                   }
                 />
-                <StatCard
+                <MiniInfoCard
                   label="Property Age"
                   value={
                     lead.property_age != null
@@ -495,7 +531,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+            <div id="deal-desk" className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Deal Desk</h2>
               <p className="mt-2 text-sm leading-6 text-slate-400">
                 Underwrite the deal, pressure-test the numbers, and prep seller or buyer messaging.
@@ -514,7 +550,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
+            <div id="timeline" className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Activity Timeline</h2>
 
               <div className="mt-4">
@@ -554,30 +590,26 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Lead Snapshot</h2>
 
-              <div className="mt-5 space-y-4 text-sm text-slate-300">
-                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                    Owner
-                  </p>
-                  <p className="mt-2 text-base font-semibold text-white">
-                    {lead.owner_name || "No owner saved"}
-                  </p>
-                  <p className="mt-2">Phone: {phones[0] || "—"}</p>
-                  <p>Email: {emails[0] || "—"}</p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                    Property
-                  </p>
-                  <p className="mt-2">
-                    Beds / Baths: {beds ?? "—"} / {baths ?? "—"}
-                  </p>
-                  <p>Square Feet: {sqft ? Number(sqft).toLocaleString() : "—"}</p>
-                  <p>Est. Rent: {formatMoney(lead.estimated_rent)}</p>
-                  <p>Last Sale: {formatDate(lead.last_sale_date)}</p>
-                </div>
-
+              <div className="mt-5 grid gap-3 text-sm text-slate-300">
+                <MiniInfoCard label="Owner" value={lead.owner_name || "No owner saved"} />
+                <MiniInfoCard label="Seller Phone" value={phones[0] || "—"} />
+                <MiniInfoCard label="Seller Email" value={emails[0] || "—"} />
+                <MiniInfoCard
+                  label="Beds / Baths"
+                  value={`${beds ?? "—"} / ${baths ?? "—"}`}
+                />
+                <MiniInfoCard
+                  label="Square Feet"
+                  value={sqft ? Number(sqft).toLocaleString() : "—"}
+                />
+                <MiniInfoCard
+                  label="Last Sale"
+                  value={formatDate(lead.last_sale_date)}
+                />
+                <MiniInfoCard
+                  label="Est. Rent"
+                  value={formatMoney(lead.estimated_rent)}
+                />
                 <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Notes

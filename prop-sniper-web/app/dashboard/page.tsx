@@ -254,6 +254,44 @@ function FlowLaneCard({
   )
 }
 
+function DashboardLinkCard({
+  href,
+  title,
+  subtitle,
+  meta,
+  badge,
+  chips = [],
+  detail,
+}: {
+  href: string
+  title: string
+  subtitle?: string
+  meta?: string
+  badge?: React.ReactNode
+  chips?: React.ReactNode[]
+  detail?: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="block rounded-2xl border border-white/10 bg-[#0d1727]/88 p-3.5 transition hover:border-white/14 hover:bg-[#101b2d]"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-white">{title}</p>
+          {subtitle ? <p className="mt-1 text-sm text-slate-400">{subtitle}</p> : null}
+          {meta ? (
+            <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-500">{meta}</p>
+          ) : null}
+        </div>
+        {badge ? <div className="shrink-0">{badge}</div> : null}
+      </div>
+      {chips.length ? <div className="mt-3 flex flex-wrap gap-2">{chips}</div> : null}
+      {detail ? <p className="mt-3 text-sm text-slate-300">{detail}</p> : null}
+    </Link>
+  )
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -607,6 +645,27 @@ export default async function DashboardPage() {
               </Link>
             </div>
           </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href="#today"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+            >
+              Today
+            </a>
+            <a
+              href="#pipeline"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+            >
+              Pipeline
+            </a>
+            <a
+              href="#team"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+            >
+              Team
+            </a>
+          </div>
         </section>
 
         <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -698,7 +757,20 @@ export default async function DashboardPage() {
           />
         </section>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <section id="today" className="mt-8">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-[#c4b5fd]">Today</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
+                Work the next best actions first
+              </h2>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-slate-400">
+              Your owned leads, your open seller tasks, overdue follow-ups, and your fastest workflow shortcuts all stay together here.
+            </p>
+          </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           <SectionCard
             title="Lead Flow Board"
             description="Your owned leads, sorted so due follow-ups and stronger opportunities surface first."
@@ -708,34 +780,31 @@ export default async function DashboardPage() {
                 No leads are assigned to you yet.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {myAssignedLeads.slice(0, 6).map((lead) => (
-                  <Link
+                  <DashboardLinkCard
                     key={lead.id}
                     href={`/dashboard/${lead.id}`}
-                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-white">{lead.address}</p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          {lead.city}, {lead.state}
-                        </p>
-                      </div>
+                    title={lead.address || 'Unknown lead'}
+                    subtitle={[lead.city, lead.state].filter(Boolean).join(', ')}
+                    badge={
                       <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
                         {lead.lead_score ?? '—'}
                       </span>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    }
+                    chips={[
                       <span
+                        key="status"
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
                           lead.status
                         )}`}
                       >
                         {lead.status || 'New'}
-                      </span>
-                      {lead.follow_up_date ? (
+                      </span>,
+                      ...(lead.follow_up_date
+                        ? [
                         <span
+                          key="follow-up"
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             isDueTodayOrEarlier(lead.follow_up_date)
                               ? 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
@@ -745,9 +814,10 @@ export default async function DashboardPage() {
                           {isDueTodayOrEarlier(lead.follow_up_date) ? 'Due ' : 'Next '}
                           {formatDate(lead.follow_up_date)}
                         </span>
-                      ) : null}
-                    </div>
-                  </Link>
+                        ]
+                        : []),
+                    ]}
+                  />
                 ))}
               </div>
             )}
@@ -762,21 +832,15 @@ export default async function DashboardPage() {
                 No open tasks are assigned to you yet.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {myOpenTasks.slice(0, 6).map((task) => (
-                  <Link
+                  <DashboardLinkCard
                     key={task.id}
                     href={task.leadId ? `/dashboard/${task.leadId}` : '/leads'}
-                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-white">{task.title}</p>
-                        <p className="mt-1 text-sm text-slate-300">{task.leadAddress}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                          {task.market}
-                        </p>
-                      </div>
+                    title={task.title}
+                    subtitle={task.leadAddress}
+                    meta={task.market}
+                    badge={
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${
                           isOpenTaskOverdue(task.dueDate, task.status)
@@ -786,11 +850,9 @@ export default async function DashboardPage() {
                       >
                         {task.dueDate ? `Due ${formatDate(task.dueDate)}` : 'No due date'}
                       </span>
-                    </div>
-                    {task.details ? (
-                      <p className="mt-3 text-sm text-slate-300">{task.details}</p>
-                    ) : null}
-                  </Link>
+                    }
+                    detail={task.details}
+                  />
                 ))}
               </div>
             )}
@@ -807,41 +869,37 @@ export default async function DashboardPage() {
                 Nothing overdue right now. Your follow-up queue is clear.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {followUpsDue.slice(0, 6).map((lead) => (
-                  <Link
+                  <DashboardLinkCard
                     key={lead.id}
                     href={`/dashboard/${lead.id}`}
-                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-white">{lead.address}</p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          {lead.city}, {lead.state}
-                        </p>
-                      </div>
+                    title={lead.address || 'Unknown lead'}
+                    subtitle={[lead.city, lead.state].filter(Boolean).join(', ')}
+                    badge={
                       <span className="rounded-full bg-rose-500/15 px-3 py-1 text-xs font-semibold text-rose-300 ring-1 ring-rose-400/30">
                         Due {formatDate(lead.follow_up_date)}
                       </span>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    }
+                    chips={[
                       <span
+                        key="status"
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
                           lead.status
                         )}`}
                       >
                         {lead.status || 'New'}
-                      </span>
+                      </span>,
                       <span
+                        key="rating"
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${getRatingClasses(
                           lead.lead_rating
                         )}`}
                       >
                         {lead.lead_rating || 'Unrated'}
                       </span>
-                    </div>
-                  </Link>
+                    ]}
+                  />
                 ))}
               </div>
             )}
@@ -853,25 +911,33 @@ export default async function DashboardPage() {
           >
             <div className="grid gap-3">
               {dashboardShortcuts.map((item) => (
-                <Link
+                <DashboardLinkCard
                   key={item.href}
                   href={item.href}
-                  className="rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">{item.icon}</span>
-                    <div>
-                      <p className="font-semibold text-white">{item.label}</p>
-                      <p className="mt-1 text-sm text-slate-400">{item.description}</p>
-                    </div>
-                  </div>
-                </Link>
+                  title={item.label}
+                  subtitle={item.description}
+                  badge={<span className="text-lg text-slate-300">{item.icon}</span>}
+                />
               ))}
             </div>
           </SectionCard>
         </div>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        </section>
+
+        <div className="mt-8 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-[#c4b5fd]">Pipeline</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
+              See deals, tasks, and AI signals in one place
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm leading-6 text-slate-400">
+            Everything tied to stage movement, task health, underwriting, and dispo readiness stays grouped here so the pipeline is easier to read.
+          </p>
+        </div>
+
+        <div id="pipeline" className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <SectionCard
             title="CRM Task Queue"
             description="The most important lead tasks to knock out next, with overdue work pushed to the top."
@@ -881,21 +947,15 @@ export default async function DashboardPage() {
                 No open lead tasks yet. Create tasks inside a lead workspace to turn follow-up into a real checklist.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {openTasks.slice(0, 8).map((task) => (
-                  <Link
+                  <DashboardLinkCard
                     key={task.id}
                     href={task.leadId ? `/dashboard/${task.leadId}` : '/leads'}
-                    className="block rounded-2xl border border-white/10 bg-[#0d1727] p-4 transition hover:bg-[#101b2d]"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-white">{task.title}</p>
-                        <p className="mt-1 text-sm text-slate-300">{task.leadAddress}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                          {task.market}
-                        </p>
-                      </div>
+                    title={task.title}
+                    subtitle={task.leadAddress}
+                    meta={task.market}
+                    badge={
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${
                           isOpenTaskOverdue(task.dueDate, task.status)
@@ -905,11 +965,9 @@ export default async function DashboardPage() {
                       >
                         {task.dueDate ? `Due ${formatDate(task.dueDate)}` : 'No due date'}
                       </span>
-                    </div>
-                    {task.details ? (
-                      <p className="mt-3 text-sm text-slate-300">{task.details}</p>
-                    ) : null}
-                  </Link>
+                    }
+                    detail={task.details}
+                  />
                 ))}
               </div>
             )}
@@ -979,6 +1037,18 @@ export default async function DashboardPage() {
               </div>
             </div>
           </SectionCard>
+        </div>
+
+        <div id="team" className="mt-8 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-[#c4b5fd]">Team</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
+              Keep activity, ownership, and accountability visible
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm leading-6 text-slate-400">
+            Rep ownership, manager risk, and the latest CRM updates stay together here so team review feels faster and simpler.
+          </p>
         </div>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

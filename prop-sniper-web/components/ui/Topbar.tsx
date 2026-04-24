@@ -65,18 +65,18 @@ export default function TopBar() {
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,360px)_auto_auto]">
-            <input
-              type="text"
-              placeholder="Search address, owner, city, or market..."
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-fuchsia-400/40 focus:bg-white/[0.06]"
-            />
-
+          <div className="grid gap-3 sm:grid-cols-3">
             <Link
-              href="/finder"
+              href="/leads"
               className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
             >
-              Open Finder
+              Open Queue
+            </Link>
+            <Link
+              href="/leads?follow_up=Due"
+              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
+            >
+              CRM Follow Ups
             </Link>
 
             <Link
@@ -89,9 +89,9 @@ export default function TopBar() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <StatusChip label="Lead flow active" tone="purple" />
-          <StatusChip label="CRM cadence tracked" tone="slate" />
-          <StatusChip label="Dispo matching live" tone="blue" />
+          <StatusChip label="Today first" tone="purple" />
+          <StatusChip label="Pipeline visible" tone="slate" />
+          <StatusChip label="Team synced" tone="blue" />
         </div>
       </div>
     </header>

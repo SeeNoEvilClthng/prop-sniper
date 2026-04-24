@@ -32,6 +32,11 @@ body {
     "Segoe UI",
     sans-serif;
   letter-spacing: -0.01em;
+  background-image:
+    radial-gradient(circle at top left, rgba(34, 197, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 82% 12%, rgba(215, 181, 111, 0.08), transparent 20%),
+    linear-gradient(180deg, #08111d 0%, #091320 32%, #07101a 100%);
+  background-attachment: fixed;
 }
 
 h1,
@@ -197,4 +202,131 @@ button:active {
 }
 .bg-black {
   color: white !important;
+}
+
+.futuristic-grid {
+  position: relative;
+  isolation: isolate;
+}
+
+.futuristic-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent 82%);
+  opacity: 0.22;
+}
+
+.luxe-panel {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)),
+    linear-gradient(135deg, rgba(34, 197, 255, 0.04), transparent 38%);
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(22px);
+}
+
+.luxe-panel-strong {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    radial-gradient(circle at top right, rgba(215, 181, 111, 0.1), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.08), transparent 26%);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(26px);
+}
+
+.edge-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.24),
+    rgba(255, 255, 255, 0.04) 28%,
+    rgba(215, 181, 111, 0.26) 55%,
+    rgba(34, 197, 255, 0.22)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(
+    115deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.08) 46%,
+    transparent 56%
+  );
+  transform: translateX(-55%);
+  animation: sheen-slide 7s linear infinite;
+  pointer-events: none;
+}
+
+.hover-float {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.hover-float:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.3);
+}
+
+.nav-link-luxe {
+  position: relative;
+}
+
+.nav-link-luxe::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 1px;
+  transform: scaleX(0);
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent, rgba(215, 181, 111, 0.85), transparent);
+  transition: transform 0.22s ease;
+}
+
+.nav-link-luxe:hover::after {
+  transform: scaleX(1);
+}
+
+@keyframes sheen-slide {
+  0% {
+    transform: translateX(-60%);
+  }
+  100% {
+    transform: translateX(70%);
+  }
 }

@@ -74,14 +74,14 @@ export default function TopBar() {
 
             <Link
               href="/finder"
-              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
             >
               Open Finder
             </Link>
 
             <Link
               href="/dashboard/new"
-              className="inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] shadow-[0_14px_26px_rgba(215,181,111,0.18)] transition hover:translate-y-[-1px]"
+              className="edge-glow inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] shadow-[0_14px_26px_rgba(215,181,111,0.18)] transition hover:translate-y-[-1px]"
             >
               + Add Lead
             </Link>

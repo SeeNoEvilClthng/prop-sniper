@@ -23,11 +23,11 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-[290px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(7,15,24,0.96),rgba(10,18,29,0.92))] md:block">
+    <aside className="futuristic-grid hidden w-[290px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(7,15,24,0.96),rgba(10,18,29,0.92))] md:block">
       <div className="sticky top-0 flex h-screen flex-col px-5 py-6">
-        <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
+        <div className="luxe-panel edge-glow sheen rounded-[28px] p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b1522,#163b63)] text-sm font-semibold text-white">
+            <div className="edge-glow flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b1522,#163b63)] text-sm font-semibold text-white">
               PS
             </div>
             <div>
@@ -113,7 +113,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="mt-6 rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+        <div className="luxe-panel edge-glow mt-6 rounded-[26px] p-4">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Operator note</p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
             The fastest teams work from one system. Keep lead context, next step, and buyer angle visible before every call.

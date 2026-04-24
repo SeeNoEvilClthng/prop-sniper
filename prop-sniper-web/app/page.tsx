@@ -148,14 +148,14 @@ const pricingPlans = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#08111d] text-white">
+    <main className="futuristic-grid min-h-screen overflow-x-hidden bg-[#08111d] text-white">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(38,138,255,0.24),transparent_28%),radial-gradient(circle_at_70%_0%,rgba(240,180,80,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(26,114,89,0.16),transparent_22%),linear-gradient(180deg,#08111d_0%,#0a1321_35%,#07101a_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent)] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
 
       <header className="sticky top-0 z-50 border-b border-white/8 bg-[#08111d]/78 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#091321,#163b63)] text-sm font-semibold shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+            <div className="edge-glow sheen flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#091321,#163b63)] text-sm font-semibold shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
               PS
             </div>
             <div>
@@ -167,16 +167,16 @@ export default function HomePage() {
           </div>
 
           <nav className="hidden items-center gap-7 md:flex">
-            <a href="#platform" className="text-sm text-slate-300 transition hover:text-white">
+            <a href="#platform" className="nav-link-luxe text-sm text-slate-300 transition hover:text-white">
               Platform
             </a>
-            <a href="#comparison" className="text-sm text-slate-300 transition hover:text-white">
+            <a href="#comparison" className="nav-link-luxe text-sm text-slate-300 transition hover:text-white">
               Why It Wins
             </a>
-            <a href="#reviews" className="text-sm text-slate-300 transition hover:text-white">
+            <a href="#reviews" className="nav-link-luxe text-sm text-slate-300 transition hover:text-white">
               Reviews
             </a>
-            <a href="#pricing" className="text-sm text-slate-300 transition hover:text-white">
+            <a href="#pricing" className="nav-link-luxe text-sm text-slate-300 transition hover:text-white">
               Pricing
             </a>
           </nav>
@@ -248,8 +248,8 @@ export default function HomePage() {
             <div className="absolute -left-6 top-10 h-32 w-32 rounded-full bg-[#d7bf7c]/10 blur-3xl" />
             <div className="absolute -right-8 top-28 h-44 w-44 rounded-full bg-sky-500/12 blur-3xl" />
 
-            <div className="relative rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
-              <div className="rounded-[28px] border border-white/10 bg-[#091321] p-5">
+            <div className="luxe-panel-strong edge-glow hover-float relative rounded-[34px] p-4">
+              <div className="sheen rounded-[28px] border border-white/10 bg-[#091321] p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.34em] text-slate-500">

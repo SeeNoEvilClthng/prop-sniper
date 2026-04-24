@@ -40,8 +40,8 @@ function getHeaderMeta(pathname: string) {
   }
 
   return {
-    title: "Acquisitions Dashboard",
-    subtitle: "Manage leads, analyze deals, and keep the whole pipeline moving with more clarity.",
+    title: "Command Center",
+    subtitle: "Run leads, CRM, dispo, and AI workflows from one clean operating view.",
   };
 }
 
@@ -89,9 +89,9 @@ export default function TopBar() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <StatusChip label="AI summaries ready" tone="purple" />
-          <StatusChip label="Tasks and follow-up live" tone="slate" />
-          <StatusChip label="Buyer matching connected" tone="blue" />
+          <StatusChip label="Lead flow active" tone="purple" />
+          <StatusChip label="CRM cadence tracked" tone="slate" />
+          <StatusChip label="Dispo matching live" tone="blue" />
         </div>
       </div>
     </header>

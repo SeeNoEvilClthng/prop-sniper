@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { navGroups } from './dashboardData'
 import { parseLeadAssignmentMessage } from '@/lib/lead-assignment'
 import { parseLeadTaskMessage } from '@/lib/lead-tasks'
 import { createClient } from '@/lib/supabase/server'
@@ -217,6 +216,41 @@ function SectionCard({
       <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
       <div className="mt-5">{children}</div>
     </section>
+  )
+}
+
+function FlowLaneCard({
+  label,
+  title,
+  detail,
+  metric,
+  href,
+}: {
+  label: string
+  title: string
+  detail: string
+  metric: string
+  href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_22px_55px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-fuchsia-400/18 hover:bg-[linear-gradient(180deg,rgba(147,51,234,0.12),rgba(255,255,255,0.04))]"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.32em] text-[#c4b5fd]">{label}</p>
+          <h3 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-white">{title}</h3>
+        </div>
+        <span className="rounded-full border border-fuchsia-400/16 bg-fuchsia-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-fuchsia-200">
+          {metric}
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-slate-400">{detail}</p>
+      <p className="mt-4 text-sm font-semibold text-white transition group-hover:text-fuchsia-200">
+        Open lane
+      </p>
+    </Link>
   )
 }
 
@@ -459,6 +493,79 @@ export default async function DashboardPage() {
   const contactCoverage = allLeads.length
     ? Math.round((recentAttempts.length / allLeads.length) * 100)
     : 0
+  const hotLeadCount = allLeads.filter((lead) => (lead.lead_score ?? 0) >= 80).length
+  const dashboardLanes = [
+    {
+      label: 'Leads',
+      title: 'Source, sort, and qualify opportunities',
+      detail:
+        'Keep the pipeline moving from fresh records into active deal review with map, finder, and queue workflows.',
+      metric: `${newLeads.length} fresh`,
+      href: '/leads',
+    },
+    {
+      label: 'CRM',
+      title: 'Run follow-up with clear next actions',
+      detail:
+        'Stay on top of overdue follow-ups, notes, and rep-owned tasks so sellers never fall out of the cycle.',
+      metric: `${followUpsDue.length} due`,
+      href: '/leads?follow_up=Due',
+    },
+    {
+      label: 'Dispo',
+      title: 'Move clean deals to buyers faster',
+      detail:
+        'See which opportunities are ready for buyer review and keep investor demand close to the acquisition flow.',
+      metric: `${underContract.length} live`,
+      href: '/investors',
+    },
+    {
+      label: 'AI',
+      title: 'Let score, signals, and workflow guide the team',
+      detail:
+        'Use lead score, motivation signals, and activity coverage to push attention toward the best deals first.',
+      metric: `${avgLeadScore} avg`,
+      href: '/dashboard/analyzer',
+    },
+  ]
+  const dashboardShortcuts = [
+    {
+      label: 'Lead Queue',
+      href: '/leads',
+      description: 'Work acquisitions from the full queue',
+      icon: '◎',
+    },
+    {
+      label: 'Finder',
+      href: '/finder',
+      description: 'Source more motivated sellers by market',
+      icon: '✦',
+    },
+    {
+      label: 'Map',
+      href: '/map',
+      description: 'Visualize clusters and drive new streets',
+      icon: '▣',
+    },
+    {
+      label: 'Buyer CRM',
+      href: '/investors',
+      description: 'Match live deals to investor demand',
+      icon: '↗',
+    },
+    {
+      label: 'Team Ops',
+      href: '/team',
+      description: 'See rep load, hot leads, and task risk',
+      icon: '◈',
+    },
+    {
+      label: 'Deal Analyzer',
+      href: '/dashboard/analyzer',
+      description: 'Underwrite spread and tighten offers',
+      icon: '◌',
+    },
+  ]
 
   return (
     <main className="text-white">
@@ -466,20 +573,23 @@ export default async function DashboardPage() {
         <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
-                Action Dashboard
+              <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
+                Operator Command
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">What Needs Attention Today</h1>
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
+                Run Leads, CRM, Dispo, and AI From One Command Center
+              </h1>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
-                Run acquisitions from one place: follow up with overdue sellers,
-                prioritize the hottest leads, and move active deals toward dispo.
+                This dashboard is built to work like a real wholesaling operating lane: source leads,
+                stay tight on seller follow-up, push clean deals toward buyers, and keep the team aimed
+                at the highest-signal opportunities.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/dashboard/new"
-                className="rounded-2xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-5 py-3 text-sm font-semibold text-[#10151f] transition hover:translate-y-[-1px]"
+                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
               >
                 Add Lead
               </Link>
@@ -500,6 +610,19 @@ export default async function DashboardPage() {
         </section>
 
         <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {dashboardLanes.map((lane) => (
+            <FlowLaneCard
+              key={lane.label}
+              label={lane.label}
+              title={lane.title}
+              detail={lane.detail}
+              metric={lane.metric}
+              href={lane.href}
+            />
+          ))}
+        </section>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Total Leads"
             value={String(allLeads.length)}
@@ -512,7 +635,7 @@ export default async function DashboardPage() {
           />
           <StatCard
             label="Hot Leads"
-            value={String(allLeads.filter((lead) => (lead.lead_score ?? 0) >= 80).length)}
+            value={String(hotLeadCount)}
             subtext="High-priority opportunities"
           />
           <StatCard
@@ -577,7 +700,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
           <SectionCard
-            title="My Leads"
+            title="Lead Flow Board"
             description="Your owned leads, sorted so due follow-ups and stronger opportunities surface first."
           >
             {myAssignedLeads.length === 0 ? (
@@ -631,8 +754,8 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="My Tasks"
-            description="Your task inbox, with overdue work pushed to the top so you can execute fast."
+            title="CRM Inbox"
+            description="Your seller-follow-up inbox, with overdue work pushed to the top so you can execute fast."
           >
             {myOpenTasks.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-5 text-sm text-slate-400">
@@ -676,7 +799,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <SectionCard
-            title="Overdue Follow Ups"
+            title="CRM Follow Ups"
             description="These leads should be touched today so momentum does not slip."
           >
             {followUpsDue.length === 0 ? (
@@ -725,11 +848,11 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="Quick Navigation"
-            description="Jump straight into the workflows that matter most this week."
+            title="Command Shortcuts"
+            description="Jump straight into the workflows that matter most across leads, CRM, dispo, and team ops."
           >
             <div className="grid gap-3">
-              {navGroups.flatMap((group) => group.items).slice(0, 8).map((item) => (
+              {dashboardShortcuts.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -750,7 +873,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <SectionCard
-            title="Task Queue"
+            title="CRM Task Queue"
             description="The most important lead tasks to knock out next, with overdue work pushed to the top."
           >
             {openTasks.length === 0 ? (
@@ -793,8 +916,8 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="Task Health"
-            description="A quick read on whether lead tasks are keeping pace with the rest of the pipeline."
+            title="AI Workflow Pulse"
+            description="A quick read on whether task coverage and execution are keeping pace with the rest of the pipeline."
           >
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-[#0d1727] p-4">
@@ -860,7 +983,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <SectionCard
-            title="Team Ownership"
+            title="Team Lanes"
             description="A manager-level view of rep load, lead quality, and who is carrying the most overdue workflow risk."
           >
             {ownerMetrics.length === 0 ? (
@@ -996,7 +1119,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <SectionCard
-            title="Recent CRM Activity"
+            title="CRM Timeline"
             description="The latest seller outreach, notes, and pipeline changes across your leads."
           >
             {recentActivity.length === 0 ? (
@@ -1038,7 +1161,7 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="Recent Notes And Workflow"
+            title="Internal Notes And Workflow"
             description="Internal updates your team made most recently, so nothing slips between follow-ups."
           >
             {recentInternalUpdates.length === 0 ? (
@@ -1078,7 +1201,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
           <SectionCard
-            title="Pipeline Analytics"
+            title="Lead Flow Analytics"
             description="See where your deals are clustering so you can spot bottlenecks and momentum."
           >
             <div className="grid gap-3 sm:grid-cols-3">
@@ -1138,7 +1261,7 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="Follow Up Performance"
+            title="CRM Discipline"
             description="Track how disciplined the team is with next touches and whether the queue is staying organized."
           >
             <div className="grid gap-3 sm:grid-cols-3">
@@ -1216,7 +1339,7 @@ export default async function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-3">
           <SectionCard
-            title="Hot Lead Board"
+            title="AI Opportunity Board"
             description="The best opportunities to underwrite and work today."
           >
             <div className="space-y-3">
@@ -1259,7 +1382,7 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="New In Queue"
+            title="Fresh Leads"
             description="Fresh leads that still need qualification and first contact."
           >
             <div className="space-y-3">
@@ -1289,8 +1412,8 @@ export default async function DashboardPage() {
           </SectionCard>
 
           <SectionCard
-            title="Under Contract"
-            description="Deals that need dispo and close coordination."
+            title="Dispo Queue"
+            description="Deals that need buyer outreach and close coordination."
           >
             <div className="space-y-3">
               {underContract.length === 0 ? (

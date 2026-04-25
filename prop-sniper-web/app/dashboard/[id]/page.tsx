@@ -5,6 +5,7 @@ import AnalyzeDealButton from "@/components/AnalyzeDealButton";
 import ContactActions from "@/components/ContactActions";
 import DealAnalyzer from "@/components/DealAnalyzer";
 import LeadAssignmentCard from "@/components/LeadAssignmentCard";
+import LeadOwnerPhoneCard from "@/components/LeadOwnerPhoneCard";
 import LeadTaskPanel from "@/components/LeadTaskPanel";
 import LeadTimelineNoteForm from "@/components/LeadTimelineNoteForm";
 import LeadWorkflowActions from "@/components/LeadWorkflowActions";
@@ -631,6 +632,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
                 <ContactActions leadId={lead.id} phones={phones} emails={emails} />
               </div>
             </div>
+
+            <LeadOwnerPhoneCard leadId={lead.id} currentPhone={lead.owner_phone} />
 
             <LeadWorkflowActions
               leadId={lead.id}

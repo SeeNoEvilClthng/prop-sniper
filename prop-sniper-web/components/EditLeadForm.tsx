@@ -11,6 +11,7 @@ type Lead = {
   city: string | null
   state: string | null
   zip_code: string | null
+  owner_phone: string | null
   status: string | null
   notes: string | null
   follow_up_date: string | null
@@ -25,6 +26,7 @@ export default function EditLeadForm({ lead }: { lead: Lead }) {
   const [city, setCity] = useState(lead.city || '')
   const [state, setState] = useState(lead.state || '')
   const [zipCode, setZipCode] = useState(lead.zip_code || '')
+  const [ownerPhone, setOwnerPhone] = useState(lead.owner_phone || '')
   const [status, setStatus] = useState(lead.status || 'New')
   const [notes, setNotes] = useState(lead.notes || '')
   const [followUpDate, setFollowUpDate] = useState(lead.follow_up_date || '')
@@ -66,7 +68,7 @@ export default function EditLeadForm({ lead }: { lead: Lead }) {
           bathrooms: enriched.bathrooms,
           estimated_value: enriched.estimated_value,
           last_sale_date: enriched.last_sale_date,
-          owner_phone: enriched.owner_phone,
+          owner_phone: ownerPhone.trim() || enriched.owner_phone || null,
           owner_email: enriched.owner_email,
 
           lead_score: enriched.lead_score,
@@ -156,6 +158,13 @@ export default function EditLeadForm({ lead }: { lead: Lead }) {
         placeholder="ZIP Code"
         value={zipCode}
         onChange={(e) => setZipCode(e.target.value)}
+      />
+
+      <input
+        className="w-full rounded-xl border p-3"
+        placeholder="Owner Phone Number"
+        value={ownerPhone}
+        onChange={(e) => setOwnerPhone(e.target.value)}
       />
 
       <select

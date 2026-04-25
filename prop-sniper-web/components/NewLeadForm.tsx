@@ -14,6 +14,7 @@ export default function NewLeadForm() {
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
   const [zipCode, setZipCode] = useState('')
+  const [ownerPhone, setOwnerPhone] = useState('')
   const [status, setStatus] = useState('New')
   const [notes, setNotes] = useState('')
   const [followUpDate, setFollowUpDate] = useState('')
@@ -65,7 +66,7 @@ export default function NewLeadForm() {
         bathrooms: enriched.bathrooms,
         estimated_value: enriched.estimated_value,
         last_sale_date: enriched.last_sale_date,
-        owner_phone: enriched.owner_phone,
+        owner_phone: ownerPhone.trim() || enriched.owner_phone || null,
         owner_email: enriched.owner_email,
 
         lead_score: enriched.lead_score,
@@ -116,6 +117,13 @@ export default function NewLeadForm() {
         placeholder="ZIP Code"
         value={zipCode}
         onChange={(e) => setZipCode(e.target.value)}
+      />
+
+      <input
+        className="w-full rounded-xl border p-3"
+        placeholder="Owner Phone Number"
+        value={ownerPhone}
+        onChange={(e) => setOwnerPhone(e.target.value)}
       />
 
       <select

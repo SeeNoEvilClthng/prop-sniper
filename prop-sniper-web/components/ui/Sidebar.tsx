@@ -54,7 +54,7 @@ export default function Sidebar() {
       <div className="sticky top-0 flex h-screen flex-col px-5 py-6">
         <div className="luxe-panel edge-glow sheen rounded-[28px] p-4 xleads-vibe">
           <div className="flex justify-center">
-            <BrandLogo size="md" className="mx-auto" />
+            <BrandLogo size="sm" className="mx-auto" />
           </div>
 
           <div className="mt-4 rounded-2xl border border-fuchsia-400/16 bg-[#0b0d19] p-4">
@@ -63,6 +63,9 @@ export default function Sidebar() {
             </p>
             <p className="mt-2 text-sm font-semibold text-fuchsia-200">
               Work hot leads, clear overdue tasks, and move clean deals toward buyer review.
+            </p>
+            <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-slate-500">
+              Press Cmd/Ctrl + K to jump anywhere
             </p>
           </div>
         </div>

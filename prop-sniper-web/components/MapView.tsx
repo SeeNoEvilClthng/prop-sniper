@@ -41,12 +41,83 @@ type Lead = {
   lead_signals: string | null
 }
 
-function getMarkerColor(leadScore: number | null) {
-  if ((leadScore || 0) >= 85) return 'red'
-  if ((leadScore || 0) >= 70) return 'orange'
-  if ((leadScore || 0) >= 55) return 'blue'
-  if ((leadScore || 0) >= 40) return 'gray'
-  return 'black'
+type MarkerTone = {
+  label: string
+  className: string
+  accent: string
+}
+
+function getMarkerTone(leadScore: number | null): MarkerTone {
+  if ((leadScore || 0) >= 85) {
+    return { label: 'Elite', className: 'deal-marker--elite', accent: '#22c55e' }
+  }
+  if ((leadScore || 0) >= 70) {
+    return { label: 'Strong', className: 'deal-marker--strong', accent: '#eab308' }
+  }
+  if ((leadScore || 0) >= 50) {
+    return { label: 'Watch', className: 'deal-marker--watch', accent: '#fb7185' }
+  }
+  return { label: 'Weak', className: 'deal-marker--weak', accent: '#64748b' }
+}
+
+function getSignalList(lead: Lead) {
+  return (lead.lead_signals || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+}
+
+function buildPopupHtml(lead: Lead) {
+  const tone = getMarkerTone(lead.lead_score)
+  const signals = getSignalList(lead)
+    .map(
+      (signal) =>
+        `<span style="display:inline-flex;border-radius:999px;padding:4px 8px;border:1px solid rgba(196,181,253,.18);background:rgba(168,85,247,.12);font-size:11px;color:#ddd6fe;">${signal}</span>`
+    )
+    .join(' ')
+
+  return `
+    <div style="min-width:250px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div>
+          <p style="font-weight:700; margin:0 0 6px 0; color:#ffffff;">${lead.address}</p>
+          <p style="margin:0; font-size:13px; color:#94a3b8;">
+            ${lead.city || ''}${lead.city && lead.state ? ', ' : ''}${lead.state || ''}
+          </p>
+        </div>
+        <span style="border-radius:999px;padding:6px 10px;border:1px solid ${tone.accent}55;background:${tone.accent}22;color:#ffffff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">
+          ${tone.label}
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;">
+        <div style="padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);">
+          <p style="margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;">Deal Score</p>
+          <p style="margin:6px 0 0 0;font-size:18px;font-weight:700;color:#f8fafc;">${lead.lead_score ?? '—'}</p>
+        </div>
+        <div style="padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);">
+          <p style="margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;">Status</p>
+          <p style="margin:6px 0 0 0;font-size:14px;font-weight:600;color:#f8fafc;">${lead.status || 'New'}</p>
+        </div>
+      </div>
+      ${
+        signals
+          ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;">${signals}</div>`
+          : ''
+      }
+      <a href="/dashboard/${lead.id}" style="display:inline-flex;margin-top:14px;border-radius:999px;padding:10px 14px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#faf5ff;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">
+        Open Lead
+      </a>
+    </div>
+  `
+}
+
+function createMarkerElement(leadScore: number | null, sniperMode: boolean) {
+  const tone = getMarkerTone(leadScore)
+  const element = document.createElement('div')
+  element.className = `deal-marker ${tone.className}${sniperMode ? ' deal-marker--sniper' : ''}`
+  element.innerHTML = '<span class="deal-marker-pulse"></span><span class="deal-marker-core"></span>'
+  return element
 }
 
 export default function MapView() {
@@ -73,11 +144,33 @@ export default function MapView() {
 
   const [savedLeads, setSavedLeads] = useState<Lead[]>([])
   const [statusFilter, setStatusFilter] = useState('All')
+  const [sniperMode, setSniperMode] = useState(false)
 
   const filteredLeads = useMemo(() => {
-    if (statusFilter === 'All') return savedLeads
-    return savedLeads.filter((lead) => (lead.status || 'New') === statusFilter)
-  }, [savedLeads, statusFilter])
+    const statusScoped =
+      statusFilter === 'All'
+        ? savedLeads
+        : savedLeads.filter((lead) => (lead.status || 'New') === statusFilter)
+
+    if (!sniperMode) return statusScoped
+
+    return statusScoped.filter((lead) => (lead.lead_score || 0) >= 70)
+  }, [savedLeads, statusFilter, sniperMode])
+
+  const mapStats = useMemo(() => {
+    const total = filteredLeads.length
+    const elite = filteredLeads.filter((lead) => (lead.lead_score || 0) >= 85).length
+    const strong = filteredLeads.filter((lead) => {
+      const score = lead.lead_score || 0
+      return score >= 70 && score < 85
+    }).length
+    const watch = filteredLeads.filter((lead) => {
+      const score = lead.lead_score || 0
+      return score >= 50 && score < 70
+    }).length
+
+    return { total, elite, strong, watch }
+  }, [filteredLeads])
 
   const fetchSavedLeads = useCallback(async () => {
     const { data, error } = await supabase
@@ -164,6 +257,14 @@ export default function MapView() {
   }, [])
 
   useEffect(() => {
+    if (!mapRef.current) return
+
+    mapRef.current.setStyle(
+      sniperMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/streets-v12'
+    )
+  }, [sniperMode])
+
+  useEffect(() => {
     async function loadInitialLeads() {
       const { data, error } = await supabase
         .from('leads')
@@ -191,23 +292,10 @@ export default function MapView() {
     filteredLeads.forEach((lead) => {
       if (lead.latitude == null || lead.longitude == null) return
 
-      const popup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-        <div style="min-width:220px;">
-          <p style="font-weight:600; margin:0 0 6px 0;">${lead.address}</p>
-          <p style="margin:0 0 8px 0; font-size:13px; color:#666;">
-            ${lead.city || ''}${lead.city && lead.state ? ', ' : ''}${lead.state || ''}
-          </p>
-          <p style="margin:0 0 8px 0; font-size:13px;">
-            <strong>Score:</strong> ${lead.lead_score ?? '—'}
-          </p>
-          <a href="/dashboard/${lead.id}" style="color:#2563eb; font-size:13px;">
-            Open Lead
-          </a>
-        </div>
-      `)
+      const popup = new mapboxgl.Popup({ offset: 18 }).setHTML(buildPopupHtml(lead))
 
       const marker = new mapboxgl.Marker({
-        color: getMarkerColor(lead.lead_score),
+        element: createMarkerElement(lead.lead_score, sniperMode),
       })
         .setLngLat([lead.longitude, lead.latitude])
         .setPopup(popup)
@@ -215,7 +303,7 @@ export default function MapView() {
 
       leadMarkersRef.current.push(marker)
     })
-  }, [filteredLeads])
+  }, [filteredLeads, sniperMode])
 
   async function handleSearch(value: string) {
     setSearch(value)
@@ -306,22 +394,9 @@ export default function MapView() {
       zoom: 16,
     })
 
-    const popup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-      <div>
-        <p style="font-weight:600; margin:0 0 6px 0;">${lead.address}</p>
-        <p style="margin:0 0 8px 0; font-size:13px; color:#666;">
-          ${lead.city || ''}${lead.city && lead.state ? ', ' : ''}${lead.state || ''}
-        </p>
-        <p style="margin:0 0 8px 0; font-size:13px;">
-          <strong>Score:</strong> ${lead.lead_score ?? '—'}
-        </p>
-        <a href="/dashboard/${lead.id}" style="color:#2563eb; font-size:13px;">
-          View Lead
-        </a>
-      </div>
-    `)
+    const popup = new mapboxgl.Popup({ offset: 18 }).setHTML(buildPopupHtml(lead))
 
-    new mapboxgl.Marker({ color: 'black' })
+    new mapboxgl.Marker({ element: createMarkerElement(lead.lead_score, sniperMode) })
       .setLngLat([lead.longitude, lead.latitude])
       .setPopup(popup)
       .addTo(mapRef.current)
@@ -414,31 +489,31 @@ export default function MapView() {
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4">
+    <div className="luxe-panel edge-glow rounded-[28px] p-4 text-white">
       <div className="grid min-h-[75vh] grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
-        <div className="relative min-h-[60vh] overflow-hidden rounded-2xl border">
+        <div className="relative min-h-[60vh] overflow-hidden rounded-[24px] border border-white/10 bg-[#05070f]">
           <div className="absolute left-4 top-4 z-10 w-[320px]">
             <input
-              className="w-full rounded-xl border bg-white p-3 shadow"
+              className="glass-input w-full rounded-2xl p-3 shadow-[0_18px_44px_rgba(0,0,0,0.28)]"
               placeholder="Search address"
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
             />
 
             {searching && (
-              <div className="mt-2 rounded-xl bg-white p-3 text-sm shadow">
+              <div className="glass-input mt-2 rounded-2xl p-3 text-sm text-slate-200 shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
                 Searching...
               </div>
             )}
 
             {results.length > 0 && (
-              <div className="mt-2 overflow-hidden rounded-xl border bg-white shadow">
+              <div className="glass-input mt-2 overflow-hidden rounded-2xl shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
                 {results.map((result) => (
                   <button
                     key={result.id}
                     type="button"
                     onClick={() => handleSelectResult(result)}
-                    className="block w-full border-b px-4 py-3 text-left text-sm hover:bg-gray-50 last:border-b-0"
+                    className="block w-full border-b border-white/6 px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/5 last:border-b-0"
                   >
                     {result.place_name}
                   </button>
@@ -447,28 +522,56 @@ export default function MapView() {
             )}
           </div>
 
-          <div className="absolute bottom-4 left-4 z-10 rounded-xl bg-white p-3 shadow">
-            <p className="text-sm font-semibold">Lead Score</p>
-            <div className="mt-2 space-y-1 text-sm">
+          <div className="absolute bottom-4 left-4 z-10 w-[280px] rounded-[22px] border border-white/10 bg-[#090d18]/84 p-4 shadow-[0_26px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.26em] text-violet-200/80">Map Intel</p>
+                <p className="mt-1 text-sm font-semibold text-white">Lead Score Radar</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSniperMode((current) => !current)}
+                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${
+                  sniperMode
+                    ? 'bg-violet-500/20 text-violet-100 ring-1 ring-violet-400/40'
+                    : 'bg-white/8 text-slate-300 ring-1 ring-white/10'
+                }`}
+              >
+                {sniperMode ? 'Sniper Mode On' : 'Sniper Mode'}
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Visible</p>
+                <p className="mt-2 text-lg font-semibold text-white">{mapStats.total}</p>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Elite</p>
+                <p className="mt-2 text-lg font-semibold text-emerald-300">{mapStats.elite}</p>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Strong</p>
+                <p className="mt-2 text-lg font-semibold text-amber-300">{mapStats.strong}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-red-500" />
-                <span>Hot</span>
+                <span className="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(34,197,94,0.5)]" />
+                <span className="text-slate-200">Elite deal</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-orange-500" />
-                <span>Strong</span>
+                <span className="h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(250,204,21,0.4)]" />
+                <span className="text-slate-200">Strong deal</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-blue-500" />
-                <span>Good</span>
+                <span className="h-3 w-3 rounded-full bg-rose-400 shadow-[0_0_18px_rgba(251,113,133,0.4)]" />
+                <span className="text-slate-200">Watchlist</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-gray-500" />
-                <span>Fair</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-black" />
-                <span>Weak</span>
+                <span className="h-3 w-3 rounded-full bg-slate-500 shadow-[0_0_18px_rgba(100,116,139,0.25)]" />
+                <span className="text-slate-200">Low conviction</span>
               </div>
             </div>
           </div>
@@ -477,43 +580,43 @@ export default function MapView() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border p-5">
-            <h2 className="text-xl font-semibold">Map Lead Capture</h2>
-            <p className="mt-2 text-sm text-gray-600">
+          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+            <h2 className="text-xl font-semibold text-white">Map Lead Capture</h2>
+            <p className="mt-2 text-sm text-slate-300">
               Search an address or click the map to save a lead.
             </p>
 
             <form onSubmit={handleSaveLead} className="mt-6 space-y-4">
               <input
-                className="w-full rounded-xl border p-3"
+                className="glass-input w-full rounded-2xl p-3"
                 placeholder="Address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
 
               <input
-                className="w-full rounded-xl border p-3"
+                className="glass-input w-full rounded-2xl p-3"
                 placeholder="City"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
 
               <input
-                className="w-full rounded-xl border p-3"
+                className="glass-input w-full rounded-2xl p-3"
                 placeholder="State"
                 value={state}
                 onChange={(e) => setState(e.target.value)}
               />
 
               <input
-                className="w-full rounded-xl border p-3"
+                className="glass-input w-full rounded-2xl p-3"
                 placeholder="ZIP Code"
                 value={zipCode}
                 onChange={(e) => setZipCode(e.target.value)}
               />
 
               <select
-                className="w-full rounded-xl border p-3"
+                className="glass-input w-full rounded-2xl p-3"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -526,7 +629,7 @@ export default function MapView() {
               </select>
 
               <textarea
-                className="w-full rounded-xl border p-3"
+                className="glass-input w-full rounded-2xl p-3"
                 rows={4}
                 placeholder="Notes"
                 value={notes}
@@ -534,13 +637,13 @@ export default function MapView() {
               />
 
               {selectedPoint && (
-                <div className="rounded-xl border bg-gray-50 p-3 text-sm">
-                  <p className="font-medium">Selected Property</p>
+                <div className="rounded-2xl border border-violet-400/14 bg-violet-500/8 p-3 text-sm">
+                  <p className="font-medium text-white">Selected Property</p>
                   <p className="mt-1">{address || 'No address found yet'}</p>
-                  <p className="text-gray-600">
+                  <p className="text-slate-300">
                     {city || 'Unknown city'}, {state || 'Unknown state'} {zipCode || ''}
                   </p>
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-slate-500">
                     Pin: {selectedPoint.lat.toFixed(5)}, {selectedPoint.lng.toFixed(5)}
                   </p>
                 </div>
@@ -549,26 +652,26 @@ export default function MapView() {
               <button
                 type="button"
                 onClick={clearSelection}
-                className="w-full rounded-xl border p-3"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 p-3"
               >
                 Clear Selection
               </button>
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-black p-3 text-white"
+                className="neon-button w-full rounded-2xl p-3 text-sm font-semibold"
               >
                 Save Lead from Map
               </button>
 
-              {message && <p className="text-sm text-red-600">{message}</p>}
+              {message && <p className="text-sm text-violet-200">{message}</p>}
             </form>
           </div>
 
-          <div className="rounded-2xl border p-5">
-            <label className="mb-2 block text-sm font-medium">Filter Map Leads</label>
+          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+            <label className="mb-2 block text-sm font-medium text-white">Filter Map Leads</label>
             <select
-              className="w-full rounded-xl border p-3"
+              className="glass-input w-full rounded-2xl p-3"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -582,49 +685,59 @@ export default function MapView() {
             </select>
           </div>
 
-          <div className="rounded-2xl border p-5">
+          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Saved Leads</h2>
-              <span className="text-sm text-gray-500">{filteredLeads.length} shown</span>
+              <h2 className="text-lg font-semibold text-white">Saved Leads</h2>
+              <span className="text-sm text-slate-400">{filteredLeads.length} shown</span>
             </div>
 
             <div className="mt-4 max-h-[320px] space-y-3 overflow-y-auto pr-1">
               {filteredLeads.length === 0 && (
-                <p className="text-sm text-gray-600">No saved leads yet.</p>
+                <p className="text-sm text-slate-400">No saved leads yet.</p>
               )}
 
               {filteredLeads.map((lead) => (
-                <div key={lead.id} className="rounded-xl border p-3">
-                  <p className="font-medium">{lead.address}</p>
-                  <p className="text-sm text-gray-600">
-                    {lead.city || 'Unknown city'}, {lead.state || 'Unknown state'}
-                  </p>
+                <div key={lead.id} className="hover-float rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-white">{lead.address}</p>
+                      <p className="text-sm text-slate-400">
+                        {lead.city || 'Unknown city'}, {lead.state || 'Unknown state'}
+                      </p>
+                    </div>
+                    <span
+                      className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                      style={{
+                        backgroundColor: `${getMarkerTone(lead.lead_score).accent}22`,
+                        border: `1px solid ${getMarkerTone(lead.lead_score).accent}44`,
+                        color: '#f8fafc',
+                      }}
+                    >
+                      {getMarkerTone(lead.lead_score).label}
+                    </span>
+                  </div>
 
-                  <p className="mt-1 text-sm">
-                    <strong>Status:</strong> {lead.status || 'New'}
-                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="rounded-xl border border-white/8 bg-black/20 p-2">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Status</p>
+                      <p className="mt-1 text-sm text-white">{lead.status || 'New'}</p>
+                    </div>
+                    <div className="rounded-xl border border-white/8 bg-black/20 p-2">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Score</p>
+                      <p className="mt-1 text-sm text-white">{lead.lead_score ?? '—'}</p>
+                    </div>
+                  </div>
 
-                  <p className="mt-1 text-sm">
-                    <strong>Lead Score:</strong> {lead.lead_score ?? '—'}
-                  </p>
-
-                  {lead.lead_rating && (
-                    <div className="mt-2">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${
-                          lead.lead_rating === 'Hot'
-                            ? 'bg-red-600'
-                            : lead.lead_rating === 'Strong'
-                            ? 'bg-orange-500'
-                            : lead.lead_rating === 'Good'
-                            ? 'bg-blue-600'
-                            : lead.lead_rating === 'Fair'
-                            ? 'bg-gray-600'
-                            : 'bg-black'
-                        }`}
-                      >
-                        {lead.lead_rating}
-                      </span>
+                  {getSignalList(lead).length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {getSignalList(lead).map((signal) => (
+                        <span
+                          key={`${lead.id}-${signal}`}
+                          className="rounded-full border border-violet-400/18 bg-violet-500/10 px-2 py-1 text-[11px] text-violet-100"
+                        >
+                          {signal}
+                        </span>
+                      ))}
                     </div>
                   )}
 
@@ -632,14 +745,14 @@ export default function MapView() {
                     <button
                       type="button"
                       onClick={() => focusLead(lead)}
-                      className="rounded-lg border px-3 py-2 text-sm"
+                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     >
                       View on Map
                     </button>
 
                     <a
                       href={`/dashboard/${lead.id}`}
-                      className="rounded-lg bg-black px-3 py-2 text-sm text-white"
+                      className="neon-button rounded-xl px-3 py-2 text-sm"
                     >
                       Open Lead
                     </a>

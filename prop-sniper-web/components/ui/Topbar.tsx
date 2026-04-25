@@ -52,11 +52,11 @@ export default function TopBar() {
   const meta = getHeaderMeta(pathname);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/8 bg-[#06070d]/82 backdrop-blur-2xl">
+    <header className="border-b border-white/8 bg-[#06070d]/82 backdrop-blur-2xl">
       <div className="flex flex-col gap-5 px-4 py-5 md:px-6 lg:px-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-col gap-4">
-            <BrandLogo size="sm" className="w-fit" />
+            <BrandLogo size="xs" className="w-fit" />
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">
               {meta.title}
             </h2>
@@ -66,6 +66,13 @@ export default function TopBar() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-2xl border border-violet-400/16 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/16 hover:shadow-[0_20px_40px_rgba(91,33,182,0.22)]"
+              onClick={() => window.dispatchEvent(new Event("propsniper:open-command-palette"))}
+            >
+              Command Palette
+            </button>
             <Link
               href="/leads"
               className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
@@ -92,6 +99,7 @@ export default function TopBar() {
           <StatusChip label="Today first" tone="purple" />
           <StatusChip label="Pipeline visible" tone="slate" />
           <StatusChip label="Team synced" tone="blue" />
+          <StatusChip label="Cmd/Ctrl + K" tone="slate" />
         </div>
       </div>
     </header>

@@ -5,15 +5,16 @@ import Link from "next/link";
 
 type BrandLogoProps = {
   href?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   priority?: boolean;
 };
 
 const sizeClasses = {
-  sm: "w-[122px]",
-  md: "w-[168px]",
-  lg: "w-[240px]",
+  xs: "w-[92px]",
+  sm: "w-[118px]",
+  md: "w-[150px]",
+  lg: "w-[190px]",
 };
 
 export default function BrandLogo({
@@ -34,7 +35,7 @@ export default function BrandLogo({
         width={768}
         height={768}
         priority={priority}
-        className={`${sizeClasses[size]} h-auto object-contain drop-shadow-[0_10px_25px_rgba(168,85,247,0.25)]`}
+        className={`${sizeClasses[size]} h-auto object-contain drop-shadow-[0_8px_22px_rgba(168,85,247,0.2)]`}
       />
     </Link>
   );

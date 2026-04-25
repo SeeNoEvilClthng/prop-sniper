@@ -81,7 +81,7 @@ export default function LoginPage() {
                 href="/dashboard"
                 className="inline-flex rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"
               >
-                <BrandLogo size="sm" />
+                <BrandLogo size="xs" />
               </Link>
 
               <div className="mt-10">

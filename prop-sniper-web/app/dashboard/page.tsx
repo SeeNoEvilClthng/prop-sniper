@@ -71,6 +71,16 @@ function formatDateTime(value?: string | null) {
   })
 }
 
+function isWithinLastDays(value?: string | null, days = 7) {
+  if (!value) return false
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return false
+
+  const now = Date.now()
+  return now - date.getTime() <= days * 24 * 60 * 60 * 1000
+}
+
 function isDueTodayOrEarlier(value?: string | null) {
   if (!value) return false
 
@@ -251,6 +261,102 @@ function FlowLaneCard({
         Open lane
       </p>
     </Link>
+  )
+}
+
+function ProjectionCard({
+  label,
+  value,
+  detail,
+  progress,
+  tone = 'violet',
+}: {
+  label: string
+  value: string
+  detail: string
+  progress: number
+  tone?: 'violet' | 'emerald' | 'amber'
+}) {
+  const barTone =
+    tone === 'emerald'
+      ? 'from-emerald-400 via-lime-400 to-emerald-500'
+      : tone === 'amber'
+        ? 'from-amber-300 via-yellow-300 to-orange-400'
+        : 'from-violet-400 via-fuchsia-400 to-indigo-400'
+
+  return (
+    <div className="hover-float rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{detail}</p>
+      <div className="metric-bar mt-4 h-2 rounded-full">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${barTone}`}
+          style={{ width: `${Math.max(6, Math.min(progress, 100))}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function SuggestionCard({
+  title,
+  detail,
+  tone = 'violet',
+}: {
+  title: string
+  detail: string
+  tone?: 'violet' | 'amber' | 'emerald'
+}) {
+  const toneClass =
+    tone === 'emerald'
+      ? 'border-emerald-400/16 bg-emerald-500/10 text-emerald-100'
+      : tone === 'amber'
+        ? 'border-amber-400/16 bg-amber-500/10 text-amber-100'
+        : 'border-violet-400/16 bg-violet-500/10 text-violet-100'
+
+  return (
+    <div className={`rounded-[24px] border p-4 ${toneClass}`}>
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-200/90">{detail}</p>
+    </div>
+  )
+}
+
+function SniperMeter({
+  value,
+  label,
+}: {
+  value: number
+  label: string
+}) {
+  return (
+    <div className="rounded-[28px] border border-violet-400/18 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.22),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_26px_64px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+      <p className="text-[11px] uppercase tracking-[0.3em] text-violet-200/80">Sniper Rating</p>
+      <div className="mt-4 flex items-end gap-4">
+        <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-violet-400/18 bg-black/30">
+          <div
+            className="absolute inset-2 rounded-full border-4 border-transparent"
+            style={{
+              background:
+                `conic-gradient(from 180deg, #a855f7 0 ${Math.max(8, Math.min(value, 100))}%, rgba(255,255,255,0.08) ${Math.max(8, Math.min(value, 100))}% 100%)`,
+              WebkitMask:
+                'radial-gradient(farthest-side, transparent calc(100% - 10px), black calc(100% - 9px))',
+            }}
+          />
+          <div className="relative text-center">
+            <p className="text-3xl font-semibold text-white">{value}</p>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">/100</p>
+          </div>
+        </div>
+        <div className="flex-1">
+          <p className="text-lg font-semibold text-white">{label}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            A blended score from hot lead concentration, follow-up discipline, team coverage, and live buyer readiness.
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -604,11 +710,94 @@ export default async function DashboardPage() {
       icon: '◌',
     },
   ]
+  const recentWeekLeads = allLeads.filter((lead) => isWithinLastDays(lead.created_at))
+  const recentWeekActivity = recentAttempts.filter((attempt) => isWithinLastDays(attempt.created_at))
+  const recentWeekOffers = recentAttempts.filter(
+    (attempt) =>
+      isWithinLastDays(attempt.created_at) &&
+      (attempt.method === 'sms' || attempt.method === 'call' || attempt.method === 'email')
+  )
+  const projectedPipelineValue = allLeads.reduce(
+    (sum, lead) => sum + (lead.estimated_value ?? 0),
+    0
+  )
+  const projectedSpread = allLeads.reduce((sum, lead) => {
+    if (lead.estimated_value != null && lead.target_offer != null) {
+      return sum + Math.max(lead.estimated_value - lead.target_offer, 0)
+    }
+
+    return sum + Math.max((lead.lead_score ?? 0) * 1200, 0)
+  }, 0)
+  const weeklyMomentum = Math.min(
+    100,
+    Math.round(
+      ((recentWeekActivity.length + recentWeekOffers.length + hotLeadCount) /
+        Math.max(allLeads.length * 2, 1)) *
+        100
+    )
+  )
+  const sniperRating = Math.min(
+    99,
+    Math.round(
+      hotLeadCount * 6 +
+        avgLeadScore * 0.4 +
+        contactCoverage * 0.25 +
+        Math.max(0, 20 - followUpsDue.length * 2)
+    )
+  )
+  const sniperLabel =
+    sniperRating >= 85 ? 'Locked In' : sniperRating >= 70 ? 'On Target' : 'Reacquire Focus'
+  const aiSuggestions = [
+    hotLeads[0]
+      ? {
+          title: `Press ${hotLeads[0].address} today`,
+          detail: `${hotLeads[0].lead_score || 0} score with ${getSignals(hotLeads[0].lead_signals).join(', ') || 'strong motivation signals'} and a likely near-term seller conversation window.`,
+          tone: 'emerald' as const,
+        }
+      : null,
+    followUpsDue[0]
+      ? {
+          title: `Clear overdue follow-up on ${followUpsDue[0].address}`,
+          detail: `This lead is already due. Move it back into contact rhythm before it slips out of the seller cycle.`,
+          tone: 'amber' as const,
+        }
+      : null,
+    underContract[0]
+      ? {
+          title: `Prep buyer push for ${underContract[0].address}`,
+          detail: `Under-contract inventory is your fastest dispo leverage right now. Keep investor demand close to this file.`,
+          tone: 'violet' as const,
+        }
+      : null,
+  ].filter(Boolean) as Array<{ title: string; detail: string; tone: 'violet' | 'amber' | 'emerald' }>
+  const projectionBars = [
+    {
+      label: 'Projected Pipeline Value',
+      value: formatMoney(projectedPipelineValue),
+      detail: `${allLeads.length} tracked properties across the current acquisition book.`,
+      progress: Math.min(100, Math.round(projectedPipelineValue / 50000)),
+      tone: 'violet' as const,
+    },
+    {
+      label: 'Profit Potential',
+      value: formatMoney(projectedSpread),
+      detail: `Estimated spread opportunity if clean leads convert and contract lane stays moving.`,
+      progress: Math.min(100, Math.round(projectedSpread / 25000)),
+      tone: 'emerald' as const,
+    },
+    {
+      label: 'Weekly Momentum',
+      value: `${weeklyMomentum}%`,
+      detail: `${recentWeekLeads.length} new leads, ${recentWeekOffers.length} outreach touches, ${recentWeekActivity.length} logged CRM actions this week.`,
+      progress: weeklyMomentum,
+      tone: 'amber' as const,
+    },
+  ]
 
   return (
     <main className="text-white">
       <div className="mx-auto max-w-7xl">
-        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
+        <section className="sheen rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.22),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
@@ -622,6 +811,14 @@ export default async function DashboardPage() {
                 stay tight on seller follow-up, push clean deals toward buyers, and keep the team aimed
                 at the highest-signal opportunities.
               </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="rounded-full border border-violet-400/16 bg-violet-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-violet-100">
+                  Press Cmd/Ctrl + K
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-slate-300">
+                  Sniper Mode Ready
+                </span>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -668,6 +865,21 @@ export default async function DashboardPage() {
           </div>
         </section>
 
+        <section className="mt-6 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <SniperMeter value={sniperRating} label={sniperLabel} />
+
+          <div className="grid gap-4">
+            {aiSuggestions.map((suggestion) => (
+              <SuggestionCard
+                key={suggestion.title}
+                title={suggestion.title}
+                detail={suggestion.detail}
+                tone={suggestion.tone}
+              />
+            ))}
+          </div>
+        </section>
+
         <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {dashboardLanes.map((lane) => (
             <FlowLaneCard
@@ -677,6 +889,19 @@ export default async function DashboardPage() {
               detail={lane.detail}
               metric={lane.metric}
               href={lane.href}
+            />
+          ))}
+        </section>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-3">
+          {projectionBars.map((item) => (
+            <ProjectionCard
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              detail={item.detail}
+              progress={item.progress}
+              tone={item.tone}
             />
           ))}
         </section>

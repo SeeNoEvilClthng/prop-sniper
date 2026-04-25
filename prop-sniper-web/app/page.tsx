@@ -156,7 +156,7 @@ export default function HomePage() {
 
       <header className="sticky top-0 z-50 border-b border-white/8 bg-[#06070d]/78 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <BrandLogo size="md" priority className="shrink-0" />
+          <BrandLogo size="sm" priority className="shrink-0" />
 
           <nav className="hidden items-center gap-7 md:flex">
             <a href="#platform" className="nav-link-luxe text-sm text-slate-300 transition hover:text-white">
@@ -193,8 +193,8 @@ export default function HomePage() {
       <section className="relative">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:pb-28 lg:pt-20">
           <div className="flex flex-col justify-center">
-            <div className="mb-8">
-              <BrandLogo size="lg" priority />
+            <div className="mb-6">
+              <BrandLogo size="md" priority className="opacity-95" />
             </div>
 
             <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-fuchsia-200">

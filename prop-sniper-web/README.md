@@ -66,6 +66,9 @@ AI and outbound:
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL` optional, defaults in code
 - `RESEND_API_KEY`
+- `TWILIO_ACCOUNT_SID` for outbound SMS
+- `TWILIO_AUTH_TOKEN` for outbound SMS
+- `TWILIO_PHONE_NUMBER` Twilio sending number
 
 Optional server-side auth fallback:
 

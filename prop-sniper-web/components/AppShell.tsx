@@ -1,5 +1,7 @@
 import React from "react";
 
+import BrandLogo from "@/components/ui/BrandLogo";
+
 type AppShellProps = {
   children: React.ReactNode;
   title?: string;
@@ -19,6 +21,9 @@ export default function AppShell({
       <main className={`mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 ${className}`}>
         {(title || subtitle) && (
           <div className="mb-6 rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+            <div className="mb-5">
+              <BrandLogo size="sm" />
+            </div>
             {title && (
               <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white">
                 {title}

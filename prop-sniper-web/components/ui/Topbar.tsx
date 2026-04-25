@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import BrandLogo from "@/components/ui/BrandLogo";
+
 function getHeaderMeta(pathname: string) {
   if (pathname.startsWith("/leads")) {
     return {
@@ -53,10 +55,8 @@ export default function TopBar() {
     <header className="sticky top-0 z-20 border-b border-white/8 bg-[#06070d]/82 backdrop-blur-2xl">
       <div className="flex flex-col gap-5 px-4 py-5 md:px-6 lg:px-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
-              PropSniper Workspace
-            </p>
+          <div className="flex flex-col gap-4">
+            <BrandLogo size="sm" className="w-fit" />
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">
               {meta.title}
             </h2>

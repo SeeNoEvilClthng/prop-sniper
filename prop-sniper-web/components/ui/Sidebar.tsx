@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import BrandLogo from "@/components/ui/BrandLogo";
+
 const featuredLinks = [
   { label: "Dashboard", href: "/dashboard", icon: "◌" },
   { label: "Leads", href: "/leads", icon: "◎" },
@@ -51,18 +53,8 @@ export default function Sidebar() {
     <aside className="futuristic-grid hidden w-[290px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(6,7,13,0.98),rgba(10,11,20,0.94))] md:block">
       <div className="sticky top-0 flex h-screen flex-col px-5 py-6">
         <div className="luxe-panel edge-glow sheen rounded-[28px] p-4 xleads-vibe">
-          <div className="flex items-center gap-3">
-            <div className="edge-glow flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b0d16,#4c1d95)] text-sm font-semibold text-white">
-              PS
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
-                PropSniper
-              </p>
-              <p className="mt-1 text-sm text-slate-300">
-                Wholesaling operating system
-              </p>
-            </div>
+          <div className="flex justify-center">
+            <BrandLogo size="md" className="mx-auto" />
           </div>
 
           <div className="mt-4 rounded-2xl border border-fuchsia-400/16 bg-[#0b0d19] p-4">

@@ -1,5 +1,7 @@
 "use client";
 
+import BrandLogo from "@/components/ui/BrandLogo";
+
 const reviews = [
   {
     name: "Andre Holloway",
@@ -154,17 +156,7 @@ export default function HomePage() {
 
       <header className="sticky top-0 z-50 border-b border-white/8 bg-[#06070d]/78 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="edge-glow sheen flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#0b0d16,#4c1d95)] text-sm font-semibold shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-              PS
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.36em] text-[#c4b5fd]">
-                PropSniper
-              </p>
-              <p className="text-sm text-slate-300">Wholesaling operating system</p>
-            </div>
-          </div>
+          <BrandLogo size="md" priority className="shrink-0" />
 
           <nav className="hidden items-center gap-7 md:flex">
             <a href="#platform" className="nav-link-luxe text-sm text-slate-300 transition hover:text-white">
@@ -190,7 +182,7 @@ export default function HomePage() {
             </a>
             <a
               href="/signup"
-              className="rounded-xl bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] px-4 py-2.5 text-sm font-semibold text-[#10151f] shadow-[0_18px_34px_rgba(215,181,111,0.18)] transition hover:translate-y-[-1px] hover:opacity-95"
+              className="rounded-xl bg-[linear-gradient(135deg,#d9d4e7,#9333ea)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_18px_34px_rgba(147,51,234,0.24)] transition hover:translate-y-[-1px] hover:opacity-95"
             >
               Start Free Workflow
             </a>
@@ -201,6 +193,10 @@ export default function HomePage() {
       <section className="relative">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:pb-28 lg:pt-20">
           <div className="flex flex-col justify-center">
+            <div className="mb-8">
+              <BrandLogo size="lg" priority />
+            </div>
+
             <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-fuchsia-200">
               Built for acquisitions, dispositions, and investor teams
             </div>
@@ -298,7 +294,7 @@ export default function HomePage() {
                         </p>
                       </div>
                       <div className="h-2 rounded-full bg-white/10">
-                        <div className="h-2 w-[84%] rounded-full bg-[linear-gradient(90deg,#4ade80,#d7bf7c)]" />
+                        <div className="h-2 w-[84%] rounded-full bg-[linear-gradient(90deg,#4ade80,#a855f7)]" />
                       </div>
                       <p className="mt-3 text-sm leading-6 text-slate-400">
                         High equity, absentee ownership, dated interior photos, and motivated pricing relative to ARV.
@@ -343,7 +339,7 @@ export default function HomePage() {
 
       <section id="platform" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#d7bf7c]">
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#c4b5fd]">
             Platform
           </p>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
@@ -358,10 +354,10 @@ export default function HomePage() {
           {featurePillars.map((feature, index) => (
             <div
               key={feature.title}
-              className="group rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#d7bf7c]/20"
+              className="group rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:-translate-y-1 hover:border-fuchsia-400/20"
             >
               <div className="mb-5 flex items-center justify-between">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-[#0b1522] text-2xl text-[#ead9a8]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-[#0b1522] text-2xl text-[#d8b4fe]">
                   {feature.icon}
                 </div>
                 <span className="text-sm text-slate-500">0{index + 1}</span>
@@ -376,7 +372,7 @@ export default function HomePage() {
       <section id="comparison" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-7 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-8">
-            <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#d7bf7c]">
+            <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#c4b5fd]">
               Why it wins
             </p>
             <h2 className="mt-4 text-4xl font-semibold tracking-[-0.03em]">
@@ -406,7 +402,7 @@ export default function HomePage() {
             <div className="overflow-hidden rounded-[26px] border border-white/10">
               <div className="grid grid-cols-[1.1fr_0.95fr_0.95fr] bg-[#0e1826] px-5 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                 <div>Category</div>
-                <div className="text-center text-[#ead9a8]">PropSniper</div>
+                <div className="text-center text-[#d8b4fe]">PropSniper</div>
                 <div className="text-center">Typical legacy stack</div>
               </div>
 
@@ -427,7 +423,7 @@ export default function HomePage() {
 
       <section id="reviews" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#d7bf7c]">
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#c4b5fd]">
             Operator Feedback
           </p>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
@@ -446,7 +442,7 @@ export default function HomePage() {
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0c1522] text-sm font-semibold text-[#ead9a8]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0c1522] text-sm font-semibold text-[#d8b4fe]">
                     {review.initials}
                   </div>
                   <div>
@@ -470,9 +466,9 @@ export default function HomePage() {
 
               <p className="mt-5 text-lg leading-8 text-slate-100">“{review.review}”</p>
 
-              <div className="mt-6 rounded-2xl border border-[#d7bf7c]/14 bg-[#0a1320] p-4">
+              <div className="mt-6 rounded-2xl border border-fuchsia-400/14 bg-[#0a1320] p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Reported result</p>
-                <p className="mt-2 text-sm font-semibold text-[#ead9a8]">{review.result}</p>
+                <p className="mt-2 text-sm font-semibold text-[#d8b4fe]">{review.result}</p>
               </div>
             </div>
           ))}
@@ -481,7 +477,7 @@ export default function HomePage() {
 
       <section id="pricing" className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8 lg:pb-28">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#d7bf7c]">
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-[#c4b5fd]">
             Pricing
           </p>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
@@ -493,7 +489,7 @@ export default function HomePage() {
         </div>
 
         <div className="mt-6 flex justify-center">
-          <div className="rounded-full border border-[#d7bf7c]/20 bg-[#d7bf7c]/10 px-5 py-2 text-sm font-medium text-[#ead9a8]">
+          <div className="rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-5 py-2 text-sm font-medium text-[#d8b4fe]">
             Starter $29/month • Pro $79/month • Team $149/month
           </div>
         </div>
@@ -504,7 +500,7 @@ export default function HomePage() {
               key={plan.name}
               className={`rounded-[32px] border p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:p-7 ${
                 plan.highlighted
-                  ? "border-[#d7bf7c]/25 bg-[linear-gradient(180deg,rgba(233,211,154,0.12),rgba(16,21,31,0.6))]"
+                  ? "border-fuchsia-400/25 bg-[linear-gradient(180deg,rgba(147,51,234,0.16),rgba(16,21,31,0.6))]"
                   : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))]"
               }`}
             >
@@ -513,7 +509,7 @@ export default function HomePage() {
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
                     plan.highlighted
-                      ? "bg-[#d7bf7c]/14 text-[#ead9a8] ring-1 ring-[#d7bf7c]/18"
+                      ? "bg-fuchsia-500/14 text-[#d8b4fe] ring-1 ring-fuchsia-400/18"
                       : "bg-white/5 text-slate-300 ring-1 ring-white/10"
                   }`}
                 >
@@ -543,7 +539,7 @@ export default function HomePage() {
                 href="/signup"
                 className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 text-sm font-semibold transition ${
                   plan.highlighted
-                    ? "bg-[linear-gradient(135deg,#e9d39a,#d7b56f)] text-[#10151f] hover:translate-y-[-1px]"
+                    ? "bg-[linear-gradient(135deg,#d9d4e7,#9333ea)] text-white hover:translate-y-[-1px]"
                     : "border border-white/10 bg-white/5 text-white hover:bg-white/10"
                 }`}
               >

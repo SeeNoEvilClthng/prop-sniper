@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendSmsWithTwilio } from '@/lib/twilio'
 
 type SendSmsBody = {
   leadId?: string
   to?: string
   message?: string
-}
-
-function getEnv(name: string) {
-  return process.env[name]?.trim()
 }
 
 export async function POST(req: Request) {
@@ -44,64 +41,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
     }
 
-    const accountSid = getEnv('TWILIO_ACCOUNT_SID')
-    const authToken = getEnv('TWILIO_AUTH_TOKEN')
-    const fromNumber = getEnv('TWILIO_PHONE_NUMBER')
+    const result = await sendSmsWithTwilio(to, message.trim())
 
-    if (!accountSid || !authToken || !fromNumber) {
-      return NextResponse.json({
-        success: true,
-        preview: true,
-        message: 'SMS provider not configured. Add Twilio environment variables to send from PropSniper.',
-      })
-    }
-
-    const response = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          From: fromNumber,
-          To: to,
-          Body: message.trim(),
-        }),
-      }
-    )
-
-    const payload = (await response.json()) as {
-      sid?: string
-      status?: string
-      message?: string
-      code?: number
-    }
-
-    if (!response.ok) {
+    if (!result.success) {
       return NextResponse.json(
         {
-          error: payload.message || 'Failed to send SMS',
-          providerCode: payload.code,
+          error: result.message,
+          providerCode: result.providerCode,
         },
         { status: 500 }
       )
     }
 
-    await supabase.from('contact_attempts').insert({
-      lead_id: leadId,
-      method: 'sms',
-      message: message.trim(),
-      status: payload.status || 'sent',
-    })
+    if (!result.preview) {
+      await supabase.from('contact_attempts').insert({
+        lead_id: leadId,
+        method: 'sms',
+        message: message.trim(),
+        status: result.status || 'sent',
+      })
+    }
 
     return NextResponse.json({
       success: true,
-      preview: false,
-      sid: payload.sid,
-      status: payload.status || 'sent',
-      message: `Text sent for ${lead.address || 'lead'}.`,
+      preview: result.preview,
+      sid: result.sid,
+      status: result.status || 'sent',
+      message: result.preview
+        ? result.message
+        : `Text sent for ${lead.address || 'lead'}.`,
     })
   } catch (error: unknown) {
     return NextResponse.json(

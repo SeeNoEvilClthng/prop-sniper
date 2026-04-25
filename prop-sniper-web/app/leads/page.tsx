@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import BulkFirstContactCampaign from '@/components/BulkFirstContactCampaign'
 import QueueLeadActions from '@/components/QueueLeadActions'
 import QueueLeadNoteForm from '@/components/QueueLeadNoteForm'
 import QueueLeadTaskCard from '@/components/QueueLeadTaskCard'
@@ -383,6 +384,18 @@ export default async function LeadsPage({ searchParams }: PageProps) {
             subtext="Deals actively moving toward close"
           />
         </section>
+
+        <BulkFirstContactCampaign
+          leads={leads.map((lead) => ({
+            id: lead.id,
+            address: lead.address || 'No address',
+            market:
+              [lead.city, lead.state, lead.zip_code].filter(Boolean).join(', ') || 'No market',
+            phone: lead.owner_phone || '',
+            score: lead.lead_score ?? null,
+            rating: lead.lead_rating || null,
+          }))}
+        />
 
         <section id="queue-filters" className="mt-6 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">

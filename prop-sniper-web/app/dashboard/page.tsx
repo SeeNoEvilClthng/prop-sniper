@@ -203,10 +203,12 @@ function StatCard({
   subtext: string
 }) {
   return (
-    <div className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
-      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{subtext}</p>
+    <div className="rounded-[20px] border border-white/8 bg-[#0b0f18]/92 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.2)] backdrop-blur-xl">
+      <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{label}</p>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-white">{value}</p>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-slate-400">{subtext}</p>
     </div>
   )
 }
@@ -221,10 +223,12 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-      <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
-      <div className="mt-5">{children}</div>
+    <section className="rounded-[22px] border border-white/8 bg-[#0a0e17]/92 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+      <div className="flex flex-col gap-1 border-b border-white/6 pb-4">
+        <h2 className="text-lg font-semibold tracking-[-0.02em] text-white">{title}</h2>
+        <p className="text-sm leading-6 text-slate-400">{description}</p>
+      </div>
+      <div className="mt-4">{children}</div>
     </section>
   )
 }
@@ -245,19 +249,19 @@ function FlowLaneCard({
   return (
     <Link
       href={href}
-      className="group rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_22px_55px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-fuchsia-400/18 hover:bg-[linear-gradient(180deg,rgba(147,51,234,0.12),rgba(255,255,255,0.04))]"
+      className="group rounded-[20px] border border-white/8 bg-[#0a0f18]/92 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.2)] backdrop-blur-xl transition hover:border-fuchsia-400/18 hover:bg-[#111728]"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.32em] text-[#c4b5fd]">{label}</p>
-          <h3 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-white">{title}</h3>
+          <p className="text-[10px] uppercase tracking-[0.26em] text-[#c4b5fd]">{label}</p>
+          <h3 className="mt-2 text-base font-semibold tracking-[-0.02em] text-white">{title}</h3>
         </div>
         <span className="rounded-full border border-fuchsia-400/16 bg-fuchsia-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-fuchsia-200">
           {metric}
         </span>
       </div>
-      <p className="mt-3 text-sm leading-6 text-slate-400">{detail}</p>
-      <p className="mt-4 text-sm font-semibold text-white transition group-hover:text-fuchsia-200">
+      <p className="mt-2 text-sm leading-6 text-slate-400">{detail}</p>
+      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-white transition group-hover:text-fuchsia-200">
         Open lane
       </p>
     </Link>
@@ -285,10 +289,10 @@ function ProjectionCard({
         : 'from-violet-400 via-fuchsia-400 to-indigo-400'
 
   return (
-    <div className="hover-float rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{detail}</p>
+    <div className="hover-float rounded-[20px] border border-white/8 bg-[#0a0f18]/92 p-4 shadow-[0_16px_34px_rgba(0,0,0,0.2)] backdrop-blur-xl">
+      <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{label}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">{value}</p>
+      <p className="mt-2 text-xs leading-5 text-slate-400">{detail}</p>
       <div className="metric-bar mt-4 h-2 rounded-full">
         <div
           className={`h-full rounded-full bg-gradient-to-r ${barTone}`}
@@ -316,9 +320,9 @@ function SuggestionCard({
         : 'border-violet-400/16 bg-violet-500/10 text-violet-100'
 
   return (
-    <div className={`rounded-[24px] border p-4 ${toneClass}`}>
+    <div className={`rounded-[18px] border p-4 ${toneClass}`}>
       <p className="text-sm font-semibold">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-200/90">{detail}</p>
+      <p className="mt-2 text-xs leading-5 text-slate-200/90">{detail}</p>
     </div>
   )
 }
@@ -331,10 +335,10 @@ function SniperMeter({
   label: string
 }) {
   return (
-    <div className="rounded-[28px] border border-violet-400/18 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.22),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_26px_64px_rgba(0,0,0,0.3)] backdrop-blur-xl">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-violet-200/80">Sniper Rating</p>
+    <div className="rounded-[22px] border border-violet-400/14 bg-[#0a0f18]/92 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+      <p className="text-[10px] uppercase tracking-[0.26em] text-violet-200/80">Sniper Rating</p>
       <div className="mt-4 flex items-end gap-4">
-        <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-violet-400/18 bg-black/30">
+        <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-violet-400/18 bg-black/30">
           <div
             className="absolute inset-2 rounded-full border-4 border-transparent"
             style={{
@@ -345,13 +349,13 @@ function SniperMeter({
             }}
           />
           <div className="relative text-center">
-            <p className="text-3xl font-semibold text-white">{value}</p>
+            <p className="text-2xl font-semibold text-white">{value}</p>
             <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">/100</p>
           </div>
         </div>
         <div className="flex-1">
-          <p className="text-lg font-semibold text-white">{label}</p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
+          <p className="text-base font-semibold text-white">{label}</p>
+          <p className="mt-2 text-xs leading-5 text-slate-400">
             A blended score from hot lead concentration, follow-up discipline, team coverage, and live buyer readiness.
           </p>
         </div>
@@ -380,20 +384,20 @@ function DashboardLinkCard({
   return (
     <Link
       href={href}
-      className="block rounded-2xl border border-white/10 bg-[#0d1727]/88 p-3.5 transition hover:border-white/14 hover:bg-[#101b2d]"
+      className="block rounded-[18px] border border-white/8 bg-[#0c111b]/88 px-4 py-3 transition hover:border-white/14 hover:bg-[#101624]"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-white">{title}</p>
-          {subtitle ? <p className="mt-1 text-sm text-slate-400">{subtitle}</p> : null}
+          <p className="truncate text-sm font-semibold text-white">{title}</p>
+          {subtitle ? <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p> : null}
           {meta ? (
-            <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-500">{meta}</p>
+            <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">{meta}</p>
           ) : null}
         </div>
         {badge ? <div className="shrink-0">{badge}</div> : null}
       </div>
-      {chips.length ? <div className="mt-3 flex flex-wrap gap-2">{chips}</div> : null}
-      {detail ? <p className="mt-3 text-sm text-slate-300">{detail}</p> : null}
+      {chips.length ? <div className="mt-2 flex flex-wrap gap-2">{chips}</div> : null}
+      {detail ? <p className="mt-2 text-xs leading-5 text-slate-300">{detail}</p> : null}
     </Link>
   )
 }
@@ -797,21 +801,19 @@ export default async function DashboardPage() {
   return (
     <main className="text-white">
       <div className="mx-auto max-w-7xl">
-        <section className="sheen rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.22),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+        <section className="rounded-[22px] border border-white/8 bg-[#090d16]/94 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
-                Operator Command
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[#c4b5fd]">
+                Dashboard
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
-                Run Leads, CRM, Dispo, and AI From One Command Center
+              <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
+                Acquisition Command Center
               </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
-                This dashboard is built to work like a real wholesaling operating lane: source leads,
-                stay tight on seller follow-up, push clean deals toward buyers, and keep the team aimed
-                at the highest-signal opportunities.
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+                Source leads, work follow-up, track team load, and push the best files toward dispo.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <span className="rounded-full border border-violet-400/16 bg-violet-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-violet-100">
                   Press Cmd/Ctrl + K
                 </span>
@@ -821,44 +823,44 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               <Link
                 href="/dashboard/new"
-                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+                className="rounded-xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-4 py-2.5 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
               >
                 Add Lead
               </Link>
               <Link
                 href="/leads?follow_up=Due"
-                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Open Follow Ups
               </Link>
               <Link
                 href="/finder"
-                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Source More Leads
               </Link>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-white/6 pt-4">
             <a
               href="#today"
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
             >
               Today
             </a>
             <a
               href="#pipeline"
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
             >
               Pipeline
             </a>
             <a
               href="#team"
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
             >
               Team
             </a>

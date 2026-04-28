@@ -53,9 +53,9 @@ export default function TopBar() {
 
   return (
     <header className="border-b border-white/8 bg-[#06070d]/82 backdrop-blur-2xl">
-      <div className="px-4 py-4 md:px-6 lg:px-8">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="px-4 py-3 md:px-6 lg:px-8">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
                 <BrandLogo size="xs" className="w-fit" />
@@ -63,40 +63,40 @@ export default function TopBar() {
                   Operator View
                 </span>
               </div>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-slate-500">
+              <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-slate-500">
                 PropSniper Workspace
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
+              <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.02em] text-white">
                 {meta.title}
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-400">
                 {meta.subtitle}
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-2xl border border-violet-400/16 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/16 hover:shadow-[0_20px_40px_rgba(91,33,182,0.22)]"
+                className="inline-flex items-center justify-center rounded-xl border border-violet-400/16 bg-violet-500/10 px-3.5 py-2.5 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/16 hover:shadow-[0_20px_40px_rgba(91,33,182,0.22)]"
                 onClick={() => window.dispatchEvent(new Event("propsniper:open-command-palette"))}
               >
                 Command
               </button>
               <Link
                 href="/leads"
-                className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
+                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
               >
                 Queue
               </Link>
               <Link
                 href="/leads?follow_up=Due"
-                className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
+                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
               >
                 Follow Ups
               </Link>
               <Link
                 href="/dashboard/new"
-                className="edge-glow inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_26px_rgba(147,51,234,0.28)] transition hover:translate-y-[-1px]"
+                className="edge-glow inline-flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-3.5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_26px_rgba(147,51,234,0.28)] transition hover:translate-y-[-1px]"
               >
                 + Lead
               </Link>

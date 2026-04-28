@@ -238,7 +238,7 @@ export default function CityFinder() {
       <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.34em] text-[#d7bf7c]">
+            <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
               Sourcing Engine
             </p>
             <h2 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">City Deal Finder</h2>
@@ -248,144 +248,162 @@ export default function CityFinder() {
             </p>
           </div>
         </div>
+      </section>
 
-        <form
-          onSubmit={handleSearch}
-          className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.7fr_0.7fr_auto]"
-        >
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">City</label>
-            <input
-              className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-sky-400/40"
-              placeholder="Phoenix"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">State</label>
-            <input
-              className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-sky-400/40"
-              placeholder="AZ"
-              value={state}
-              onChange={(e) => setState(e.target.value.toUpperCase())}
-              maxLength={2}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">How many</label>
-            <select
-              className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-sky-400/40"
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
+      <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+          <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Search Stack</p>
+            <h3 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-white">Market Search</h3>
+            <form
+              onSubmit={handleSearch}
+              className="mt-5 grid gap-4"
             >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-200">City</label>
+                <input
+                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-400/40"
+                  placeholder="Phoenix"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+              </div>
 
-          <div className="flex items-end">
-            <button
-              type="submit"
-              className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
-              disabled={loading}
-            >
-              {loading ? 'Searching...' : 'Find Leads'}
-            </button>
-          </div>
-        </form>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-200">State</label>
+                <input
+                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-400/40"
+                  placeholder="AZ"
+                  value={state}
+                  onChange={(e) => setState(e.target.value.toUpperCase())}
+                  maxLength={2}
+                />
+              </div>
 
-        {message && (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-[#0d1727] p-4 text-sm text-slate-200">
-            {message}
-            {savedLeadId ? (
-              <span className="ml-2">
-                <Link
-                  href={`/dashboard/${savedLeadId}`}
-                  className="font-semibold text-sky-200 underline"
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-200">How many</label>
+                <select
+                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
+                  value={limit}
+                  onChange={(e) => setLimit(Number(e.target.value))}
                 >
-                  Open workspace
-                </Link>
-              </span>
-            ) : null}
-          </div>
-        )}
-      </section>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Visible Results"
-          value={String(visibleResults.length)}
-          subtext="Current sourcing set"
-        />
-        <StatCard
-          label="Hot Leads"
-          value={String(hotCount)}
-          subtext="Highest-ranked opportunities"
-        />
-        <StatCard
-          label="Distress Signals"
-          value={String(distressCount)}
-          subtext="Likely motivated seller candidates"
-        />
-        <StatCard
-          label="Average Score"
-          value={visibleResults.length ? String(averageScore) : '—'}
-          subtext={`Absentee owner count: ${absenteeCount}`}
-        />
-      </section>
-
-      <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">Result Controls</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Sort and narrow the market to focus on the most actionable leads.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-200">Sort by</label>
-              <select
-                value={sortMode}
-                onChange={(e) => setSortMode(e.target.value as SortMode)}
-                className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-sky-400/40"
+              <button
+                type="submit"
+                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+                disabled={loading}
               >
-                <option value="score">Highest score</option>
-                <option value="distress">Most distress</option>
-                <option value="newest-owner">Longest ownership</option>
-                <option value="property-age">Oldest property</option>
-              </select>
-            </div>
+                {loading ? 'Searching...' : 'Find Leads'}
+              </button>
+            </form>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-slate-200">
-              <input
-                type="checkbox"
-                checked={onlyDistressed}
-                onChange={(e) => setOnlyDistressed(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-transparent"
-              />
-              Distress only
-            </label>
+            {message && (
+              <div className="mt-4 rounded-2xl border border-white/10 bg-[#0d1727] p-4 text-sm text-slate-200">
+                {message}
+                {savedLeadId ? (
+                  <span className="ml-2">
+                    <Link
+                      href={`/dashboard/${savedLeadId}`}
+                      className="font-semibold text-violet-200 underline"
+                    >
+                      Open workspace
+                    </Link>
+                  </span>
+                ) : null}
+              </div>
+            )}
+          </section>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-slate-200">
-              <input
-                type="checkbox"
-                checked={onlyAbsentee}
-                onChange={(e) => setOnlyAbsentee(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-transparent"
-              />
-              Absentee only
-            </label>
+          <div className="grid gap-4">
+            <StatCard
+              label="Visible Results"
+              value={String(visibleResults.length)}
+              subtext="Current sourcing set"
+            />
+            <StatCard
+              label="Hot Leads"
+              value={String(hotCount)}
+              subtext="Highest-ranked opportunities"
+            />
+            <StatCard
+              label="Distress Signals"
+              value={String(distressCount)}
+              subtext="Likely motivated seller candidates"
+            />
+            <StatCard
+              label="Average Score"
+              value={visibleResults.length ? String(averageScore) : '—'}
+              subtext={`Absentee owner count: ${absenteeCount}`}
+            />
           </div>
-        </div>
-      </section>
 
-      <div className="grid gap-4">
+          <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Result Controls</p>
+            <div className="mt-4 grid gap-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-200">Sort by</label>
+                <select
+                  value={sortMode}
+                  onChange={(e) => setSortMode(e.target.value as SortMode)}
+                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
+                >
+                  <option value="score">Highest score</option>
+                  <option value="distress">Most distress</option>
+                  <option value="newest-owner">Longest ownership</option>
+                  <option value="property-age">Oldest property</option>
+                </select>
+              </div>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={onlyDistressed}
+                  onChange={(e) => setOnlyDistressed(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-transparent"
+                />
+                Distress only
+              </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={onlyAbsentee}
+                  onChange={(e) => setOnlyAbsentee(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-transparent"
+                />
+                Absentee only
+              </label>
+            </div>
+          </section>
+        </aside>
+
+        <div className="space-y-4">
+          <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-5 py-4 shadow-[0_20px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Working Set</p>
+                <h3 className="mt-2 text-xl font-semibold text-white">Finder Results</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+                  {visibleResults.length} visible
+                </span>
+                <span className="rounded-full border border-rose-400/18 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-200">
+                  {distressCount} distressed
+                </span>
+                <span className="rounded-full border border-amber-400/18 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
+                  {hotCount} hot
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
         {visibleResults.map((result) => (
           <div
             key={result.id}
@@ -514,7 +532,9 @@ export default function CityFinder() {
             No finder results match the active controls.
           </div>
         ) : null}
-      </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

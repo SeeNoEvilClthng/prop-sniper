@@ -362,128 +362,145 @@ export default async function LeadsPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            label="Visible Leads"
-            value={String(totalLeads)}
-            subtext="Current queue after filters"
-          />
-          <StatCard
-            label="Hot Opportunities"
-            value={String(hotLeads)}
-            subtext="Scored 80+ and worth working now"
-          />
-          <StatCard
-            label="Follow Ups Due"
-            value={String(followUpsDue)}
-            subtext="Leads that need immediate attention"
-          />
-          <StatCard
-            label="Under Contract"
-            value={String(underContract)}
-            subtext="Deals actively moving toward close"
-          />
-        </section>
-
-        <BulkFirstContactCampaign
-          leads={leads.map((lead) => ({
-            id: lead.id,
-            address: lead.address || 'No address',
-            market:
-              [lead.city, lead.state, lead.zip_code].filter(Boolean).join(', ') || 'No market',
-            phone: lead.owner_phone || '',
-            score: lead.lead_score ?? null,
-            rating: lead.lead_rating || null,
-          }))}
-        />
-
-        <section id="queue-filters" className="mt-6 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Queue Filters</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Narrow the pipeline by urgency, motivation, and lead quality.
-              </p>
-            </div>
-          </div>
-
-          <form className="mt-6 grid gap-4 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-200">
-                Search
-              </label>
-              <input
-                name="search"
-                defaultValue={params.search || ''}
-                placeholder="Address, city, owner, signal, ZIP..."
-                className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-sky-400/40"
+        <section className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+            <div className="grid gap-4">
+              <StatCard
+                label="Visible Leads"
+                value={String(totalLeads)}
+                subtext="Current queue after filters"
+              />
+              <StatCard
+                label="Hot Opportunities"
+                value={String(hotLeads)}
+                subtext="Scored 80+ and worth working now"
+              />
+              <StatCard
+                label="Follow Ups Due"
+                value={String(followUpsDue)}
+                subtext="Leads that need immediate attention"
+              />
+              <StatCard
+                label="Under Contract"
+                value={String(underContract)}
+                subtext="Deals actively moving toward close"
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-200">
-                Status
-              </label>
-              <select
-                name="status"
-                defaultValue={status}
-                className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-sky-400/40"
-              >
-                {statusOptions.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
+            <BulkFirstContactCampaign
+              leads={leads.map((lead) => ({
+                id: lead.id,
+                address: lead.address || 'No address',
+                market:
+                  [lead.city, lead.state, lead.zip_code].filter(Boolean).join(', ') || 'No market',
+                phone: lead.owner_phone || '',
+                score: lead.lead_score ?? null,
+                rating: lead.lead_rating || null,
+              }))}
+            />
+
+            <section
+              id="queue-filters"
+              className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+            >
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Filter Stack</p>
+                <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">Queue Filters</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  Narrow the pipeline by urgency, motivation, and lead quality.
+                </p>
+              </div>
+
+              <form className="mt-5 grid gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-200">Search</label>
+                  <input
+                    name="search"
+                    defaultValue={params.search || ''}
+                    placeholder="Address, city, owner, signal, ZIP..."
+                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-400/40"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-200">Status</label>
+                  <select
+                    name="status"
+                    defaultValue={status}
+                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
+                  >
+                    {statusOptions.map((option) => (
+                      <option key={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-200">Rating</label>
+                  <select
+                    name="rating"
+                    defaultValue={rating}
+                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
+                  >
+                    {ratingOptions.map((option) => (
+                      <option key={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-200">Follow Up</label>
+                  <select
+                    name="follow_up"
+                    defaultValue={followUpFilter}
+                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
+                  >
+                    <option>All</option>
+                    <option>Due</option>
+                    <option>Upcoming</option>
+                    <option>Unscheduled</option>
+                  </select>
+                </div>
+
+                <div className="grid gap-3">
+                  <button
+                    type="submit"
+                    className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white"
+                  >
+                    Apply Filters
+                  </button>
+                  <Link
+                    href="/leads"
+                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Reset Filters
+                  </Link>
+                </div>
+              </form>
+            </section>
+          </aside>
+
+          <section id="queue-list" className="space-y-4">
+            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-5 py-4 shadow-[0_20px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Working Set</p>
+                  <h2 className="mt-2 text-xl font-semibold text-white">Acquisitions Queue</h2>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+                    {totalLeads} visible
+                  </span>
+                  <span className="rounded-full border border-rose-400/18 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-200">
+                    {followUpsDue} due
+                  </span>
+                  <span className="rounded-full border border-emerald-400/18 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+                    {underContract} live
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-200">
-                Rating
-              </label>
-              <select
-                name="rating"
-                defaultValue={rating}
-                className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-sky-400/40"
-              >
-                {ratingOptions.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-200">
-                Follow Up
-              </label>
-              <select
-                name="follow_up"
-                defaultValue={followUpFilter}
-                className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-sky-400/40"
-              >
-                <option>All</option>
-                <option>Due</option>
-                <option>Upcoming</option>
-                <option>Unscheduled</option>
-              </select>
-            </div>
-
-            <div className="flex gap-3 lg:justify-end">
-              <button
-                type="submit"
-                className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white lg:w-auto"
-              >
-                Apply
-              </button>
-              <Link
-                href="/leads"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 lg:w-auto"
-              >
-                Reset
-              </Link>
-            </div>
-          </form>
-        </section>
-
-        <section id="queue-list" className="mt-6 space-y-4">
           {leads.length === 0 ? (
             <div className="rounded-[30px] border border-dashed border-white/10 bg-[#0d1727] p-10 text-center text-slate-400">
               No leads match the current filters.
@@ -625,6 +642,7 @@ export default async function LeadsPage({ searchParams }: PageProps) {
               )
             })
           )}
+          </section>
         </section>
       </div>
     </main>

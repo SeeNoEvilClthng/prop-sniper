@@ -11,10 +11,10 @@ type BrandLogoProps = {
 };
 
 const sizeClasses = {
-  xs: "w-[92px]",
-  sm: "w-[118px]",
-  md: "w-[150px]",
-  lg: "w-[190px]",
+  xs: "w-[84px]",
+  sm: "w-[108px]",
+  md: "w-[138px]",
+  lg: "w-[176px]",
 };
 
 export default function BrandLogo({
@@ -26,7 +26,7 @@ export default function BrandLogo({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center rounded-2xl transition hover:opacity-95 ${className}`}
+      className={`inline-flex items-center transition hover:opacity-95 ${className}`}
       aria-label="Go to dashboard"
     >
       <Image
@@ -35,7 +35,7 @@ export default function BrandLogo({
         width={768}
         height={768}
         priority={priority}
-        className={`${sizeClasses[size]} h-auto object-contain drop-shadow-[0_8px_22px_rgba(168,85,247,0.2)]`}
+        className={`${sizeClasses[size]} h-auto object-contain opacity-92 saturate-[1.08] [filter:drop-shadow(0_6px_14px_rgba(168,85,247,0.12))]`}
       />
     </Link>
   );

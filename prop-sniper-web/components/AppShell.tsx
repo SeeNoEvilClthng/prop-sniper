@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 import BrandLogo from "@/components/ui/BrandLogo";
 import CommandPalette from "@/components/ui/CommandPalette";
@@ -22,11 +23,32 @@ export default function AppShell({
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(circle_at_center,black,transparent_78%)]" />
       <CommandPalette />
       <main className={`mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 ${className}`}>
+        <div className="mb-6 flex flex-col gap-4 rounded-[24px] border border-white/8 bg-[#0a0e17]/92 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <BrandLogo size="xs" />
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Dashboard", href: "/dashboard" },
+                { label: "Leads", href: "/leads" },
+                { label: "Finder", href: "/finder" },
+                { label: "Map", href: "/map" },
+                { label: "Buyers", href: "/investors" },
+                { label: "Team", href: "/team" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-white/[0.08]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {(title || subtitle) && (
           <div className="mb-6 rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-            <div className="mb-5">
-              <BrandLogo size="xs" />
-            </div>
             {title && (
               <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white">
                 {title}

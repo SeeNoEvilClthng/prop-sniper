@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import WorkspaceLayout from "@/components/ui/WorkspaceLayout";
 
-export default function DashboardLayout({
+export default function TeamLayout({
   children,
 }: {
   children: ReactNode;

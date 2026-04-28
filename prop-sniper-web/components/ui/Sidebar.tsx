@@ -50,32 +50,15 @@ export default function Sidebar() {
     <aside className="hidden w-[260px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(4,5,11,0.99),rgba(8,10,18,0.97))] md:block">
       <div className="sticky top-0 flex h-screen flex-col px-3 py-3">
         <div className="rounded-[18px] border border-white/8 bg-[#0a0e17]/94 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.2)]">
-          <div className="flex justify-center">
-            <BrandLogo size="xs" className="mx-auto" />
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className="rounded-2xl border border-violet-400/14 bg-violet-500/10 p-3">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-violet-200/70">
-                System
-              </p>
-              <p className="mt-2 text-sm font-semibold text-white">PropSniper OS</p>
+          <BrandLogo size="xs" className="mx-auto block w-fit" />
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/8 bg-[#0b0d19] px-3 py-2.5">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Workspace</p>
+              <p className="mt-1 text-sm font-semibold text-white">PropSniper OS</p>
             </div>
-            <div className="rounded-2xl border border-white/8 bg-[#0b0d19] p-3">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">
-                Shortcut
-              </p>
-              <p className="mt-2 text-sm font-semibold text-fuchsia-200">Cmd/Ctrl + K</p>
-            </div>
-          </div>
-
-          <div className="mt-3 rounded-2xl border border-fuchsia-400/16 bg-[#0b0d19] p-4">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">
-              Daily focus
-            </p>
-            <p className="mt-2 text-sm font-semibold leading-6 text-fuchsia-200">
-              Work hot leads, clear overdue tasks, and move clean deals toward buyer review.
-            </p>
+            <span className="rounded-full border border-violet-400/16 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200">
+              Cmd + K
+            </span>
           </div>
         </div>
 
@@ -119,9 +102,9 @@ export default function Sidebar() {
         </nav>
 
         <div className="mt-4 rounded-[18px] border border-white/8 bg-[#0a0e17]/94 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.2)]">
-          <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Operator note</p>
+          <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Quick return</p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Keep next step, seller context, and buyer angle visible before every touch.
+            Use the logo anytime to jump back to the dashboard, then move into the next lane from there.
           </p>
         </div>
       </div>

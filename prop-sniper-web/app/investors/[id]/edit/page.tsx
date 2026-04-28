@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import AppShell from '@/components/AppShell'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -58,10 +57,7 @@ export default async function InvestorDetailsPage({ params }: Props) {
     }) || []
 
   return (
-    <AppShell
-      title={investor.company_name}
-      subtitle="Investor details and buyer matching."
-    >
+    <>
       <div className="flex flex-wrap gap-3">
         <Link
           href={`/investors/${investor.id}/edit`}
@@ -198,6 +194,6 @@ export default async function InvestorDetailsPage({ params }: Props) {
           </div>
         </div>
       </div>
-    </AppShell>
+    </>
   )
 }

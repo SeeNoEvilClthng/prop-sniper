@@ -57,16 +57,13 @@ export default function TopBar() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <BrandLogo size="xs" className="w-fit" />
-                <span className="rounded-full border border-violet-400/14 bg-violet-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-100">
-                  Operator View
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">
+                  Workspace
                 </span>
               </div>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-slate-500">
-                PropSniper Workspace
-              </p>
-              <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.02em] text-white">
+              <h2 className="mt-3 text-xl font-semibold tracking-[-0.02em] text-white">
                 {meta.title}
               </h2>
               <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-400">
@@ -105,14 +102,15 @@ export default function TopBar() {
 
           <div className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-center">
             <div className="flex flex-wrap gap-2">
-              <StatusChip label="Today first" tone="purple" />
-              <StatusChip label="Pipeline visible" tone="slate" />
-              <StatusChip label="Team synced" tone="blue" />
-              <StatusChip label="Cmd/Ctrl + K" tone="slate" />
+              <StatusChip label="Dashboard" tone={pathname === "/dashboard" ? "purple" : "slate"} href="/dashboard" />
+              <StatusChip label="Leads" tone={pathname.startsWith("/leads") ? "purple" : "slate"} href="/leads" />
+              <StatusChip label="Finder" tone={pathname.startsWith("/finder") ? "purple" : "slate"} href="/finder" />
+              <StatusChip label="Buyers" tone={pathname.startsWith("/investors") ? "purple" : "slate"} href="/investors" />
+              <StatusChip label="Team" tone={pathname.startsWith("/team") ? "purple" : "slate"} href="/team" />
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               <HeaderMetric label="Mode" value="Acquisitions" />
-              <HeaderMetric label="Focus" value="Speed to contact" />
+              <HeaderMetric label="Focus" value="Next step first" />
               <HeaderMetric label="Flow" value="Find • Analyze • Close" />
             </div>
           </div>
@@ -140,9 +138,11 @@ function HeaderMetric({
 function StatusChip({
   label,
   tone,
+  href,
 }: {
   label: string;
   tone: "purple" | "slate" | "blue";
+  href: string;
 }) {
   const className =
     tone === "purple"
@@ -152,8 +152,11 @@ function StatusChip({
         : "border-white/10 bg-white/[0.05] text-slate-300";
 
   return (
-    <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] ${className}`}>
+    <Link
+      href={href}
+      className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] transition hover:bg-white/[0.08] ${className}`}
+    >
       {label}
-    </span>
+    </Link>
   );
 }

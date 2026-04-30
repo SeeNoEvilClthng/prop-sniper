@@ -47,6 +47,17 @@ type MarkerTone = {
   accent: string
 }
 
+function extractZipCode(...values: Array<string | undefined | null>) {
+  for (const value of values) {
+    if (!value) continue
+
+    const match = value.match(/\b\d{5}(?:-\d{4})?\b/)
+    if (match) return match[0]
+  }
+
+  return ''
+}
+
 function getMarkerTone(leadScore: number | null): MarkerTone {
   if ((leadScore || 0) >= 85) {
     return { label: 'Elite', className: 'deal-marker--elite', accent: '#22c55e' }
@@ -201,11 +212,16 @@ export default function MapView() {
 
       const fullAddress = props.full_address || props.name || ''
       const parts = fullAddress.split(',').map((part: string) => part.trim())
+      const resolvedZip = extractZipCode(
+        context.postcode?.name,
+        props.full_address,
+        feature?.place_name
+      )
 
       setAddress(props.name || parts[0] || '')
       setCity(context.place?.name || parts[1] || '')
       setState(context.region?.name || parts[2] || '')
-      setZipCode(context.postcode?.name || '')
+      setZipCode(resolvedZip)
     } catch {
       setAddress('')
       setCity('')
@@ -375,7 +391,11 @@ export default function MapView() {
       ''
 
     const guessedState = guessedStateRaw.split(' ')[0]
-    const guessedZip = result.properties?.context?.postcode?.name || ''
+    const guessedZip = extractZipCode(
+      result.properties?.context?.postcode?.name,
+      result.properties?.full_address,
+      result.place_name
+    )
 
     setAddress(streetAddress)
     setCity(guessedCity)
@@ -439,7 +459,8 @@ export default function MapView() {
       return
     }
 
-    const fullAddress = `${address}, ${city}, ${state} ${zipCode}`.trim()
+    const resolvedZipCode = extractZipCode(zipCode, search, `${address}, ${city}, ${state}`)
+    const fullAddress = `${address}, ${city}, ${state} ${resolvedZipCode}`.trim()
     const enriched = await enrichLeadFromAddress(fullAddress)
 
     const { data: insertedLead, error } = await supabase
@@ -449,7 +470,7 @@ export default function MapView() {
         address,
         city,
         state,
-        zip_code: zipCode || null,
+        zip_code: resolvedZipCode || null,
         status,
         notes,
         latitude: selectedPoint.lat,

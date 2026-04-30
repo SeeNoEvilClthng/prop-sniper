@@ -442,50 +442,55 @@ export default function MapView() {
     const fullAddress = `${address}, ${city}, ${state} ${zipCode}`.trim()
     const enriched = await enrichLeadFromAddress(fullAddress)
 
-    const { error } = await supabase.from('leads').insert({
-      user_id: user.id,
-      address,
-      city,
-      state,
-      zip_code: zipCode || null,
-      status,
-      notes,
-      latitude: selectedPoint.lat,
-      longitude: selectedPoint.lng,
+    const { data: insertedLead, error } = await supabase
+      .from('leads')
+      .insert({
+        user_id: user.id,
+        address,
+        city,
+        state,
+        zip_code: zipCode || null,
+        status,
+        notes,
+        latitude: selectedPoint.lat,
+        longitude: selectedPoint.lng,
 
-      owner_name: enriched.owner_name,
-      owner_occupied: enriched.owner_occupied,
-      is_absentee_owner: enriched.is_absentee_owner,
-      years_owned: enriched.years_owned,
-      long_term_owner: enriched.long_term_owner,
-      senior_owner_likely: enriched.senior_owner_likely,
-      property_age: enriched.property_age,
-      owner_type: enriched.owner_type,
-      likely_distressed: enriched.likely_distressed,
-      bedrooms: enriched.bedrooms,
-      bathrooms: enriched.bathrooms,
-      estimated_value: enriched.estimated_value,
-      last_sale_date: enriched.last_sale_date,
-      owner_phone: enriched.owner_phone,
-      owner_email: enriched.owner_email,
+        owner_name: enriched.owner_name,
+        owner_occupied: enriched.owner_occupied,
+        is_absentee_owner: enriched.is_absentee_owner,
+        years_owned: enriched.years_owned,
+        long_term_owner: enriched.long_term_owner,
+        senior_owner_likely: enriched.senior_owner_likely,
+        property_age: enriched.property_age,
+        owner_type: enriched.owner_type,
+        likely_distressed: enriched.likely_distressed,
+        bedrooms: enriched.bedrooms,
+        bathrooms: enriched.bathrooms,
+        estimated_value: enriched.estimated_value,
+        last_sale_date: enriched.last_sale_date,
+        owner_phone: enriched.owner_phone,
+        owner_email: enriched.owner_email,
 
-      lead_score: enriched.lead_score,
-      lead_rating: enriched.lead_rating,
-      lead_signals: enriched.lead_signals,
-    })
+        lead_score: enriched.lead_score,
+        lead_rating: enriched.lead_rating,
+        lead_signals: enriched.lead_signals,
+      })
+      .select('id')
+      .single()
 
     if (error) {
       setMessage(error.message)
       return
     }
 
-    setMessage('Lead saved successfully.')
-    await fetchSavedLeads()
+    if (!insertedLead?.id) {
+      setMessage('Lead saved, but we could not open it automatically.')
+      await fetchSavedLeads()
+      return
+    }
 
-    setTimeout(() => {
-      router.push('/dashboard')
-      router.refresh()
-    }, 700)
+    router.push(`/dashboard/${insertedLead.id}`)
+    router.refresh()
   }
 
   return (

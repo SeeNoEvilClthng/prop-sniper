@@ -3,8 +3,6 @@ import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 import { getBuyerMatch } from '@/lib/buyer-matching'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message
   return 'Something went wrong'
@@ -97,6 +95,8 @@ ${lead.notes || 'No notes'}
         ...summary,
       })
     }
+
+    const resend = new Resend(process.env.RESEND_API_KEY)
 
     await resend.emails.send({
       from: 'Deals <onboarding@resend.dev>',

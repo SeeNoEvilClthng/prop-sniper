@@ -2,116 +2,123 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import BrandLogo from "@/components/ui/BrandLogo";
+import ActionButton from "@/components/ui/ActionButton";
 
 function getHeaderMeta(pathname: string) {
   if (pathname.startsWith("/leads")) {
     return {
-      title: "Lead Queue",
-      subtitle: "Work priority leads, schedule next steps, and keep acquisitions moving cleanly.",
+      title: "Saved Leads",
+      subtitle: "Move leads from new to contacted, replied, qualified, and closed.",
     };
   }
 
   if (pathname.startsWith("/finder")) {
     return {
-      title: "Lead Finder",
-      subtitle: "Source motivated properties, surface distress, and save the right opportunities faster.",
+      title: "Finder",
+      subtitle: "Search a city or zip and save the best seller opportunities fast.",
     };
   }
 
-  if (pathname.startsWith("/investors")) {
+  if (pathname.startsWith("/outreach")) {
     return {
-      title: "Buyer Network",
-      subtitle: "Track investor demand, match deals, and keep disposition tight.",
+      title: "AI Outreach",
+      subtitle: "Send safe first texts, monitor replies, and trigger AI calls only after interest.",
     };
   }
 
-  if (pathname.startsWith("/team")) {
+  if (pathname.startsWith("/appointments")) {
     return {
-      title: "Team Operations",
-      subtitle: "See rep load, overdue risk, and where your best deals are concentrated.",
+      title: "Appointments",
+      subtitle: "Track booked callbacks, seller conversations, and closing steps.",
     };
   }
 
   if (pathname.startsWith("/map")) {
     return {
-      title: "Map View",
-      subtitle: "Visualize your pipeline geographically and hunt for the next cluster of opportunities.",
+      title: "Map",
+      subtitle: "Click properties, save leads, and move them into outreach without losing context.",
+    };
+  }
+
+  if (pathname.startsWith("/settings")) {
+    return {
+      title: "Settings",
+      subtitle: "Manage integrations, account details, and workflow defaults.",
     };
   }
 
   return {
-    title: "Command Center",
-    subtitle: "Run leads, CRM, dispo, and AI workflows from one clean operating view.",
+    title: "Dashboard",
+    subtitle: "See what to do next, who to contact, and which deals are closest to moving.",
   };
 }
 
 export default function TopBar() {
   const pathname = usePathname();
   const meta = getHeaderMeta(pathname);
+  const [search, setSearch] = useState("");
 
   return (
-    <header className="border-b border-white/8 bg-[#06070d]/82 backdrop-blur-2xl">
+    <header className="border-b border-white/8 bg-[#090c13]/95">
       <div className="px-4 py-3 md:px-6 lg:px-8">
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
                 <BrandLogo size="xs" className="w-fit" />
                 <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">
-                  Workspace
+                  Command Center
                 </span>
               </div>
               <h2 className="mt-3 text-xl font-semibold tracking-[-0.02em] text-white">
                 {meta.title}
               </h2>
-              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-400">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
                 {meta.subtitle}
               </p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="flex w-full flex-col gap-3 xl:max-w-[620px] xl:flex-row xl:items-center xl:justify-end">
+              <form
+                className="flex-1"
+                action="/leads"
+              >
+                <input
+                  name="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search owner, address, phone, or city"
+                  className="w-full rounded-xl border border-white/10 bg-[#0b0f17] px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-400/30"
+                />
+              </form>
+              <ActionButton href="/dashboard/new" variant="primary">
+                Add Lead
+              </ActionButton>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-xl border border-violet-400/16 bg-violet-500/10 px-3.5 py-2.5 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/16 hover:shadow-[0_20px_40px_rgba(91,33,182,0.22)]"
-                onClick={() => window.dispatchEvent(new Event("propsniper:open-command-palette"))}
+                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200"
               >
-                Command
+                Account
               </button>
-              <Link
-                href="/leads"
-                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
-              >
-                Queue
-              </Link>
-              <Link
-                href="/leads?follow_up=Due"
-                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
-              >
-                Follow Ups
-              </Link>
-              <Link
-                href="/dashboard/new"
-                className="edge-glow inline-flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-3.5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_26px_rgba(147,51,234,0.28)] transition hover:translate-y-[-1px]"
-              >
-                + Lead
-              </Link>
             </div>
           </div>
 
           <div className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-center">
             <div className="flex flex-wrap gap-2">
               <StatusChip label="Dashboard" tone={pathname === "/dashboard" ? "purple" : "slate"} href="/dashboard" />
-              <StatusChip label="Leads" tone={pathname.startsWith("/leads") ? "purple" : "slate"} href="/leads" />
               <StatusChip label="Finder" tone={pathname.startsWith("/finder") ? "purple" : "slate"} href="/finder" />
-              <StatusChip label="Buyers" tone={pathname.startsWith("/investors") ? "purple" : "slate"} href="/investors" />
-              <StatusChip label="Team" tone={pathname.startsWith("/team") ? "purple" : "slate"} href="/team" />
+              <StatusChip label="Map" tone={pathname.startsWith("/map") ? "purple" : "slate"} href="/map" />
+              <StatusChip label="Saved Leads" tone={pathname.startsWith("/leads") ? "purple" : "slate"} href="/leads?view=table" />
+              <StatusChip label="CRM" tone={pathname.startsWith("/leads") ? "purple" : "slate"} href="/leads?view=pipeline" />
+              <StatusChip label="AI Outreach" tone={pathname.startsWith("/outreach") ? "purple" : "slate"} href="/outreach" />
             </div>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              <HeaderMetric label="Mode" value="Acquisitions" />
-              <HeaderMetric label="Focus" value="Next step first" />
-              <HeaderMetric label="Flow" value="Find • Analyze • Close" />
+              <HeaderMetric label="1" value="Find Leads" />
+              <HeaderMetric label="2" value="Send Text" />
+              <HeaderMetric label="3" value="AI Qualify" />
             </div>
           </div>
         </div>
@@ -128,7 +135,7 @@ function HeaderMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2">
+    <div className="rounded-2xl border border-white/8 bg-[#0b0f17] px-3 py-2">
       <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-1 text-xs font-semibold text-slate-200">{value}</p>
     </div>
@@ -149,7 +156,7 @@ function StatusChip({
       ? "border-fuchsia-400/20 bg-fuchsia-500/12 text-fuchsia-200"
       : tone === "blue"
         ? "border-sky-400/20 bg-sky-500/12 text-sky-300"
-        : "border-white/10 bg-white/[0.05] text-slate-300";
+        : "border-white/10 bg-[#0b0f17] text-slate-300";
 
   return (
     <Link

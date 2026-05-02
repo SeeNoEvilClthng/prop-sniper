@@ -1,9 +1,16 @@
 'use client'
 
-import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+
+import LeadQuickViewDrawer from '@/components/ui/LeadQuickViewDrawer'
+import ActionButton from '@/components/ui/ActionButton'
+import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
+import StatusBadge from '@/components/ui/StatusBadge'
+import StatCard from '@/components/ui/StatCard'
+import { enrichLeadFromAddress } from '@/lib/enrich-lead'
 
 type FinderResult = {
   id: string
@@ -32,26 +39,7 @@ type FinderResult = {
   reasons: string[]
 }
 
-type SortMode = 'score' | 'distress' | 'newest-owner' | 'property-age'
-
-function badgeClass(label: string) {
-  if (label === 'Hot Lead') return 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
-  if (label === 'Strong Lead') return 'bg-orange-500/15 text-orange-300 ring-1 ring-orange-400/30'
-  if (label === 'Good Lead') return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
-  return 'bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30'
-}
-
-function signal(text: string, color: string) {
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${color}`}>
-      {text}
-    </span>
-  )
-}
-
-function formatYears(value: number | null) {
-  return value != null ? `${value} yrs` : '—'
-}
+type SortMode = 'score' | 'distress' | 'owner-time'
 
 function getDistressCount(result: FinderResult) {
   let total = 0
@@ -60,26 +48,18 @@ function getDistressCount(result: FinderResult) {
   if (result.seniorOwnerLikely) total += 1
   if (result.likelyDistressed) total += 1
   if (result.preforeclosure) total += 1
-  if ((result.propertyAge || 0) >= 40) total += 1
   return total
 }
 
-function StatCard({
-  label,
-  value,
-  subtext,
-}: {
-  label: string
-  value: string
-  subtext: string
-}) {
-  return (
-    <div className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
-      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{subtext}</p>
-    </div>
-  )
+function extractZipCode(value?: string | null) {
+  const match = (value || '').match(/\b\d{5}(?:-\d{4})?\b/)
+  return match?.[0] || null
+}
+
+function getNextAction(result: FinderResult) {
+  if (result.preforeclosure || result.likelyDistressed) return 'Save and move into outreach.'
+  if (result.score >= 80) return 'Quick view, then save this lead.'
+  return 'Review details before saving.'
 }
 
 export default function CityFinder() {
@@ -96,15 +76,11 @@ export default function CityFinder() {
   const [savedLeadId, setSavedLeadId] = useState<string | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>('score')
   const [onlyDistressed, setOnlyDistressed] = useState(false)
-  const [onlyAbsentee, setOnlyAbsentee] = useState(false)
+  const [selectedResult, setSelectedResult] = useState<FinderResult | null>(null)
 
   const visibleResults = useMemo(() => {
     const filtered = results.filter((result) => {
       if (onlyDistressed && !result.likelyDistressed && !result.preforeclosure) {
-        return false
-      }
-
-      if (onlyAbsentee && !result.isAbsenteeOwner) {
         return false
       }
 
@@ -116,62 +92,50 @@ export default function CityFinder() {
         return getDistressCount(b) - getDistressCount(a) || b.score - a.score
       }
 
-      if (sortMode === 'newest-owner') {
-        return (b.yearsOwned ?? 0) - (a.yearsOwned ?? 0) || b.score - a.score
-      }
-
-      if (sortMode === 'property-age') {
-        return (b.propertyAge ?? 0) - (a.propertyAge ?? 0) || b.score - a.score
+      if (sortMode === 'owner-time') {
+        return (b.yearsOwned || 0) - (a.yearsOwned || 0) || b.score - a.score
       }
 
       return b.score - a.score
     })
-  }, [onlyAbsentee, onlyDistressed, results, sortMode])
+  }, [onlyDistressed, results, sortMode])
 
-  const hotCount = visibleResults.filter((result) => result.score >= 85).length
-  const distressCount = visibleResults.filter(
-    (result) => result.likelyDistressed || result.preforeclosure
-  ).length
-  const absenteeCount = visibleResults.filter((result) => result.isAbsenteeOwner).length
-  const averageScore =
-    visibleResults.length > 0
-      ? Math.round(
-          visibleResults.reduce((sum, result) => sum + result.score, 0) /
-            visibleResults.length
-        )
-      : 0
+  const hotCount = visibleResults.filter((result) => result.score >= 80).length
+  const distressCount = visibleResults.filter((result) => result.preforeclosure || result.likelyDistressed).length
+  const averageScore = visibleResults.length
+    ? Math.round(visibleResults.reduce((sum, result) => sum + result.score, 0) / visibleResults.length)
+    : 0
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSearch(event: React.FormEvent) {
+    event.preventDefault()
     setLoading(true)
     setMessage('')
-    setResults([])
     setSavedLeadId(null)
+    setSelectedResult(null)
 
     try {
-      const res = await fetch('/api/finder/city', {
+      const response = await fetch('/api/finder/city', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ city, state, limit }),
       })
 
-      const data = await res.json()
+      const data = await response.json()
 
-      if (!res.ok) {
+      if (!response.ok) {
         setMessage(data.error || 'Search failed.')
-        setLoading(false)
         return
       }
 
       setResults(data.results || [])
       if (!data.results?.length) {
-        setMessage('No properties found.')
+        setMessage('No properties found in that market.')
       }
     } catch {
-      setMessage('Something went wrong.')
+      setMessage('Something went wrong while pulling data.')
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   async function handleSave(result: FinderResult) {
@@ -189,18 +153,30 @@ export default function CityFinder() {
       return
     }
 
+    const enriched = await enrichLeadFromAddress(
+      `${result.address}, ${result.city}, ${result.state}`.trim()
+    )
+
+    const resolvedZip = extractZipCode(result.address)
+
     const { data: insertedLead, error } = await supabase
       .from('leads')
       .insert({
         user_id: user.id,
         address: result.address,
+        property_address: result.address,
         city: result.city,
         state: result.state,
-        status: 'New',
-        notes: `Imported from City Deal Finder. Score: ${result.score}/100 (${result.label}). Reasons: ${result.reasons.join(', ')}`,
+        zip: resolvedZip,
+        zip_code: resolvedZip,
+        phone: enriched.owner_phone,
+        email: enriched.owner_email,
+        source: 'finder',
+        status: 'new_lead',
+        notes: `Imported from Finder. Score: ${result.score}/100 (${result.label}). Reasons: ${result.reasons.join(', ')}`,
         latitude: result.latitude,
         longitude: result.longitude,
-
+        owner_name: enriched.owner_name,
         owner_occupied: result.ownerOccupied,
         is_absentee_owner: result.isAbsenteeOwner,
         years_owned: result.yearsOwned,
@@ -213,10 +189,14 @@ export default function CityFinder() {
         bedrooms: result.bedrooms,
         bathrooms: result.bathrooms,
         square_footage: result.squareFootage,
-
+        owner_phone: enriched.owner_phone,
+        owner_email: enriched.owner_email,
         lead_score: result.score,
+        total_score: result.score,
         lead_rating: result.label,
         lead_signals: result.reasons.join(', '),
+        ai_summary: result.reasons.join(', '),
+        ai_analysis: result.reasons.join(', '),
       })
       .select('id')
       .single()
@@ -228,313 +208,240 @@ export default function CityFinder() {
       return
     }
 
+    await supabase.from('contact_attempts').insert({
+      lead_id: insertedLead.id,
+      method: 'workflow',
+      message: `CRM lead created from Finder. Grade: ${result.score}/100.`,
+      status: 'logged',
+    })
+
     setSavedLeadId(insertedLead.id)
-    setMessage('Lead saved to your acquisitions queue.')
+    setMessage('Lead saved to CRM.')
     router.refresh()
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
-              Sourcing Engine
-            </p>
-            <h2 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">City Deal Finder</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
-              Search a market, rank likely motivated sellers, and push the best
-              opportunities directly into your acquisitions queue.
-            </p>
-          </div>
-        </div>
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Finder"
+        title="Pull seller data fast"
+        description="Start here: Search a city or zip code to find seller leads. Save the best opportunities into CRM, then move them into outreach."
+        helper="Use the quick view drawer when you only need the essentials before saving."
+        actions={
+          <>
+            <ActionButton href="/map" variant="secondary">
+              Open Map
+            </ActionButton>
+            <ActionButton href="/leads?view=table" variant="primary">
+              View Saved Leads
+            </ActionButton>
+          </>
+        }
+      />
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Results" value={String(visibleResults.length)} detail="Properties currently visible in your working set." />
+        <StatCard label="Hot Matches" value={String(hotCount)} detail="High-score properties worth a closer look." />
+        <StatCard label="Distress Signals" value={String(distressCount)} detail="Properties showing pre-foreclosure or stronger distress." />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-          <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Search Stack</p>
-            <h3 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-white">Market Search</h3>
-            <form
-              onSubmit={handleSearch}
-              className="mt-5 grid gap-4"
+      <section className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+        <form className="grid gap-3 xl:grid-cols-[1fr_180px_120px_auto]" onSubmit={handleSearch}>
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500">
+              City
+            </label>
+            <input
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+              placeholder="Phoenix"
+              className="w-full rounded-xl border border-white/10 bg-[#080b12] px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-400/30"
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500">
+              State
+            </label>
+            <input
+              value={state}
+              onChange={(event) => setState(event.target.value)}
+              placeholder="AZ"
+              className="w-full rounded-xl border border-white/10 bg-[#080b12] px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-400/30"
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500">
+              Limit
+            </label>
+            <select
+              value={String(limit)}
+              onChange={(event) => setLimit(Number(event.target.value))}
+              className="w-full rounded-xl border border-white/10 bg-[#080b12] px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-400/30"
             >
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">City</label>
-                <input
-                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-400/40"
-                  placeholder="Phoenix"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                />
-              </div>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div className="flex items-end">
+            <ActionButton type="submit" variant="primary" className="w-full">
+              {loading ? 'Searching...' : 'Pull Leads'}
+            </ActionButton>
+          </div>
+        </form>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">State</label>
-                <input
-                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-400/40"
-                  placeholder="AZ"
-                  value={state}
-                  onChange={(e) => setState(e.target.value.toUpperCase())}
-                  maxLength={2}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">How many</label>
-                <select
-                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
-                  value={limit}
-                  onChange={(e) => setLimit(Number(e.target.value))}
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
-                disabled={loading}
+        <details className="mt-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+          <summary className="cursor-pointer text-sm font-medium text-white">
+            Filters and sorting
+          </summary>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <label className="rounded-xl border border-white/8 bg-[#080b12] px-4 py-3 text-sm text-slate-300">
+              <span className="block text-xs uppercase tracking-[0.18em] text-slate-500">Sort</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+                className="mt-2 w-full bg-transparent text-white outline-none"
               >
-                {loading ? 'Searching...' : 'Find Leads'}
-              </button>
-            </form>
+                <option value="score">Highest score</option>
+                <option value="distress">Most distress</option>
+                <option value="owner-time">Longest owned</option>
+              </select>
+            </label>
 
-            {message && (
-              <div className="mt-4 rounded-2xl border border-white/10 bg-[#0d1727] p-4 text-sm text-slate-200">
-                {message}
-                {savedLeadId ? (
-                  <span className="ml-2">
-                    <Link
-                      href={`/dashboard/${savedLeadId}`}
-                      className="font-semibold text-violet-200 underline"
-                    >
-                      Open workspace
-                    </Link>
-                  </span>
-                ) : null}
-              </div>
-            )}
-          </section>
+            <label className="flex items-center gap-3 rounded-xl border border-white/8 bg-[#080b12] px-4 py-3 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={onlyDistressed}
+                onChange={(event) => setOnlyDistressed(event.target.checked)}
+                className="h-4 w-4 rounded border-white/10 bg-transparent"
+              />
+              Distress only
+            </label>
 
-          <div className="grid gap-4">
-            <StatCard
-              label="Visible Results"
-              value={String(visibleResults.length)}
-              subtext="Current sourcing set"
-            />
-            <StatCard
-              label="Hot Leads"
-              value={String(hotCount)}
-              subtext="Highest-ranked opportunities"
-            />
-            <StatCard
-              label="Distress Signals"
-              value={String(distressCount)}
-              subtext="Likely motivated seller candidates"
-            />
-            <StatCard
-              label="Average Score"
-              value={visibleResults.length ? String(averageScore) : '—'}
-              subtext={`Absentee owner count: ${absenteeCount}`}
-            />
-          </div>
-
-          <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Result Controls</p>
-            <div className="mt-4 grid gap-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">Sort by</label>
-                <select
-                  value={sortMode}
-                  onChange={(e) => setSortMode(e.target.value as SortMode)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
-                >
-                  <option value="score">Highest score</option>
-                  <option value="distress">Most distress</option>
-                  <option value="newest-owner">Longest ownership</option>
-                  <option value="property-age">Oldest property</option>
-                </select>
-              </div>
-
-              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={onlyDistressed}
-                  onChange={(e) => setOnlyDistressed(e.target.checked)}
-                  className="h-4 w-4 rounded border-white/20 bg-transparent"
-                />
-                Distress only
-              </label>
-
-              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-sm text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={onlyAbsentee}
-                  onChange={(e) => setOnlyAbsentee(e.target.checked)}
-                  className="h-4 w-4 rounded border-white/20 bg-transparent"
-                />
-                Absentee only
-              </label>
-            </div>
-          </section>
-        </aside>
-
-        <div className="space-y-4">
-          <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-5 py-4 shadow-[0_20px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Working Set</p>
-                <h3 className="mt-2 text-xl font-semibold text-white">Finder Results</h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
-                  {visibleResults.length} visible
-                </span>
-                <span className="rounded-full border border-rose-400/18 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-200">
-                  {distressCount} distressed
-                </span>
-                <span className="rounded-full border border-amber-400/18 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
-                  {hotCount} hot
-                </span>
-              </div>
+            <div className="rounded-xl border border-white/8 bg-[#080b12] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Average Score</p>
+              <p className="mt-2 text-sm font-semibold text-white">{averageScore || '—'}</p>
             </div>
           </div>
+        </details>
 
-          <div className="grid gap-4">
-        {visibleResults.map((result) => (
-          <div
-            key={result.id}
-            className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl"
-          >
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="text-2xl font-bold text-white">{result.address}</h2>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeClass(result.label)}`}
+        {message ? <p className="mt-4 text-sm text-slate-300">{message}</p> : null}
+      </section>
+
+      {visibleResults.length === 0 ? (
+        <EmptyState
+          title="No finder results yet"
+          description="Search a market to pull properties and start building your lead list."
+        />
+      ) : (
+        <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#0b0f17]">
+          <div className="hidden grid-cols-[1.5fr_0.8fr_0.8fr_0.9fr_0.9fr_1fr] gap-4 border-b border-white/8 px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-slate-500 lg:grid">
+            <span>Property</span>
+            <span>Owner</span>
+            <span>Signals</span>
+            <span>Score</span>
+            <span>Next Action</span>
+            <span>Actions</span>
+          </div>
+
+          <div className="divide-y divide-white/8">
+            {visibleResults.map((result) => (
+              <div key={result.id} className="grid gap-4 px-4 py-4 lg:grid-cols-[1.5fr_0.8fr_0.8fr_0.9fr_0.9fr_1fr] lg:items-center">
+                <div>
+                  <p className="text-sm font-medium text-white">{result.address}</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    {[result.city, result.state].filter(Boolean).join(', ')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-300">{result.ownerType || 'Owner data pending'}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {result.preforeclosure ? (
+                    <StatusBadge status="qualified_hot" />
+                  ) : null}
+                  {result.isAbsenteeOwner ? (
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-slate-300">
+                      Absentee
+                    </span>
+                  ) : null}
+                  {result.likelyDistressed ? (
+                    <span className="rounded-full border border-amber-400/20 bg-amber-500/12 px-2.5 py-1 text-[11px] text-amber-200">
+                      Distressed
+                    </span>
+                  ) : null}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">{result.score}</p>
+                  <p className="text-xs text-slate-400">{result.label}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-300">{getNextAction(result)}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <ActionButton size="sm" variant="secondary" onClick={() => setSelectedResult(result)}>
+                    Quick View
+                  </ActionButton>
+                  <ActionButton
+                    size="sm"
+                    variant="primary"
+                    onClick={() => void handleSave(result)}
+                    disabled={savingId === result.id}
                   >
-                    {result.label}
-                  </span>
-                  <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
-                    Score {result.score}
-                  </span>
-                </div>
-
-                <p className="mt-2 text-slate-300">
-                  {result.city}, {result.state}
-                </p>
-
-                <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Beds / Baths</p>
-                    <p className="mt-2 font-medium text-white">
-                      {result.bedrooms ?? '—'} / {result.bathrooms ?? '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Sq Ft</p>
-                    <p className="mt-2 font-medium text-white">
-                      {result.squareFootage?.toLocaleString() || '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Year Built</p>
-                    <p className="mt-2 font-medium text-white">
-                      {result.yearBuilt ?? '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Years Owned</p>
-                    <p className="mt-2 font-medium text-white">{formatYears(result.yearsOwned)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Property Age</p>
-                    <p className="mt-2 font-medium text-white">{formatYears(result.propertyAge)}</p>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {result.isAbsenteeOwner &&
-                    signal('Absentee Owner', 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30')}
-                  {result.ownerOccupied === true &&
-                    signal('Owner Occupied', 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30')}
-                  {result.longTermOwner &&
-                    signal('Long-Term Owner', 'bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30')}
-                  {result.seniorOwnerLikely &&
-                    signal('Senior Owner Likely', 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30')}
-                  {result.likelyDistressed &&
-                    signal('Possible Distress', 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30')}
-                  {result.preforeclosure &&
-                    signal('Preforeclosure', 'bg-red-200 text-red-800')}
-                  {(result.propertyAge || 0) >= 40 &&
-                    signal('Older Property', 'bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30')}
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0c1522,#0a1320)] p-4">
-                  <p className="text-sm font-semibold text-white">
-                    Why this may be a motivated seller lead
-                  </p>
-                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-300">
-                    {result.reasons.map((reason, index) => (
-                      <li key={`${result.id}-${index}`}>{reason}</li>
-                    ))}
-                  </ul>
+                    {savingId === result.id ? 'Saving...' : 'Save Lead'}
+                  </ActionButton>
                 </div>
               </div>
-
-              <div className="min-w-full xl:min-w-[260px]">
-                <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,#0c1522,#0a1320)] p-5 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                    Next Action
-                  </p>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">
-                    {result.score >= 85
-                      ? 'High-priority lead. Save this one quickly and move it into outreach or underwriting.'
-                      : result.likelyDistressed || result.preforeclosure
-                      ? 'Strong distress profile. Worth saving if this market fits your buying criteria.'
-                      : 'Promising candidate. Save it if you want it tracked inside the acquisitions queue.'}
-                  </p>
-
-                  <div className="mt-5 grid gap-3">
-                    <button
-                      onClick={() => handleSave(result)}
-                      disabled={savingId === result.id}
-                      className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-50"
-                    >
-                      {savingId === result.id ? 'Saving...' : 'Save as Lead'}
-                    </button>
-
-                    <Link
-                      href="/map"
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                    >
-                      Open Map
-                    </Link>
-
-                    <Link
-                      href="/leads"
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                    >
-                      Open Queue
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </div>
+      )}
 
-        {!loading && visibleResults.length === 0 && results.length > 0 ? (
-          <div className="rounded-[30px] border border-dashed border-white/10 bg-[#0d1727] p-10 text-center text-slate-400">
-            No finder results match the active controls.
+      <LeadQuickViewDrawer
+        open={Boolean(selectedResult)}
+        onClose={() => setSelectedResult(null)}
+        lead={
+          selectedResult
+            ? {
+                address: selectedResult.address,
+                city: selectedResult.city,
+                state: selectedResult.state,
+                phone: null,
+                score: selectedResult.score,
+                status: selectedResult.score >= 80 ? 'qualified_hot' : 'new_lead',
+                summary: selectedResult.reasons.join(', '),
+              }
+            : null
+        }
+      >
+        {selectedResult ? (
+          <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Why this lead</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedResult.reasons.map((reason) => (
+                <span key={reason} className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-slate-300">
+                  {reason}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <ActionButton
+                variant="primary"
+                onClick={() => void handleSave(selectedResult)}
+                disabled={savingId === selectedResult.id}
+              >
+                {savingId === selectedResult.id ? 'Saving...' : 'Save Lead'}
+              </ActionButton>
+              {savedLeadId ? (
+                <ActionButton href={`/dashboard/${savedLeadId}`} variant="ghost" className="ml-2">
+                  Open Saved Lead
+                </ActionButton>
+              ) : null}
+            </div>
           </div>
         ) : null}
-          </div>
-        </div>
-      </section>
+      </LeadQuickViewDrawer>
     </div>
   )
 }

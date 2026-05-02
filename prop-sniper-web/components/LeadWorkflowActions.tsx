@@ -4,12 +4,17 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 const statusOptions = [
-  'New',
-  'Contacted',
-  'Follow Up',
-  'Negotiating',
-  'Under Contract',
-  'Dead',
+  'new_lead',
+  'text_sent',
+  'replied',
+  'ai_calling',
+  'qualified_hot',
+  'qualified_warm',
+  'qualified_cold',
+  'appointment_booked',
+  'closed',
+  'dead',
+  'do_not_contact',
 ] as const
 
 type Props = {
@@ -24,7 +29,7 @@ export default function LeadWorkflowActions({
   currentFollowUpDate,
 }: Props) {
   const router = useRouter()
-  const [status, setStatus] = useState(currentStatus || 'New')
+  const [status, setStatus] = useState(currentStatus || 'new_lead')
   const [followUpDate, setFollowUpDate] = useState(currentFollowUpDate || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')

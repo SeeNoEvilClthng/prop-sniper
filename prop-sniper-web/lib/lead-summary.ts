@@ -1,4 +1,4 @@
-import { openai } from "@/lib/openai";
+import { getOpenAIClient } from "@/lib/openai";
 
 type LeadSummaryInput = {
   address?: string | null;
@@ -118,7 +118,7 @@ End with the next best action for the acquisition rep.
 Do not use bullets.
 `;
 
-    const response = await openai.responses.create({
+    const response = await getOpenAIClient().responses.create({
       model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
       input: prompt,
     });

@@ -5,33 +5,41 @@ import AnalyzeDealButton from "@/components/AnalyzeDealButton";
 import ContactActions from "@/components/ContactActions";
 import DealAnalyzer from "@/components/DealAnalyzer";
 import LeadAssignmentCard from "@/components/LeadAssignmentCard";
+import LeadOutreachActions from "@/components/LeadOutreachActions";
 import LeadOwnerPhoneCard from "@/components/LeadOwnerPhoneCard";
 import LeadTaskPanel from "@/components/LeadTaskPanel";
 import LeadTimelineNoteForm from "@/components/LeadTimelineNoteForm";
 import LeadWorkflowActions from "@/components/LeadWorkflowActions";
 import SendToBuyersButton from "@/components/SendToBuyersButton";
+import ActionButton from "@/components/ui/ActionButton";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
+import StatusBadge from "@/components/ui/StatusBadge";
 import {
-  formatLeadAssignmentSummary,
   parseLeadAssignmentMessage,
+  formatLeadAssignmentSummary,
 } from "@/lib/lead-assignment";
-import { getBuyerMatch } from "@/lib/buyer-matching";
 import { formatLeadTaskSummary, parseLeadTaskMessage } from "@/lib/lead-tasks";
 import { generateLeadSummary, getLeadSignals } from "@/lib/lead-summary";
 import { createClient } from "@/lib/supabase/server";
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ tab?: string }>;
 };
 
 type LeadRecord = {
   id: string;
   address?: string | null;
+  property_address?: string | null;
   city?: string | null;
   state?: string | null;
   zip_code?: string | null;
   zip?: string | null;
   owner_name?: string | null;
+  phone?: string | null;
   owner_phone?: string | null;
+  email?: string | null;
   owner_email?: string | null;
   owner_phones?: string[] | null;
   owner_emails?: string[] | null;
@@ -48,6 +56,7 @@ type LeadRecord = {
   years_owned?: number | null;
   last_sale_date?: string | null;
   lead_score?: number | null;
+  total_score?: number | null;
   lead_rating?: string | null;
   lead_signals?: string | null;
   likely_distressed?: boolean | null;
@@ -56,17 +65,28 @@ type LeadRecord = {
   senior_owner_likely?: boolean | null;
   owner_occupied?: boolean | null;
   ai_analysis?: string | null;
+  ai_summary?: string | null;
   notes?: string | null;
   follow_up_date?: string | null;
+  last_contact_at?: string | null;
   target_offer?: number | null;
   estimated_repairs?: number | null;
   rehab_level?: "light" | "medium" | "heavy" | null;
   created_at?: string | null;
 };
 
+const tabs = [
+  { key: "overview", label: "Overview" },
+  { key: "property", label: "Property" },
+  { key: "owner", label: "Owner" },
+  { key: "outreach", label: "Outreach" },
+  { key: "ai-notes", label: "AI Notes" },
+  { key: "deal-analysis", label: "Deal Analysis" },
+  { key: "tasks", label: "Tasks" },
+] as const;
+
 function formatMoney(value?: number | null) {
   if (value == null || !Number.isFinite(Number(value))) return "—";
-
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -76,44 +96,9 @@ function formatMoney(value?: number | null) {
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleDateString();
-}
-
-function getRatingClasses(rating?: string | null) {
-  switch (rating) {
-    case "Hot":
-      return "bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30";
-    case "Strong":
-      return "bg-orange-500/15 text-orange-300 ring-1 ring-orange-400/30";
-    case "Good":
-      return "bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30";
-    case "Fair":
-      return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
-    default:
-      return "bg-white/10 text-slate-200 ring-1 ring-white/10";
-  }
-}
-
-function getStatusClasses(status?: string | null) {
-  switch (status) {
-    case "New":
-      return "bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30";
-    case "Contacted":
-      return "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-400/30";
-    case "Follow Up":
-      return "bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30";
-    case "Negotiating":
-      return "bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30";
-    case "Under Contract":
-      return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30";
-    case "Dead":
-      return "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30";
-    default:
-      return "bg-white/10 text-slate-200 ring-1 ring-white/10";
-  }
 }
 
 function getLeadNumbers(lead: LeadRecord) {
@@ -128,40 +113,34 @@ function getLeadNumbers(lead: LeadRecord) {
 function getContactValues(lead: LeadRecord) {
   const phones = Array.isArray(lead.owner_phones)
     ? lead.owner_phones
-    : lead.owner_phone
-    ? [lead.owner_phone]
-    : [];
+    : lead.phone
+      ? [lead.phone]
+      : lead.owner_phone
+        ? [lead.owner_phone]
+        : [];
 
   const emails = Array.isArray(lead.owner_emails)
     ? lead.owner_emails
-    : lead.owner_email
-    ? [lead.owner_email]
-    : [];
+    : lead.email
+      ? [lead.email]
+      : lead.owner_email
+        ? [lead.owner_email]
+        : [];
 
   return { phones, emails };
 }
 
-function StatCard({
-  label,
-  value,
-  subtext,
-}: {
-  label: string;
-  value: string;
-  subtext?: string;
-}) {
-  return (
-    <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
-      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-white">{value}</p>
-      {subtext ? <p className="mt-1 text-sm leading-6 text-slate-400">{subtext}</p> : null}
-    </div>
-  );
+function getNextAction(status?: string | null, followUpDate?: string | null) {
+  if (status === "replied") return "Start the AI call workflow.";
+  if (status === "new_lead") return "Send the first safe text.";
+  if (status === "text_sent") return "Wait for a seller reply before calling.";
+  if (status === "ai_calling") return "Review AI qualification notes.";
+  if (status === "qualified_hot") return "Book the appointment and prepare the offer.";
+  if (followUpDate) return `Follow up on ${formatDate(followUpDate)}.`;
+  return "Open outreach and move the lead forward.";
 }
 
-function MiniInfoCard({
+function MiniCard({
   label,
   value,
 }: {
@@ -169,15 +148,16 @@ function MiniInfoCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
-      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm text-white">{value}</p>
     </div>
   );
 }
 
-export default async function LeadDetailPage({ params }: PageProps) {
+export default async function LeadDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const currentTab = (await searchParams)?.tab || "overview";
   const supabase = await createClient();
 
   const {
@@ -188,22 +168,22 @@ export default async function LeadDetailPage({ params }: PageProps) {
     redirect("/login");
   }
 
-  const { data: lead, error: leadError } = await supabase
+  const { data: lead } = await supabase
     .from("leads")
     .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
     .single<LeadRecord>();
 
-  if (leadError || !lead) {
+  if (!lead) {
     return (
-      <main className="px-6 py-10 text-white">
-        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-          <Link href="/leads" className="text-sm text-sky-300 underline">
-            Back to Leads
-          </Link>
-          <p className="mt-4 text-2xl font-semibold">Lead not found.</p>
-        </div>
+      <main>
+        <PageHeader
+          eyebrow="Lead"
+          title="Lead not found"
+          description="This lead is missing or no longer belongs to your workspace."
+          actions={<ActionButton href="/leads?view=table">Back to Leads</ActionButton>}
+        />
       </main>
     );
   }
@@ -211,38 +191,24 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const { beds, baths, sqft, zip } = getLeadNumbers(lead);
   const { phones, emails } = getContactValues(lead);
   const signals = getLeadSignals(lead);
+  const summary = await generateLeadSummary(lead);
+  const totalScore = lead.total_score ?? lead.lead_score ?? null;
 
-  const [{ data: contactAttempts, error: attemptsError }, { data: investors }] =
-    await Promise.all([
-      supabase
-        .from("contact_attempts")
-        .select("*")
-        .eq("lead_id", id)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("investors")
-        .select("*")
-        .or(`user_id.eq.${user.id},is_public.eq.true`),
-    ]);
+  const { data: contactAttempts } = await supabase
+    .from("contact_attempts")
+    .select("*")
+    .eq("lead_id", id)
+    .order("created_at", { ascending: false });
+
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, email, role")
     .order("email", { ascending: true });
 
-  const buyerMatches = (investors || [])
-    .map((investor) => ({
-      investor,
-      match: getBuyerMatch(lead, investor),
-    }))
-    .filter((item) => item.match.score >= 35)
-    .sort((a, b) => b.match.score - a.match.score)
-    .slice(0, 5);
-
   const leadTasks = (contactAttempts || [])
     .filter((attempt) => attempt.method === "task")
     .map((task) => {
       const parsed = parseLeadTaskMessage(task.message);
-
       return {
         id: String(task.id),
         title: parsed.title,
@@ -251,13 +217,6 @@ export default async function LeadDetailPage({ params }: PageProps) {
         status: task.status || "open",
         createdAt: task.created_at || null,
       };
-    })
-    .sort((a, b) => {
-      if (a.status === b.status) {
-        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-      }
-
-      return a.status === "completed" ? 1 : -1;
     });
 
   const latestAssignmentAttempt = (contactAttempts || []).find(
@@ -270,6 +229,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
         assigneeEmail: user.email || "Current user",
         assigneeRole: "user",
       };
+
   const assignmentOptions = ((profiles || []) as Array<{
     id: string;
     email?: string | null;
@@ -281,434 +241,267 @@ export default async function LeadDetailPage({ params }: PageProps) {
       email: profile.email || "",
       role: profile.role || "user",
     }));
-  if (
-    assignmentOptions.length === 0 &&
-    user.email
-  ) {
-    assignmentOptions.push({
-      id: user.id,
-      email: user.email,
-      role: "user",
-    });
-  }
 
-  const leadSummary = await generateLeadSummary(lead);
-  const activityFeed = [
-    lead.created_at
-      ? {
-          id: `lead-created-${lead.id}`,
-          title: "Lead created",
-          detail: "Lead entered the system and is ready for qualification.",
-          timestamp: lead.created_at,
-        }
-      : null,
-    lead.follow_up_date
-      ? {
-          id: `follow-up-${lead.id}`,
-          title: "Next follow-up scheduled",
-          detail: `Follow-up is set for ${formatDate(lead.follow_up_date)}.`,
-          timestamp: lead.follow_up_date,
-        }
-      : null,
-    ...(contactAttempts || []).map((attempt) => ({
-      id: `attempt-${attempt.id}`,
-      title:
-        attempt.method === "assignment"
-          ? "LEAD ASSIGNMENT"
-          :
-        attempt.method === "task"
-          ? `TASK ${attempt.status || "open"}`
-          : `${attempt.method?.toUpperCase() || "OUTREACH"} ${attempt.status || "sent"}`,
-      detail:
-        attempt.method === "assignment"
-          ? formatLeadAssignmentSummary(parseLeadAssignmentMessage(attempt.message))
-          :
-        attempt.method === "task"
+  const activityFeed = (contactAttempts || []).slice(0, 8).map((attempt) => ({
+    id: String(attempt.id),
+    title:
+      attempt.method === "assignment"
+        ? "Assignment updated"
+        : attempt.method === "task"
+          ? `Task ${attempt.status || "open"}`
+          : `${attempt.method || "crm"} ${attempt.status || "logged"}`,
+    detail:
+      attempt.method === "assignment"
+        ? formatLeadAssignmentSummary(parseLeadAssignmentMessage(attempt.message))
+        : attempt.method === "task"
           ? formatLeadTaskSummary(parseLeadTaskMessage(attempt.message))
           : attempt.message || "No message saved",
-      timestamp: attempt.created_at || "",
-    })),
-  ]
-    .filter(
-      (
-        item
-      ): item is {
-        id: string;
-        title: string;
-        detail: string;
-        timestamp: string;
-      } => Boolean(item?.timestamp)
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    timestamp: attempt.created_at || "",
+  }));
 
   return (
-    <main className="text-white">
-      <div className="mx-auto max-w-7xl">
-        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-            <div>
-              <Link
-                href="/leads"
-                className="text-sm font-medium text-[#ead9a8] transition hover:text-white"
-              >
-                Back to Leads
-              </Link>
+    <main className="space-y-5">
+      <PageHeader
+        eyebrow="Lead Detail"
+        title={lead.address || "No address"}
+        description={`${lead.owner_name || "Unknown owner"} • ${[lead.city, lead.state, zip].filter(Boolean).join(", ") || "No market"}`}
+        helper={getNextAction(lead.status, lead.follow_up_date)}
+        actions={
+          <>
+            <StatusBadge status={lead.status} size="md" />
+            <ActionButton href="/leads?view=table" variant="ghost">
+              Back to Leads
+            </ActionButton>
+          </>
+        }
+      />
 
-              <p className="mt-4 text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
-                Acquisition Workspace
-              </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
-                {lead.address || "No address"}
-              </h1>
-              <p className="mt-3 text-sm leading-7 text-slate-400">
-                {[lead.city, lead.state, zip].filter(Boolean).join(", ") || "No location"}
-              </p>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Lead Score" value={String(totalScore ?? "—")} detail="Combined motivation and opportunity score." />
+        <StatCard label="Seller Phone" value={phones[0] || "—"} detail="Primary number for outreach." />
+        <StatCard label="Next Follow Up" value={formatDate(lead.follow_up_date)} detail="Keep the workflow moving." />
+        <StatCard label="Asking / Target" value={`${formatMoney(lead.target_offer)} / ${formatMoney(lead.estimated_value)}`} detail="Quick value snapshot." />
+      </section>
 
-              <div className="mt-4 flex flex-wrap gap-3">
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    lead.status
-                  )}`}
-                >
-                  {lead.status || "No status"}
-                </span>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${getRatingClasses(
-                    lead.lead_rating
-                  )}`}
-                >
-                  {lead.lead_rating || "Unrated"}
-                </span>
-                <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
-                  Score {lead.lead_score ?? "—"}
-                </span>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200 ring-1 ring-white/10">
-                  Owner {currentAssignment.assigneeEmail}
-                </span>
-              </div>
+      <section className="rounded-3xl border border-white/8 bg-[#0b0f17] p-3">
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.key}
+              href={`/dashboard/${lead.id}?tab=${tab.key}`}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                currentTab === tab.key
+                  ? "bg-violet-500/15 text-violet-100"
+                  : "text-slate-300 hover:bg-white/[0.05] hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+      </section>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <a
-                  href="#lead-summary"
-                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
-                >
-                  Summary
-                </a>
-                <a
-                  href="#deal-desk"
-                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
-                >
-                  Deal Desk
-                </a>
-                <a
-                  href="#timeline"
-                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
-                >
-                  Timeline
-                </a>
+      {currentTab === "overview" ? (
+        <section className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+          <div className="space-y-5">
+            <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+              <h2 className="text-xl font-semibold text-white">Overview</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <MiniCard label="Owner" value={lead.owner_name || "Unknown owner"} />
+                <MiniCard label="Phone" value={phones[0] || "No phone saved"} />
+                <MiniCard label="Motivation" value={signals[0] || "No motivation signal yet"} />
+                <MiniCard label="Timeline" value={lead.follow_up_date ? `Follow up by ${formatDate(lead.follow_up_date)}` : "Timeline not set"} />
+                <MiniCard label="Asking Price" value={formatMoney(lead.target_offer)} />
+                <MiniCard label="Next Action" value={getNextAction(lead.status, lead.follow_up_date)} />
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/dashboard/${lead.id}/edit`}
-                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
-              >
-                Edit Lead
-              </Link>
-              <AnalyzeDealButton
-                leadId={lead.id}
-                rehabLevel={lead.rehab_level || "medium"}
-              />
-              <SendToBuyersButton leadId={lead.id} />
+            <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+              <h2 className="text-xl font-semibold text-white">AI Summary</h2>
+              <p className="mt-3 text-sm leading-6 text-slate-300">
+                {lead.ai_summary || lead.ai_analysis || summary}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+              <h2 className="text-xl font-semibold text-white">Quick AI Outreach</h2>
+              <div className="mt-4">
+                <LeadOutreachActions
+                  leadId={lead.id}
+                  propertyAddress={lead.property_address || lead.address || "the property"}
+                  status={lead.status}
+                  phone={phones[0] || null}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+              <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
+              <div className="mt-4 space-y-3">
+                {activityFeed.length > 0 ? (
+                  activityFeed.map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                      <p className="text-sm font-medium text-white">{item.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{item.detail}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400">No activity yet.</p>
+                )}
+              </div>
             </div>
           </div>
         </section>
+      ) : null}
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            label="Estimated Value"
-            value={formatMoney(lead.estimated_value)}
-            subtext="Current property estimate"
-          />
-          <StatCard
-            label="Target Offer"
-            value={formatMoney(lead.target_offer)}
-            subtext="Current acquisition target"
-          />
-          <StatCard
-            label="Estimated Repairs"
-            value={formatMoney(lead.estimated_repairs)}
-            subtext={lead.rehab_level ? `${lead.rehab_level} rehab profile` : undefined}
-          />
-          <StatCard
-            label="Next Follow Up"
-            value={formatDate(lead.follow_up_date)}
-            subtext="Keep the seller cadence moving"
-          />
+      {currentTab === "property" ? (
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <MiniCard label="Beds / Baths" value={`${beds ?? "—"} / ${baths ?? "—"}`} />
+          <MiniCard label="Square Feet" value={sqft ? Number(sqft).toLocaleString() : "—"} />
+          <MiniCard label="Estimated Value" value={formatMoney(lead.estimated_value)} />
+          <MiniCard label="Target Offer" value={formatMoney(lead.target_offer)} />
+          <MiniCard label="Estimated Repairs" value={formatMoney(lead.estimated_repairs)} />
+          <MiniCard label="Last Sale Date" value={formatDate(lead.last_sale_date)} />
         </section>
+      ) : null}
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
-          <section className="space-y-6">
-            <div id="lead-summary" className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                    AI Lead Brief
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">What matters here</h2>
-                </div>
-              </div>
-
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">
-                {leadSummary}
-              </p>
-
-              {lead.ai_analysis ? (
-                <div className="mt-5 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                    Deal Analysis On File
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-slate-300">
-                    {lead.ai_analysis}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Motivation Signals</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                These are the main reasons this property may be worth pursuing.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                {signals.length > 0 ? (
-                  signals.map((signal) => (
-                    <span
-                      key={signal}
-                      className="rounded-full bg-sky-500/15 px-3 py-2 text-sm font-medium text-sky-200 ring-1 ring-sky-400/30"
-                    >
-                      {signal}
-                    </span>
-                  ))
-                ) : (
-                  <span className="rounded-full bg-white/10 px-3 py-2 text-sm text-slate-300">
-                    No clear signals yet
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <MiniInfoCard
-                  label="Owner Occupied"
-                  value={
-                    lead.owner_occupied == null
-                      ? "Unknown"
-                      : lead.owner_occupied
-                      ? "Yes"
-                      : "No"
-                  }
-                />
-                <MiniInfoCard
-                  label="Years Owned"
-                  value={
-                    lead.years_owned != null
-                      ? `${lead.years_owned} yrs`
-                      : "Unknown"
-                  }
-                />
-                <MiniInfoCard
-                  label="Property Age"
-                  value={
-                    lead.property_age != null
-                      ? `${lead.property_age} yrs`
-                      : "Unknown"
-                  }
-                />
-              </div>
-            </div>
-
-            <div id="deal-desk" className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Deal Desk</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Underwrite the deal, pressure-test the numbers, and prep seller or buyer messaging.
-              </p>
-
-              <div className="mt-6">
-                <DealAnalyzer
-                  address={lead.address}
-                  city={lead.city}
-                  state={lead.state}
-                  sqft={sqft}
-                  estimatedValue={lead.estimated_value}
-                  beds={beds}
-                  baths={baths}
-                />
-              </div>
-            </div>
-
-            <div id="timeline" className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Activity Timeline</h2>
-
-              <div className="mt-4">
-                <LeadTimelineNoteForm leadId={lead.id} />
-              </div>
-
-              {attemptsError ? (
-                <p className="mt-4 text-rose-300">
-                  Could not load contact history.
-                </p>
-              ) : activityFeed.length > 0 ? (
-                <div className="mt-4 space-y-3">
-                  {activityFeed.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4"
-                    >
-                      <p className="font-medium text-white">
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-300">
-                        {item.detail}
-                      </p>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {new Date(item.timestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-4 text-slate-400">No workflow activity yet.</p>
-              )}
-            </div>
-          </section>
-
-          <aside className="space-y-6">
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Lead Snapshot</h2>
-
-              <div className="mt-5 grid gap-3 text-sm text-slate-300">
-                <MiniInfoCard label="Owner" value={lead.owner_name || "No owner saved"} />
-                <MiniInfoCard label="Seller Phone" value={phones[0] || "—"} />
-                <MiniInfoCard label="Seller Email" value={emails[0] || "—"} />
-                <MiniInfoCard
-                  label="Beds / Baths"
-                  value={`${beds ?? "—"} / ${baths ?? "—"}`}
-                />
-                <MiniInfoCard
-                  label="Square Feet"
-                  value={sqft ? Number(sqft).toLocaleString() : "—"}
-                />
-                <MiniInfoCard
-                  label="Last Sale"
-                  value={formatDate(lead.last_sale_date)}
-                />
-                <MiniInfoCard
-                  label="Est. Rent"
-                  value={formatMoney(lead.estimated_rent)}
-                />
-                <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0d1727,#091321)] p-4">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                    Notes
-                  </p>
-                  <p className="mt-2 leading-7 text-slate-300">
-                    {lead.notes || "No notes saved yet."}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Seller Outreach</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Log contact attempts and keep seller communication in one place.
-              </p>
-
-              <div className="mt-5">
-                <ContactActions leadId={lead.id} phones={phones} emails={emails} />
+      {currentTab === "owner" ? (
+        <section className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+          <div className="space-y-5">
+            <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+              <h2 className="text-xl font-semibold text-white">Owner Details</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <MiniCard label="Owner Name" value={lead.owner_name || "Unknown"} />
+                <MiniCard label="Phone" value={phones[0] || "No phone saved"} />
+                <MiniCard label="Email" value={emails[0] || "No email saved"} />
+                <MiniCard label="Owner Occupied" value={lead.owner_occupied == null ? "Unknown" : lead.owner_occupied ? "Yes" : "No"} />
+                <MiniCard label="Years Owned" value={lead.years_owned ? `${lead.years_owned} years` : "Unknown"} />
+                <MiniCard label="Long Term Owner" value={lead.long_term_owner ? "Yes" : "No"} />
               </div>
             </div>
 
             <LeadOwnerPhoneCard leadId={lead.id} currentPhone={lead.owner_phone} />
+          </div>
 
-            <LeadWorkflowActions
-              leadId={lead.id}
-              currentStatus={lead.status}
-              currentFollowUpDate={lead.follow_up_date}
-            />
-
+          <div className="space-y-5">
             <LeadAssignmentCard
               leadId={lead.id}
               currentAssigneeId={currentAssignment.assigneeId}
               currentAssigneeEmail={currentAssignment.assigneeEmail}
               options={assignmentOptions}
             />
+          </div>
+        </section>
+      ) : null}
 
-            <LeadTaskPanel leadId={lead.id} tasks={leadTasks} />
-
-            <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-bold">Buyer Matches</h2>
-                  <p className="mt-2 text-slate-300">
-                    Best buyers to dispo this deal to right now.
-                  </p>
-                </div>
-                <Link
-                  href="/investors"
-                  className="text-sm font-medium text-sky-200 transition hover:text-white"
-                >
-                  Open Buyers
-                </Link>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                {buyerMatches.length > 0 ? (
-                  buyerMatches.map(({ investor, match }) => (
-                    <div
-                      key={investor.id}
-                      className="rounded-2xl border border-white/10 bg-[#0d1727] p-4"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="font-semibold text-white">
-                            {investor.company_name || investor.contact_name || "Unnamed buyer"}
-                          </p>
-                          <p className="mt-1 text-sm text-slate-400">
-                            {match.label}
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
-                          {match.score}
-                        </span>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {match.reasons.map((reason) => (
-                          <span
-                            key={reason}
-                            className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300"
-                          >
-                            {reason}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1727] p-4 text-sm text-slate-400">
-                    No strong buyer matches yet. Add buyers with markets and buy-box details to improve dispo recommendations.
-                  </div>
-                )}
-              </div>
+      {currentTab === "outreach" ? (
+        <section className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
+          <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+            <h2 className="text-xl font-semibold text-white">Seller Outreach</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Send the first safe text, wait for the reply, then use AI calling only after interest.
+            </p>
+            <div className="mt-5">
+              <ContactActions
+                leadId={lead.id}
+                phones={phones}
+                emails={emails}
+                propertyAddress={lead.property_address || lead.address || undefined}
+                currentStatus={lead.status}
+              />
             </div>
-          </aside>
-        </div>
-      </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+            <h2 className="text-xl font-semibold text-white">Quick Outreach Buttons</h2>
+            <div className="mt-4">
+              <LeadOutreachActions
+                leadId={lead.id}
+                propertyAddress={lead.property_address || lead.address || "the property"}
+                status={lead.status}
+                phone={phones[0] || null}
+              />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {currentTab === "ai-notes" ? (
+        <section className="space-y-5">
+          <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+            <h2 className="text-xl font-semibold text-white">AI Notes</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              {lead.ai_summary || lead.ai_analysis || summary}
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+            <h2 className="text-xl font-semibold text-white">Recent CRM Notes</h2>
+            <div className="mt-4">
+              <LeadTimelineNoteForm leadId={lead.id} />
+            </div>
+            <div className="mt-4 space-y-3">
+              {activityFeed.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <p className="text-sm font-medium text-white">{item.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {currentTab === "deal-analysis" ? (
+        <section className="space-y-5">
+          <div className="flex flex-wrap gap-2">
+            <AnalyzeDealButton leadId={lead.id} rehabLevel={lead.rehab_level || "medium"} />
+            <SendToBuyersButton leadId={lead.id} />
+          </div>
+
+          <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+            <DealAnalyzer
+              address={lead.address}
+              city={lead.city}
+              state={lead.state}
+              sqft={sqft}
+              estimatedValue={lead.estimated_value}
+              beds={beds}
+              baths={baths}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {currentTab === "tasks" ? (
+        <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="space-y-5">
+            <LeadWorkflowActions
+              leadId={lead.id}
+              currentStatus={lead.status}
+              currentFollowUpDate={lead.follow_up_date}
+            />
+            <LeadTaskPanel leadId={lead.id} tasks={leadTasks} />
+          </div>
+
+          <div className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+            <h2 className="text-xl font-semibold text-white">Task Timeline</h2>
+            <div className="mt-4">
+              <LeadTimelineNoteForm leadId={lead.id} />
+            </div>
+            <div className="mt-4 space-y-3">
+              {activityFeed.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <p className="text-sm font-medium text-white">{item.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

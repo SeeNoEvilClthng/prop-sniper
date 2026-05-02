@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { getStripeClient } from "@/lib/stripe";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const priceId = process.env.STRIPE_STARTER_PRICE_ID;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-if (!stripeSecretKey) {
-  throw new Error("Missing STRIPE_SECRET_KEY in environment variables.");
-}
-
-const stripe = new Stripe(stripeSecretKey);
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,7 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripeClient().checkout.sessions.create({
       mode: "subscription",
       customer_email: email,
       success_url: `${appUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,

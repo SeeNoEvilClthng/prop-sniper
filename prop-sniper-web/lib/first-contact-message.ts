@@ -1,5 +1,5 @@
 import { getLeadSignals } from '@/lib/lead-summary'
-import { openai } from '@/lib/openai'
+import { getOpenAIClient } from '@/lib/openai'
 
 export type FirstContactLead = {
   id: string
@@ -29,9 +29,7 @@ function formatMoney(value?: number | null) {
 }
 
 export function buildFallbackFirstContactMessage(lead: FirstContactLead) {
-  const ownerName = lead.owner_name?.split(' ')[0]
-  const intro = ownerName ? `Hi ${ownerName},` : 'Hi,'
-  return `${intro} I wanted to reach out about the property at ${lead.address || 'your property'}. Not sure if you’d consider an offer, but if you are, I’d be happy to chat and see if it makes sense.`
+  return `Hi, is this the owner of ${lead.address || 'the property'}? I had a quick question about the property.`
 }
 
 export async function generateFirstContactMessage(lead: FirstContactLead) {
@@ -46,7 +44,7 @@ export async function generateFirstContactMessage(lead: FirstContactLead) {
 
   const signals = getLeadSignals(lead).slice(0, 5)
 
-  const response = await openai.responses.create({
+  const response = await getOpenAIClient().responses.create({
     model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
     input: [
       {
@@ -61,9 +59,11 @@ Rules:
 - No fake urgency
 - No legal claims
 - Do not mention AI
-- Goal is to get a reply, not pitch hard
+- Goal is to confirm interest safely, not pitch hard
 - Mention the property naturally
 - Do not sound spammy or overfamiliar
+- Do not pressure the seller
+- First touch should feel like a question, not an offer blast
         `.trim(),
       },
       {
@@ -86,7 +86,7 @@ Property:
 Owner:
 - Name: ${lead.owner_name || 'unknown'}
 
-Make it sound like a real wholesaler making a respectful first contact.
+Make it sound like a respectful first contact that asks whether this is the owner and says you have a quick question about the property.
         `.trim(),
       },
     ],

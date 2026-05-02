@@ -7,33 +7,17 @@ import BrandLogo from "@/components/ui/BrandLogo";
 
 const navSections = [
   {
-    title: "Acquisitions",
+    title: "Workspace",
     items: [
-      { label: "Dashboard", href: "/dashboard", icon: "◌", meta: "Overview" },
-      { label: "Lead Queue", href: "/leads", icon: "◎", meta: "Pipeline" },
-      { label: "Follow Ups", href: "/leads?follow_up=Due", icon: "◔", meta: "CRM" },
-      { label: "Map View", href: "/map", icon: "▣", meta: "Geo" },
-    ],
-  },
-  {
-    title: "Intelligence",
-    items: [
-      { label: "Finder", href: "/finder", icon: "✦", meta: "Lists" },
-      { label: "Deal Analyzer", href: "/dashboard/analyzer", icon: "◌", meta: "AI" },
-      { label: "Lead Statuses", href: "/dashboard/status", icon: "◍", meta: "Signals" },
-    ],
-  },
-  {
-    title: "Disposition",
-    items: [
-      { label: "Buyers", href: "/investors", icon: "↗", meta: "CRM" },
-    ],
-  },
-  {
-    title: "Operations",
-    items: [
-      { label: "Team", href: "/team", icon: "◈", meta: "Load" },
-      { label: "Add Lead", href: "/dashboard/new", icon: "＋", meta: "Capture" },
+      { label: "Dashboard", href: "/dashboard", icon: "◌", meta: "Home" },
+      { label: "Finder", href: "/finder", icon: "✦", meta: "Pull Data" },
+      { label: "Map", href: "/map", icon: "▣", meta: "Pins" },
+      { label: "Saved Leads", href: "/leads?view=table", icon: "◎", meta: "Table" },
+      { label: "CRM", href: "/leads?view=pipeline", icon: "◔", meta: "Pipeline" },
+      { label: "Outreach", href: "/outreach", icon: "◍", meta: "AI" },
+      { label: "Deal Analyzer", href: "/dashboard/analyzer", icon: "◌", meta: "Numbers" },
+      { label: "Appointments", href: "/appointments", icon: "◈", meta: "Book" },
+      { label: "Settings", href: "/settings", icon: "＋", meta: "Admin" },
     ],
   },
 ];
@@ -47,17 +31,17 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-[260px] shrink-0 border-r border-white/8 bg-[linear-gradient(180deg,rgba(4,5,11,0.99),rgba(8,10,18,0.97))] md:block">
+    <aside className="hidden w-[250px] shrink-0 border-r border-white/8 bg-[#090c13] md:block">
       <div className="sticky top-0 flex h-screen flex-col px-3 py-3">
-        <div className="rounded-[18px] border border-white/8 bg-[#0a0e17]/94 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.2)]">
+        <div className="rounded-2xl border border-white/8 bg-[#0c1118] p-4">
           <BrandLogo size="xs" className="mx-auto block w-fit" />
-          <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/8 bg-[#0b0d19] px-3 py-2.5">
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/8 bg-[#0a0e14] px-3 py-2.5">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Workspace</p>
-              <p className="mt-1 text-sm font-semibold text-white">PropSniper OS</p>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Deal Flow</p>
+              <p className="mt-1 text-sm font-semibold text-white">Find • Text • Qualify</p>
             </div>
             <span className="rounded-full border border-violet-400/16 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200">
-              Cmd + K
+              Simple CRM
             </span>
           </div>
         </div>
@@ -78,8 +62,8 @@ export default function Sidebar() {
                       href={item.href}
                       className={`flex items-center gap-3 rounded-[16px] px-3 py-2.5 transition ${
                         active
-                          ? "border border-fuchsia-400/18 bg-fuchsia-500/10 text-white shadow-[0_10px_20px_rgba(0,0,0,0.14)]"
-                          : "border border-transparent bg-white/[0.02] text-slate-300 hover:border-white/8 hover:bg-white/[0.05] hover:text-white"
+                          ? "border border-fuchsia-400/18 bg-fuchsia-500/10 text-white"
+                          : "border border-transparent bg-transparent text-slate-300 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
                       }`}
                     >
                       <span className={`text-sm ${active ? "text-fuchsia-200" : "text-slate-500"}`}>
@@ -101,10 +85,10 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="mt-4 rounded-[18px] border border-white/8 bg-[#0a0e17]/94 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.2)]">
-          <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Quick return</p>
+        <div className="mt-4 rounded-2xl border border-white/8 bg-[#0c1118] p-4">
+          <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Start here</p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Use the logo anytime to jump back to the dashboard, then move into the next lane from there.
+            Use Finder or Map to pull data, save the lead, send the first text, then move into AI outreach once the seller replies.
           </p>
         </div>
       </div>

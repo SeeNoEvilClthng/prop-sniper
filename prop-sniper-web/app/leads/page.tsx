@@ -1,650 +1,337 @@
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
-import BulkFirstContactCampaign from '@/components/BulkFirstContactCampaign'
-import QueueLeadActions from '@/components/QueueLeadActions'
-import QueueLeadNoteForm from '@/components/QueueLeadNoteForm'
-import QueueLeadTaskCard from '@/components/QueueLeadTaskCard'
-import { parseLeadAssignmentMessage } from '@/lib/lead-assignment'
-import { parseLeadTaskMessage } from '@/lib/lead-tasks'
-import { createClient } from '@/lib/supabase/server'
+import LeadOutreachActions from "@/components/LeadOutreachActions";
+import LeadCard from "@/components/ui/LeadCard";
+import LeadTable, { type LeadTableRow } from "@/components/ui/LeadTable";
+import ActionButton from "@/components/ui/ActionButton";
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = {
-  search?: string
-  status?: string
-  rating?: string
-  follow_up?: string
-}
+  search?: string;
+  status?: string;
+  view?: string;
+};
 
 type PageProps = {
-  searchParams?: Promise<SearchParams>
-}
+  searchParams?: Promise<SearchParams>;
+};
 
 type LeadRecord = {
-  id: string
-  address?: string | null
-  city?: string | null
-  state?: string | null
-  zip_code?: string | null
-  status?: string | null
-  owner_name?: string | null
-  owner_phone?: string | null
-  lead_score?: number | null
-  lead_rating?: string | null
-  lead_signals?: string | null
-  estimated_value?: number | null
-  estimated_rent?: number | null
-  bedrooms?: number | null
-  bathrooms?: number | null
-  square_footage?: number | null
-  target_offer?: number | null
-  estimated_repairs?: number | null
-  follow_up_date?: string | null
-  ai_analysis?: string | null
-  notes?: string | null
-  created_at?: string | null
-}
+  id: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+  owner_name?: string | null;
+  owner_phone?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  lead_score?: number | null;
+  ai_summary?: string | null;
+  follow_up_date?: string | null;
+};
 
 type ContactAttemptRecord = {
-  id: string
-  lead_id?: string | null
-  method?: string | null
-  message?: string | null
-  status?: string | null
-  created_at?: string | null
-}
+  id: string;
+  lead_id?: string | null;
+  created_at?: string | null;
+  method?: string | null;
+};
 
-const statusOptions = [
-  'All',
-  'New',
-  'Contacted',
-  'Follow Up',
-  'Negotiating',
-  'Under Contract',
-  'Dead',
-]
-
-const ratingOptions = ['All', 'Hot', 'Strong', 'Good', 'Fair', 'Weak']
-
-function formatMoney(value?: number | null) {
-  if (value == null || !Number.isFinite(Number(value))) return '—'
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(Number(value))
-}
+const pipelineColumns = [
+  { key: "new_lead", label: "New" },
+  { key: "text_sent", label: "Text Sent" },
+  { key: "replied", label: "Replied" },
+  { key: "ai_calling", label: "AI Calling" },
+  { key: "qualified_hot", label: "Hot" },
+  { key: "qualified_warm", label: "Warm" },
+  { key: "qualified_cold", label: "Cold" },
+  { key: "appointment_booked", label: "Appointment Booked" },
+  { key: "closed", label: "Closed" },
+  { key: "dead", label: "Dead" },
+];
 
 function formatDate(value?: string | null) {
-  if (!value) return '—'
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString()
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString();
 }
 
-function isFollowUpDue(value?: string | null) {
-  if (!value) return false
-
-  const followUp = new Date(value)
-  if (Number.isNaN(followUp.getTime())) return false
-
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const dueDate = new Date(
-    followUp.getFullYear(),
-    followUp.getMonth(),
-    followUp.getDate()
-  )
-
-  return dueDate <= today
+function isDue(value?: string | null) {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const today = new Date();
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const due = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return due <= current;
 }
 
-function getSignals(value?: string | null) {
-  return (value || '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 4)
-}
-
-function getStatusClasses(status?: string | null) {
-  switch (status) {
-    case 'New':
-      return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
-    case 'Contacted':
-      return 'bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-400/30'
-    case 'Follow Up':
-      return 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30'
-    case 'Negotiating':
-      return 'bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-400/30'
-    case 'Under Contract':
-      return 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30'
-    case 'Dead':
-      return 'bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30'
-    default:
-      return 'bg-white/10 text-slate-200 ring-1 ring-white/10'
-  }
-}
-
-function getRatingClasses(rating?: string | null) {
-  switch (rating) {
-    case 'Hot':
-      return 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
-    case 'Strong':
-      return 'bg-orange-500/15 text-orange-300 ring-1 ring-orange-400/30'
-    case 'Good':
-      return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/30'
-    case 'Fair':
-      return 'bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-400/30'
-    case 'Weak':
-      return 'bg-slate-500/15 text-slate-300 ring-1 ring-slate-400/30'
-    default:
-      return 'bg-white/10 text-slate-200 ring-1 ring-white/10'
-  }
-}
-
-function StatCard({
-  label,
-  value,
-  subtext,
-}: {
-  label: string
-  value: string
-  subtext: string
-}) {
-  return (
-    <div className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
-      <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{subtext}</p>
-    </div>
-  )
-}
-
-function QueueInfoChip({
-  children,
-  className,
-}: {
-  children: React.ReactNode
-  className: string
-}) {
-  return <span className={`rounded-full px-3 py-1 text-xs font-semibold ${className}`}>{children}</span>
-}
-
-function QueueMetric({
-  label,
-  value,
-}: {
-  label: string
-  value: string
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-[#0d1727]/88 p-3">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
-    </div>
-  )
+function getNextAction(status?: string | null, followUpDate?: string | null) {
+  if (status === "replied") return "Start the AI call workflow.";
+  if (status === "new_lead") return "Send the first safe text.";
+  if (status === "text_sent") return "Wait for a reply or follow up later.";
+  if (status === "ai_calling") return "Review the AI qualification notes.";
+  if (status === "qualified_hot") return "Book the seller appointment.";
+  if (isDue(followUpDate)) return "Follow up with the seller today.";
+  return "Open the lead and continue qualification.";
 }
 
 export default async function LeadsPage({ searchParams }: PageProps) {
-  const params = (await searchParams) || {}
-  const supabase = await createClient()
+  const params = (await searchParams) || {};
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login')
+    redirect("/login");
   }
 
-  const { data } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  const { data: leads } = await supabase
+    .from("leads")
+    .select("id, address, city, state, zip_code, owner_name, owner_phone, phone, status, lead_score, ai_summary, follow_up_date")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
-  const allLeadRows = (data || []) as LeadRecord[]
-  const leadIds = allLeadRows.map((lead) => lead.id)
+  const leadRows = (leads || []) as LeadRecord[];
+  const leadIds = leadRows.map((lead) => lead.id);
 
-  let contactAttempts: ContactAttemptRecord[] = []
-
+  let attempts: ContactAttemptRecord[] = [];
   if (leadIds.length > 0) {
-    const { data: attempts } = await supabase
-      .from('contact_attempts')
-      .select('id, lead_id, method, message, status, created_at')
-      .in('lead_id', leadIds)
-      .order('created_at', { ascending: false })
+    const { data } = await supabase
+      .from("contact_attempts")
+      .select("id, lead_id, created_at, method")
+      .in("lead_id", leadIds)
+      .order("created_at", { ascending: false });
 
-    contactAttempts = (attempts || []) as ContactAttemptRecord[]
+    attempts = (data || []) as ContactAttemptRecord[];
   }
 
-  const taskMap = new Map(
-    allLeadRows.map((lead) => {
-      const tasks = contactAttempts
-        .filter((attempt) => attempt.lead_id === lead.id && attempt.method === 'task')
-        .map((attempt) => {
-          const parsed = parseLeadTaskMessage(attempt.message)
+  const search = (params.search || "").trim().toLowerCase();
+  const statusFilter = params.status || "all";
+  const view = params.view === "table" ? "table" : "pipeline";
 
-          return {
-            id: String(attempt.id),
-            title: parsed.title,
-            dueDate: parsed.dueDate,
-            details: parsed.details,
-            status: attempt.status || 'open',
-          }
-        })
+  const filteredLeads = leadRows.filter((lead) => {
+    const haystack = [
+      lead.address,
+      lead.city,
+      lead.state,
+      lead.owner_name,
+      lead.owner_phone,
+      lead.phone,
+      lead.status,
+      lead.zip_code,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
 
-      return [lead.id, tasks]
-    })
-  )
-  const assignmentMap = new Map(
-    allLeadRows.map((lead) => {
-      const latestAssignment = contactAttempts.find(
-        (attempt) => attempt.lead_id === lead.id && attempt.method === 'assignment'
-      )
+    const matchesSearch = !search || haystack.includes(search);
+    const matchesStatus = statusFilter === "all" || (lead.status || "") === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-      return [
-        lead.id,
-        latestAssignment ? parseLeadAssignmentMessage(latestAssignment.message) : null,
-      ]
-    })
-  )
+  const lastContactMap = new Map<string, string>();
+  attempts.forEach((attempt) => {
+    if (!attempt.lead_id || lastContactMap.has(attempt.lead_id)) return;
+    lastContactMap.set(attempt.lead_id, formatDate(attempt.created_at));
+  });
 
-  const search = (params.search || '').trim().toLowerCase()
-  const status = params.status || 'All'
-  const rating = params.rating || 'All'
-  const followUpFilter = params.follow_up || 'All'
+  const totalLeads = filteredLeads.length;
+  const hotLeads = filteredLeads.filter((lead) => (lead.lead_score || 0) >= 80).length;
+  const repliedLeads = filteredLeads.filter((lead) => lead.status === "replied").length;
+  const followUpsDue = filteredLeads.filter((lead) => isDue(lead.follow_up_date)).length;
 
-  const leads = allLeadRows
-    .filter((lead) => {
-      const haystack = [
-        lead.address,
-        lead.city,
-        lead.state,
-        lead.owner_name,
-        lead.status,
-        lead.lead_rating,
-        lead.lead_signals,
-        lead.zip_code,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-
-      const matchesSearch = !search || haystack.includes(search)
-      const matchesStatus = status === 'All' || (lead.status || 'New') === status
-      const matchesRating =
-        rating === 'All' || (lead.lead_rating || 'Weak') === rating
-      const due = isFollowUpDue(lead.follow_up_date)
-      const matchesFollowUp =
-        followUpFilter === 'All' ||
-        (followUpFilter === 'Due' && due) ||
-        (followUpFilter === 'Upcoming' && !due && !!lead.follow_up_date) ||
-        (followUpFilter === 'Unscheduled' && !lead.follow_up_date)
-
-      return matchesSearch && matchesStatus && matchesRating && matchesFollowUp
-    })
-    .sort((a, b) => {
-      const aDue = isFollowUpDue(a.follow_up_date) ? 1 : 0
-      const bDue = isFollowUpDue(b.follow_up_date) ? 1 : 0
-      if (aDue !== bDue) return bDue - aDue
-
-      const aScore = a.lead_score ?? 0
-      const bScore = b.lead_score ?? 0
-      if (aScore !== bScore) return bScore - aScore
-
-      const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
-      const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
-      return bCreated - aCreated
-    })
-
-  const totalLeads = leads.length
-  const hotLeads = leads.filter((lead) => (lead.lead_score ?? 0) >= 80).length
-  const followUpsDue = leads.filter((lead) => isFollowUpDue(lead.follow_up_date)).length
-  const underContract = leads.filter(
-    (lead) => (lead.status || 'New') === 'Under Contract'
-  ).length
+  const tableRows: LeadTableRow[] = filteredLeads.map((lead) => ({
+    id: lead.id,
+    ownerName: lead.owner_name,
+    address: [lead.address, lead.city, lead.state].filter(Boolean).join(", "),
+    phone: lead.owner_phone || lead.phone,
+    status: lead.status,
+    score: lead.lead_score,
+    aiSummary: lead.ai_summary,
+    lastContact: lastContactMap.get(lead.id) || "—",
+  }));
 
   return (
-    <main className="text-white">
-      <div className="mx-auto max-w-7xl">
-        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)] backdrop-blur-xl">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+    <main className="space-y-5">
+      <PageHeader
+        eyebrow="Saved Leads + CRM"
+        title="Work your pipeline without the clutter"
+        description="Use the pipeline board when you want to move leads by stage. Switch to the table when you want to scan contact info and AI outreach quickly."
+        helper="Hot leads are sellers with stronger motivation and shorter timelines. Only start AI calls after the seller replies."
+        actions={
+          <>
+            <ActionButton href="/dashboard/new" variant="secondary">
+              Add Lead
+            </ActionButton>
+            <ActionButton href="/outreach" variant="primary">
+              AI Outreach
+            </ActionButton>
+          </>
+        }
+      />
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Visible Leads" value={String(totalLeads)} detail="Current leads after search and status filters." />
+        <StatCard label="Hot Leads" value={String(hotLeads)} detail="Leads already worth moving fast on." />
+        <StatCard label="Replied" value={String(repliedLeads)} detail="Sellers who are safe to move into AI calling." />
+        <StatCard label="Follow Ups Due" value={String(followUpsDue)} detail="Leads that need seller contact today." />
+      </section>
+
+      <section className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <form className="grid flex-1 gap-3 md:grid-cols-[1fr_220px_auto]">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#c4b5fd]">
-                Acquisition Queue
-              </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">Lead Pipeline</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
-                Work the highest-priority opportunities first, stay on top of follow-up,
-                and move from sourced lead to active deal faster.
-              </p>
+              <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500">
+                Search
+              </label>
+              <input
+                name="search"
+                defaultValue={params.search || ""}
+                placeholder="Owner, phone, property, city, zip"
+                className="w-full rounded-xl border border-white/10 bg-[#080b12] px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-400/30"
+              />
             </div>
+            <div>
+              <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500">
+                Status
+              </label>
+              <select
+                name="status"
+                defaultValue={statusFilter}
+                className="w-full rounded-xl border border-white/10 bg-[#080b12] px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-400/30"
+              >
+                <option value="all">All statuses</option>
+                {pipelineColumns.map((column) => (
+                  <option key={column.key} value={column.key}>
+                    {column.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end gap-2">
+              <input type="hidden" name="view" value={view} />
+              <ActionButton type="submit" variant="primary">
+                Apply
+              </ActionButton>
+              <ActionButton href={`/leads?view=${view}`} variant="ghost">
+                Reset
+              </ActionButton>
+            </div>
+          </form>
 
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/new"
-                className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
-              >
-                Add Lead
-              </Link>
-              <Link
-                href="/finder"
-                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
-              >
-                Open Finder
-              </Link>
-              <Link
-                href="/map"
-                className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
-              >
-                Map Leads
-              </Link>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <ActionButton href="/leads?view=pipeline" variant={view === "pipeline" ? "primary" : "secondary"}>
+              Pipeline
+            </ActionButton>
+            <ActionButton href="/leads?view=table" variant={view === "table" ? "primary" : "secondary"}>
+              Table
+            </ActionButton>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a
-              href="#queue-filters"
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
-            >
-              Filters
-            </a>
-            <a
-              href="#queue-list"
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/[0.08]"
-            >
-              Queue
-            </a>
-          </div>
-        </section>
+      {filteredLeads.length === 0 ? (
+        <EmptyState
+          title="No saved leads match this view"
+          description="Search a city or zip in Finder or click a property on the map to create your next seller lead."
+          action={
+            <ActionButton href="/finder" variant="primary">
+              Open Finder
+            </ActionButton>
+          }
+        />
+      ) : view === "table" ? (
+        <LeadTable
+          rows={tableRows}
+          actions={(row) => (
+            <>
+              <ActionButton href={`/dashboard/${row.id}`} size="sm">
+                Open
+              </ActionButton>
+              <ActionButton href={`/dashboard/${row.id}?tab=outreach`} size="sm" variant="ghost">
+                Outreach
+              </ActionButton>
+            </>
+          )}
+        />
+      ) : (
+        <section className="grid gap-4 xl:grid-cols-5">
+          {pipelineColumns.map((column) => {
+            const columnLeads = filteredLeads.filter((lead) => (lead.status || "new_lead") === column.key);
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-            <div className="grid gap-4">
-              <StatCard
-                label="Visible Leads"
-                value={String(totalLeads)}
-                subtext="Current queue after filters"
-              />
-              <StatCard
-                label="Hot Opportunities"
-                value={String(hotLeads)}
-                subtext="Scored 80+ and worth working now"
-              />
-              <StatCard
-                label="Follow Ups Due"
-                value={String(followUpsDue)}
-                subtext="Leads that need immediate attention"
-              />
-              <StatCard
-                label="Under Contract"
-                value={String(underContract)}
-                subtext="Deals actively moving toward close"
-              />
-            </div>
-
-            <BulkFirstContactCampaign
-              leads={leads.map((lead) => ({
-                id: lead.id,
-                address: lead.address || 'No address',
-                market:
-                  [lead.city, lead.state, lead.zip_code].filter(Boolean).join(', ') || 'No market',
-                phone: lead.owner_phone || '',
-                score: lead.lead_score ?? null,
-                rating: lead.lead_rating || null,
-              }))}
-            />
-
-            <section
-              id="queue-filters"
-              className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl"
-            >
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Filter Stack</p>
-                <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">Queue Filters</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-400">
-                  Narrow the pipeline by urgency, motivation, and lead quality.
-                </p>
+            return (
+              <div key={column.key} className="rounded-3xl border border-white/8 bg-[#0b0f17] p-4 xl:min-h-[420px]">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-white">{column.label}</h2>
+                  <StatusBadge status={column.key} />
+                </div>
+                <div className="mt-4 space-y-3">
+                  {columnLeads.length > 0 ? (
+                    columnLeads.map((lead) => (
+                      <LeadCard
+                        key={lead.id}
+                        lead={{
+                          id: lead.id,
+                          address: lead.address || "No address",
+                          city: lead.city,
+                          state: lead.state,
+                          status: lead.status,
+                          owner_name: lead.owner_name,
+                          phone: lead.phone,
+                          owner_phone: lead.owner_phone,
+                          ai_summary: lead.ai_summary,
+                          last_contact_at: lastContactMap.get(lead.id) || "No contact yet",
+                          score: lead.lead_score,
+                          next_action: getNextAction(lead.status, lead.follow_up_date),
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-6 text-sm text-slate-500">
+                      No leads in this stage.
+                    </div>
+                  )}
+                </div>
               </div>
+            );
+          })}
+        </section>
+      )}
 
-              <form className="mt-5 grid gap-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-200">Search</label>
-                  <input
-                    name="search"
-                    defaultValue={params.search || ''}
-                    placeholder="Address, city, owner, signal, ZIP..."
-                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-400/40"
+      {view === "table" ? (
+        <section className="rounded-3xl border border-white/8 bg-[#0b0f17] p-5">
+          <h2 className="text-xl font-semibold text-white">Fast AI Outreach</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Use the table for quick scanning, then jump into outreach on the right leads without opening every record.
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filteredLeads.slice(0, 3).map((lead) => (
+              <div key={lead.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <p className="font-semibold text-white">{lead.address || "No address"}</p>
+                <p className="mt-1 text-sm text-slate-400">{lead.owner_name || "Unknown owner"}</p>
+                <div className="mt-3">
+                  <LeadOutreachActions
+                    leadId={lead.id}
+                    propertyAddress={lead.address || "the property"}
+                    status={lead.status}
+                    phone={lead.owner_phone || lead.phone || null}
+                    compact
                   />
                 </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-200">Status</label>
-                  <select
-                    name="status"
-                    defaultValue={status}
-                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
-                  >
-                    {statusOptions.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-200">Rating</label>
-                  <select
-                    name="rating"
-                    defaultValue={rating}
-                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
-                  >
-                    {ratingOptions.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-200">Follow Up</label>
-                  <select
-                    name="follow_up"
-                    defaultValue={followUpFilter}
-                    className="w-full rounded-2xl border border-white/10 bg-[#0d1727] px-4 py-3 text-white outline-none transition focus:border-violet-400/40"
-                  >
-                    <option>All</option>
-                    <option>Due</option>
-                    <option>Upcoming</option>
-                    <option>Unscheduled</option>
-                  </select>
-                </div>
-
-                <div className="grid gap-3">
-                  <button
-                    type="submit"
-                    className="rounded-2xl bg-[linear-gradient(135deg,#9333ea,#6d28d9)] px-5 py-3 text-sm font-semibold text-white"
-                  >
-                    Apply Filters
-                  </button>
-                  <Link
-                    href="/leads"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                  >
-                    Reset Filters
-                  </Link>
-                </div>
-              </form>
-            </section>
-          </aside>
-
-          <section id="queue-list" className="space-y-4">
-            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-5 py-4 shadow-[0_20px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b5fd]">Working Set</p>
-                  <h2 className="mt-2 text-xl font-semibold text-white">Acquisitions Queue</h2>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
-                    {totalLeads} visible
-                  </span>
-                  <span className="rounded-full border border-rose-400/18 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-200">
-                    {followUpsDue} due
-                  </span>
-                  <span className="rounded-full border border-emerald-400/18 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
-                    {underContract} live
-                  </span>
-                </div>
               </div>
-            </div>
-
-          {leads.length === 0 ? (
-            <div className="rounded-[30px] border border-dashed border-white/10 bg-[#0d1727] p-10 text-center text-slate-400">
-              No leads match the current filters.
-            </div>
-          ) : (
-            leads.map((lead) => {
-              const signals = getSignals(lead.lead_signals)
-              const due = isFollowUpDue(lead.follow_up_date)
-              const leadTasks = taskMap.get(lead.id) || []
-              const assignment = assignmentMap.get(lead.id)
-
-              return (
-                <article
-                  key={lead.id}
-                  className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.26)] backdrop-blur-xl"
-                >
-                  <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-2xl font-bold text-white">
-                          {lead.address || 'No address'}
-                        </h3>
-                        <span
-                          className={getStatusClasses(lead.status) + ' rounded-full px-3 py-1 text-xs font-semibold'}
-                        >
-                          {lead.status || 'New'}
-                        </span>
-                        <span
-                          className={getRatingClasses(lead.lead_rating) + ' rounded-full px-3 py-1 text-xs font-semibold'}
-                        >
-                          {lead.lead_rating || 'Weak'}
-                        </span>
-                        {due ? (
-                          <span className="rounded-full bg-rose-500/15 px-3 py-1 text-xs font-semibold text-rose-300 ring-1 ring-rose-400/30">
-                            Follow Up Due
-                          </span>
-                        ) : null}
-                        {assignment ? (
-                          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200 ring-1 ring-white/10">
-                            Owner {assignment.assigneeEmail}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <p className="mt-2 text-slate-300">
-                        {[lead.city, lead.state, lead.zip_code].filter(Boolean).join(', ') ||
-                          'No location'}
-                      </p>
-
-                      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                        <QueueMetric label="Owner" value={lead.owner_name || 'Unknown'} />
-                        <QueueMetric label="Score" value={String(lead.lead_score ?? '—')} />
-                        <QueueMetric label="Est. Value" value={formatMoney(lead.estimated_value)} />
-                        <QueueMetric label="Target Offer" value={formatMoney(lead.target_offer)} />
-                        <QueueMetric label="Next Follow Up" value={formatDate(lead.follow_up_date)} />
-                      </div>
-
-                      {signals.length > 0 ? (
-                        <div className="mt-5 flex flex-wrap gap-2">
-                          {signals.map((signal) => (
-                            <QueueInfoChip
-                              key={signal}
-                              className="bg-sky-500/15 text-sky-200 ring-1 ring-sky-400/30"
-                            >
-                              {signal}
-                            </QueueInfoChip>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300">
-                        {lead.ai_analysis ||
-                          lead.notes ||
-                          'No analysis saved yet. Open the workspace to review motivation, underwriting, and outreach history.'}
-                      </p>
-                    </div>
-
-                    <div className="min-w-full xl:min-w-[260px]">
-                      <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,#0c1522,#0a1320)] p-5 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                          Quick Actions
-                        </p>
-
-                        <div className="mt-4 grid gap-3">
-                          <Link
-                            href={`/dashboard/${lead.id}`}
-                            className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:opacity-95"
-                          >
-                            Open Workspace
-                          </Link>
-                          <Link
-                            href={`/dashboard/${lead.id}/edit`}
-                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                          >
-                            Edit Lead
-                          </Link>
-                          <Link
-                            href="/map"
-                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-                          >
-                            Open Map
-                          </Link>
-                        </div>
-
-                        <QueueLeadActions
-                          leadId={lead.id}
-                          currentStatus={lead.status}
-                          currentFollowUpDate={lead.follow_up_date}
-                        />
-
-                        <QueueLeadTaskCard leadId={lead.id} tasks={leadTasks} />
-
-                        <QueueLeadNoteForm leadId={lead.id} />
-
-                        <div className="mt-5 grid gap-3 text-sm text-slate-300">
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                              Repairs
-                            </p>
-                            <p className="mt-1">{formatMoney(lead.estimated_repairs)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                              Rent Estimate
-                            </p>
-                            <p className="mt-1">{formatMoney(lead.estimated_rent)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                              Seller Phone
-                            </p>
-                            <p className="mt-1">{lead.owner_phone || '—'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              )
-            })
-          )}
-          </section>
+            ))}
+          </div>
         </section>
-      </div>
+      ) : null}
     </main>
-  )
+  );
 }

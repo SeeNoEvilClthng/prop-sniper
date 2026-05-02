@@ -15,7 +15,7 @@ export default function NewLeadForm() {
   const [state, setState] = useState('')
   const [zipCode, setZipCode] = useState('')
   const [ownerPhone, setOwnerPhone] = useState('')
-  const [status, setStatus] = useState('New')
+  const [status, setStatus] = useState('new_lead')
   const [notes, setNotes] = useState('')
   const [followUpDate, setFollowUpDate] = useState('')
   const [rehabLevel, setRehabLevel] = useState('medium')
@@ -45,11 +45,14 @@ export default function NewLeadForm() {
       .insert({
         user_id: user.id,
         address,
+        property_address: address,
         city,
         state,
+        zip: zipCode || null,
         zip_code: zipCode || null,
         status,
         notes,
+        source: 'manual',
         follow_up_date: followUpDate || null,
         rehab_level: rehabLevel,
 
@@ -66,12 +69,17 @@ export default function NewLeadForm() {
         bathrooms: enriched.bathrooms,
         estimated_value: enriched.estimated_value,
         last_sale_date: enriched.last_sale_date,
+        phone: ownerPhone.trim() || enriched.owner_phone || null,
         owner_phone: ownerPhone.trim() || enriched.owner_phone || null,
+        email: enriched.owner_email,
         owner_email: enriched.owner_email,
 
         lead_score: enriched.lead_score,
+        total_score: enriched.lead_score,
         lead_rating: enriched.lead_rating,
         lead_signals: enriched.lead_signals,
+        ai_summary: enriched.lead_signals,
+        ai_analysis: enriched.lead_signals,
       })
       .select('id')
       .single()
@@ -131,12 +139,13 @@ export default function NewLeadForm() {
         value={status}
         onChange={(e) => setStatus(e.target.value)}
       >
-        <option>New</option>
-        <option>Contacted</option>
-        <option>Follow Up</option>
-        <option>Negotiating</option>
-        <option>Under Contract</option>
-        <option>Dead</option>
+        <option value="new_lead">New Lead</option>
+        <option value="text_sent">Text Sent</option>
+        <option value="replied">Replied</option>
+        <option value="qualified_hot">Qualified Hot</option>
+        <option value="qualified_warm">Qualified Warm</option>
+        <option value="dead">Dead</option>
+        <option value="do_not_contact">Do Not Contact</option>
       </select>
 
       <select

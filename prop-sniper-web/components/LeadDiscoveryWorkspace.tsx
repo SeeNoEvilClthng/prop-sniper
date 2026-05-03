@@ -406,30 +406,43 @@ export default function LeadDiscoveryWorkspace({
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-[#2A2A2A] bg-[#121212] p-4">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[#8B5CF6]">
-              Finder Workspace
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold text-white">{title}</h1>
-            <p className="mt-1 text-sm text-[#A1A1AA]">{subtitle}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <ActionButton variant="secondary" onClick={() => void runSearch()}>
-              {searching ? 'Refreshing...' : 'Refresh Leads'}
-            </ActionButton>
-            <ActionButton variant="primary" onClick={() => setAiOpen(true)} disabled={!selectedSavedLead}>
-              Open AI Outreach
-            </ActionButton>
+      <section className="overflow-hidden rounded-xl border border-[#2A2A2A] bg-[#121212] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
+        <div className="border-b border-[#2A2A2A] px-4 py-3 sm:px-5">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[#8B5CF6]">
+                Finder Workspace
+              </p>
+              <div className="mt-1 flex flex-col gap-1 xl:flex-row xl:items-center xl:gap-3">
+                <h1 className="text-xl font-semibold text-white">{title}</h1>
+                <span className="hidden h-1 w-1 rounded-full bg-[#3A3A3A] xl:block" />
+                <p className="text-sm text-[#A1A1AA]">{subtitle}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="rounded-xl border border-[#2A2A2A] bg-[#0F0F10] px-3 py-2 text-xs text-[#A1A1AA]">
+                {visibleResults.length} leads
+              </div>
+              <div className="rounded-xl border border-[#2A2A2A] bg-[#0F0F10] px-3 py-2 text-xs text-[#A1A1AA]">
+                Avg Value {formatMoney(
+                  visibleResults.reduce((sum, item) => sum + (enrichmentMap[item.id]?.estimated_value || 0), 0) /
+                    Math.max(visibleResults.filter((item) => enrichmentMap[item.id]?.estimated_value).length, 1)
+                )}
+              </div>
+              <ActionButton variant="secondary" onClick={() => void runSearch()}>
+                {searching ? 'Refreshing...' : 'Refresh'}
+              </ActionButton>
+              <ActionButton variant="primary" onClick={() => setAiOpen(true)} disabled={!selectedSavedLead}>
+                Open AI Outreach
+              </ActionButton>
+            </div>
           </div>
         </div>
-      </section>
 
-      <section className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <div className="flex min-h-[calc(100vh-210px)] flex-col overflow-hidden rounded-xl border border-[#2A2A2A] bg-[#121212]">
-          <div className="border-b border-[#2A2A2A] p-4">
-            <div className="grid gap-3 sm:grid-cols-[1fr_110px_110px]">
+        <div className="grid min-h-[calc(100vh-188px)] gap-0 xl:grid-cols-[520px_minmax(0,1fr)]">
+          <div className="flex min-h-[calc(100vh-188px)] flex-col overflow-hidden border-b border-[#2A2A2A] xl:border-b-0 xl:border-r">
+            <div className="border-b border-[#2A2A2A] bg-[#151515] p-4">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_88px_110px]">
               <input
                 value={city}
                 onChange={(event) => setCity(event.target.value)}
@@ -447,7 +460,7 @@ export default function LeadDiscoveryWorkspace({
               </ActionButton>
             </div>
 
-            <details className="mt-3 rounded-xl border border-[#2A2A2A] bg-[#1F1F1F]">
+            <details className="mt-3 rounded-xl border border-[#2A2A2A] bg-[#111111]">
               <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-white">
                 Filters
               </summary>
@@ -468,10 +481,19 @@ export default function LeadDiscoveryWorkspace({
                 ))}
               </div>
             </details>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-white">Lead Results</p>
+                <p className="text-xs text-[#A1A1AA]">Click a property to center the map and review value signals.</p>
+              </div>
+              <div className="rounded-xl border border-[#2A2A2A] bg-[#0A0A0A] px-3 py-2 text-xs text-[#A1A1AA]">
+                {visibleResults.length} visible
+              </div>
+            </div>
             {message ? <p className="mt-3 text-sm text-[#A1A1AA]">{message}</p> : null}
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-[#101010] p-3">
             {visibleResults.map((result) => {
               const enrichment = enrichmentMap[result.id]
               const saved = savedLeadMap[result.id]
@@ -484,8 +506,8 @@ export default function LeadDiscoveryWorkspace({
                   key={result.id}
                   className={`hover-lift rounded-xl border p-3 transition-all duration-300 ${
                     selected
-                      ? 'border-[#7C3AED]/30 bg-[#1F1F1F] shadow-[0_0_26px_rgba(124,58,237,0.16)]'
-                      : 'border-[#2A2A2A] bg-[#1F1F1F] hover:border-[#7C3AED]/16'
+                      ? 'border-[#7C3AED]/30 bg-[#181818] shadow-[0_0_26px_rgba(124,58,237,0.16)]'
+                      : 'border-[#2A2A2A] bg-[#181818] hover:border-[#7C3AED]/16'
                   }`}
                 >
                   <button
@@ -497,8 +519,14 @@ export default function LeadDiscoveryWorkspace({
                     className="block w-full text-left"
                   >
                     <div className="flex gap-3">
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-[#2A2A2A] bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.18),transparent_55%),#0A0A0A] text-lg font-semibold text-white">
-                        PS
+                      <div className="relative flex h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-[#2A2A2A] bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.18),transparent_55%),#0A0A0A]">
+                        <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(124,58,237,0.15),transparent_40%,rgba(255,255,255,0.02))]" />
+                        <div className="absolute inset-x-0 bottom-0 border-t border-white/5 bg-[#0A0A0A]/90 px-2 py-1 text-[10px] font-medium text-[#A1A1AA]">
+                          Est. {formatMoney(enrichment?.estimated_value)}
+                        </div>
+                        <div className="flex flex-1 items-center justify-center text-xs font-semibold tracking-[0.22em] text-white/80">
+                          PROP
+                        </div>
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
@@ -511,11 +539,23 @@ export default function LeadDiscoveryWorkspace({
                           <ScoreRing score={enrichment?.lead_score || result.score} label="Grade" size={68} />
                         </div>
 
-                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#A1A1AA]">
-                          <span>Owner: {enrichment?.owner_name || 'Loading owner...'}</span>
-                          <span>Value: {formatMoney(enrichment?.estimated_value)}</span>
-                          <span>ARV: {formatMoney(arv)}</span>
-                          <span>Equity: {formatMoney(equity)}</span>
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                          <div className="rounded-lg border border-[#2A2A2A] bg-[#111111] px-2.5 py-2">
+                            <p className="text-[10px] uppercase tracking-[0.16em] text-[#73737A]">Owner</p>
+                            <p className="mt-1 line-clamp-1 text-[#E4E4E7]">{enrichment?.owner_name || 'Loading owner...'}</p>
+                          </div>
+                          <div className="rounded-lg border border-[#2A2A2A] bg-[#111111] px-2.5 py-2">
+                            <p className="text-[10px] uppercase tracking-[0.16em] text-[#73737A]">Value</p>
+                            <p className="mt-1 font-medium text-white">{formatMoney(enrichment?.estimated_value)}</p>
+                          </div>
+                          <div className="rounded-lg border border-[#2A2A2A] bg-[#111111] px-2.5 py-2">
+                            <p className="text-[10px] uppercase tracking-[0.16em] text-[#73737A]">ARV</p>
+                            <p className="mt-1 font-medium text-white">{formatMoney(arv)}</p>
+                          </div>
+                          <div className="rounded-lg border border-[#2A2A2A] bg-[#111111] px-2.5 py-2">
+                            <p className="text-[10px] uppercase tracking-[0.16em] text-[#73737A]">Equity</p>
+                            <p className="mt-1 font-medium text-white">{formatMoney(equity)}</p>
+                          </div>
                         </div>
 
                         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -528,10 +568,10 @@ export default function LeadDiscoveryWorkspace({
                           {saved ? <StatusBadge status={saved.status} /> : null}
                         </div>
                       </div>
-                    </div>
+                  </div>
                   </button>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-[#2A2A2A] pt-3">
                     <ActionButton
                       variant="primary"
                       size="sm"
@@ -581,21 +621,25 @@ export default function LeadDiscoveryWorkspace({
           </div>
         </div>
 
-        <div className="relative min-h-[calc(100vh-210px)] overflow-hidden rounded-xl border border-[#2A2A2A] bg-[#121212]">
-          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between border-b border-[#2A2A2A] bg-[#121212]/92 px-4 py-3 backdrop-blur-xl">
-            <div>
-              <p className="text-sm font-semibold text-white">Lead Map</p>
-              <p className="text-xs text-[#A1A1AA]">
-                Click a card to focus the marker. Click a marker to open details.
-              </p>
+          <div className="relative min-h-[calc(100vh-188px)] overflow-hidden bg-[#0D0D0E]">
+            <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between border-b border-[#2A2A2A] bg-[#121212]/92 px-4 py-3 backdrop-blur-xl">
+              <div>
+                <p className="text-sm font-semibold text-white">Lead Map</p>
+                <p className="text-xs text-[#A1A1AA]">
+                  Focus properties on the right while values and owner signals stay visible on the left.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#0A0A0A] px-3 py-2 text-xs text-[#A1A1AA]">
+                  {selectedResult ? selectedResult.address : 'Select a lead'}
+                </div>
+                <ActionButton variant="secondary" size="sm">
+                  Export
+                </ActionButton>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <ActionButton variant="secondary" size="sm">
-                Export
-              </ActionButton>
-            </div>
+            <div ref={mapContainer} className="h-full min-h-[calc(100vh-188px)]" />
           </div>
-          <div ref={mapContainer} className="h-full min-h-[calc(100vh-210px)]" />
         </div>
       </section>
 

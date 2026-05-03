@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import CityFinder from '@/components/CityFinder'
+import LeadDiscoveryWorkspace from '@/components/LeadDiscoveryWorkspace'
 
 export default async function FinderPage() {
   const supabase = await createClient()
@@ -14,10 +14,9 @@ export default async function FinderPage() {
   }
 
   return (
-    <main className="text-white">
-      <div className="mx-auto max-w-7xl">
-        <CityFinder />
-      </div>
-    </main>
+    <LeadDiscoveryWorkspace
+      title="Finder Workspace"
+      subtitle="Pull data fast, compare leads side by side, and keep the map in view while you decide what to save."
+    />
   )
 }

@@ -17,9 +17,9 @@ export default function WorkspaceLayout({
       <CommandPalette />
       <div className="flex min-h-screen">
         <Sidebar />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 md:pl-[268px]">
           <TopBar />
-          <div className="px-4 py-5 sm:px-6 lg:px-8">{children}</div>
+          <div className="page-enter px-4 py-5 sm:px-6 lg:px-8">{children}</div>
         </div>
       </div>
     </div>

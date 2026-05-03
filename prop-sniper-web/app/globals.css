@@ -5,12 +5,14 @@
 
 
 :root {
-  --background: #0a121d;
+  --background: #07090f;
   --foreground: #f8fafc;
-  --card: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.1);
-  --muted: #94a3b8;
-  --primary: #8b5cf6;
+  --card: #1f1f1f;
+  --border: #2a2a2a;
+  --muted: #a1a1aa;
+  --primary: #7c3aed;
+  --primary-hover: #8b5cf6;
+  --primary-pressed: #5b21b6;
   --primary-foreground: #f8f7ff;
   --success: #16a34a;
   --warning: #f59e0b;
@@ -24,7 +26,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--background);
+  background: #0a0a0a;
   color: var(--foreground);
   font-family:
     "Avenir Next",
@@ -33,10 +35,10 @@ body {
     sans-serif;
   letter-spacing: -0.01em;
   background-image:
-    radial-gradient(circle at top left, rgba(139, 92, 246, 0.16), transparent 24%),
-    radial-gradient(circle at 82% 12%, rgba(59, 130, 246, 0.08), transparent 20%),
-    radial-gradient(circle at 30% 100%, rgba(168, 85, 247, 0.08), transparent 18%),
-    linear-gradient(180deg, #06070d 0%, #090b14 32%, #070910 100%);
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.16), transparent 24%),
+    radial-gradient(circle at 82% 12%, rgba(139, 92, 246, 0.08), transparent 20%),
+    radial-gradient(circle at 30% 100%, rgba(91, 33, 182, 0.1), transparent 18%),
+    linear-gradient(180deg, #0a0a0a 0%, #121212 38%, #0a0a0a 100%);
   background-attachment: fixed;
 }
 
@@ -108,13 +110,46 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: rgba(139, 92, 246, 0.55);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.14);
+  border-color: rgba(124, 58, 237, 0.55);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
 }
 
 /* Better button feel */
 button:hover {
   transform: translateY(-1px);
+}
+
+.page-enter {
+  animation: page-enter 340ms ease;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hover-lift {
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.24);
+}
+
+.hover-glow:hover {
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.3),
+    0 0 24px rgba(124, 58, 237, 0.2);
 }
 
 button:active {
@@ -157,6 +192,35 @@ button:active {
   border-radius: 14px !important;
   overflow: hidden;
   box-shadow: var(--shadow-soft) !important;
+}
+
+.pulse-pin {
+  position: relative;
+}
+
+.pulse-pin::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.15;
+  animation: pulse-pin 1.6s ease-out infinite;
+}
+
+@keyframes pulse-pin {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.35;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
 }
 
 /* Nice card utility feel */

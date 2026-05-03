@@ -8,6 +8,27 @@ import BrandLogo from "@/components/ui/BrandLogo";
 import ActionButton from "@/components/ui/ActionButton";
 
 function getHeaderMeta(pathname: string) {
+  if (pathname.startsWith("/ai-agent")) {
+    return {
+      title: "AI Agent",
+      subtitle: "Monitor replies, AI call status, seller qualification, and appointment handoffs.",
+    };
+  }
+
+  if (pathname.startsWith("/campaigns")) {
+    return {
+      title: "Campaigns",
+      subtitle: "Launch and monitor seller outreach campaigns without leaving the command center.",
+    };
+  }
+
+  if (pathname.startsWith("/buyer-finder") || pathname.startsWith("/investors")) {
+    return {
+      title: "Buyer Finder",
+      subtitle: "Search your investor CRM, review buyer fit, and move deals toward dispo faster.",
+    };
+  }
+
   if (pathname.startsWith("/leads")) {
     return {
       title: "Saved Leads",
@@ -62,8 +83,8 @@ export default function TopBar() {
   const [search, setSearch] = useState("");
 
   return (
-    <header className="border-b border-white/8 bg-[#090c13]/95">
-      <div className="px-4 py-3 md:px-6 lg:px-8">
+    <header className="border-b border-white/8 bg-[#090c13]/92 backdrop-blur-xl">
+      <div className="px-4 py-4 md:px-6 lg:px-8">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0">
@@ -81,7 +102,7 @@ export default function TopBar() {
               </p>
             </div>
 
-            <div className="flex w-full flex-col gap-3 xl:max-w-[620px] xl:flex-row xl:items-center xl:justify-end">
+            <div className="flex w-full flex-col gap-3 xl:max-w-[760px] xl:flex-row xl:items-center xl:justify-end">
               <form
                 className="flex-1"
                 action="/leads"
@@ -95,8 +116,20 @@ export default function TopBar() {
                 />
               </form>
               <ActionButton href="/dashboard/new" variant="primary">
-                Add Lead
+                Quick Add Lead
               </ActionButton>
+              <button
+                type="button"
+                className="hover-glow inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200"
+              >
+                Notifications
+              </button>
+              <button
+                type="button"
+                className="hover-glow inline-flex items-center justify-center rounded-xl border border-violet-400/18 bg-violet-500/10 px-4 py-2.5 text-sm font-medium text-violet-100"
+              >
+                Upgrade
+              </button>
               <button
                 type="button"
                 className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200"
@@ -112,13 +145,13 @@ export default function TopBar() {
               <StatusChip label="Finder" tone={pathname.startsWith("/finder") ? "purple" : "slate"} href="/finder" />
               <StatusChip label="Map" tone={pathname.startsWith("/map") ? "purple" : "slate"} href="/map" />
               <StatusChip label="Saved Leads" tone={pathname.startsWith("/leads") ? "purple" : "slate"} href="/leads?view=table" />
-              <StatusChip label="CRM" tone={pathname.startsWith("/leads") ? "purple" : "slate"} href="/leads?view=pipeline" />
-              <StatusChip label="AI Outreach" tone={pathname.startsWith("/outreach") ? "purple" : "slate"} href="/outreach" />
+              <StatusChip label="AI Agent" tone={pathname.startsWith("/ai-agent") ? "purple" : "slate"} href="/ai-agent" />
+              <StatusChip label="Campaigns" tone={pathname.startsWith("/campaigns") ? "purple" : "slate"} href="/campaigns" />
             </div>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               <HeaderMetric label="1" value="Find Leads" />
               <HeaderMetric label="2" value="Send Text" />
-              <HeaderMetric label="3" value="AI Qualify" />
+              <HeaderMetric label="3" value="AI Agent" />
             </div>
           </div>
         </div>

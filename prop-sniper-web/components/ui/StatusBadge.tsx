@@ -6,23 +6,23 @@ type StatusBadgeProps = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  new_lead: "bg-sky-500/12 text-sky-200 border-sky-400/20",
-  text_sent: "bg-violet-500/12 text-violet-200 border-violet-400/20",
-  replied: "bg-indigo-500/12 text-indigo-200 border-indigo-400/20",
-  ai_calling: "bg-fuchsia-500/12 text-fuchsia-200 border-fuchsia-400/20",
-  qualified_hot: "bg-emerald-500/12 text-emerald-200 border-emerald-400/20",
-  qualified_warm: "bg-amber-500/12 text-amber-200 border-amber-400/20",
-  qualified_cold: "bg-slate-500/12 text-slate-200 border-slate-400/20",
-  appointment_booked: "bg-cyan-500/12 text-cyan-200 border-cyan-400/20",
-  closed: "bg-emerald-500/12 text-emerald-100 border-emerald-300/20",
-  dead: "bg-zinc-500/12 text-zinc-200 border-zinc-400/20",
-  do_not_contact: "bg-rose-500/12 text-rose-200 border-rose-400/20",
-  New: "bg-sky-500/12 text-sky-200 border-sky-400/20",
-  Contacted: "bg-indigo-500/12 text-indigo-200 border-indigo-400/20",
-  "Follow Up": "bg-amber-500/12 text-amber-200 border-amber-400/20",
-  Negotiating: "bg-fuchsia-500/12 text-fuchsia-200 border-fuchsia-400/20",
-  "Under Contract": "bg-emerald-500/12 text-emerald-200 border-emerald-400/20",
-  Dead: "bg-zinc-500/12 text-zinc-200 border-zinc-400/20",
+  new_lead: "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]",
+  text_sent: "bg-[#7C3AED]/12 text-[#E9D5FF] border-[#7C3AED]/24",
+  replied: "bg-[#7C3AED]/16 text-white border-[#7C3AED]/30",
+  ai_calling: "bg-[#7C3AED]/20 text-white border-[#7C3AED]/32",
+  qualified_hot: "bg-[#7C3AED]/14 text-[#E9D5FF] border-[#7C3AED]/24",
+  qualified_warm: "bg-[#1F1F1F] text-[#FFFFFF] border-[#2A2A2A]",
+  qualified_cold: "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]",
+  appointment_booked: "bg-[#7C3AED]/16 text-white border-[#7C3AED]/28",
+  closed: "bg-[#1F1F1F] text-[#FFFFFF] border-[#2A2A2A]",
+  dead: "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]",
+  do_not_contact: "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]",
+  New: "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]",
+  Contacted: "bg-[#7C3AED]/12 text-[#E9D5FF] border-[#7C3AED]/24",
+  "Follow Up": "bg-[#1F1F1F] text-[#FFFFFF] border-[#2A2A2A]",
+  Negotiating: "bg-[#7C3AED]/16 text-white border-[#7C3AED]/30",
+  "Under Contract": "bg-[#7C3AED]/14 text-[#E9D5FF] border-[#7C3AED]/24",
+  Dead: "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]",
 };
 
 function formatStatus(status?: string | null) {
@@ -37,7 +37,7 @@ export default function StatusBadge({
   status,
   size = "sm",
 }: StatusBadgeProps) {
-  const classes = STATUS_STYLES[status || ""] || "bg-white/6 text-slate-200 border-white/10";
+  const classes = STATUS_STYLES[status || ""] || "bg-[#1F1F1F] text-[#A1A1AA] border-[#2A2A2A]";
 
   return (
     <span

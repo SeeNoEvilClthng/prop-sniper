@@ -186,7 +186,7 @@ export default function MapView() {
 
       const markerElement = document.createElement('button')
       markerElement.type = 'button'
-      markerElement.className = 'h-4 w-4 rounded-full ring-4 ring-white/10'
+      markerElement.className = 'pulse-pin h-4 w-4 rounded-full ring-4 ring-white/10 transition-transform hover:scale-110'
       markerElement.style.backgroundColor = getMarkerColor(lead.lead_score)
       markerElement.style.boxShadow = `0 0 16px ${getMarkerColor(lead.lead_score)}`
       markerElement.addEventListener('click', () => {

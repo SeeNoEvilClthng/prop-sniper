@@ -153,6 +153,7 @@ export default function LeadDiscoveryWorkspace({
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
+  const [mobileView, setMobileView] = useState<'leads' | 'map'>('leads')
 
   const selectedResult = useMemo(
     () => results.find((result) => result.id === selectedId) || null,
@@ -209,6 +210,29 @@ export default function LeadDiscoveryWorkspace({
       mapRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    const resizeMap = () => {
+      mapRef.current?.resize()
+    }
+
+    resizeMap()
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', resizeMap)
+    }
+
+    const timeout = window.setTimeout(resizeMap, 180)
+
+    return () => {
+      window.clearTimeout(timeout)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', resizeMap)
+      }
+    }
+  }, [mobileView, visibleResults.length, selectedId])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -295,6 +319,9 @@ export default function LeadDiscoveryWorkspace({
       const nextResults = (data.results || []) as FinderResult[]
       setResults(nextResults)
       setSelectedId(nextResults[0]?.id || null)
+      if (nextResults[0]) {
+        setMobileView('map')
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Search failed.')
     } finally {
@@ -439,8 +466,35 @@ export default function LeadDiscoveryWorkspace({
           </div>
         </div>
 
+        <div className="border-b border-[#2A2A2A] bg-[#121212] px-4 py-3 xl:hidden">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileView('leads')}
+              className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
+                mobileView === 'leads'
+                  ? 'bg-[#7C3AED] text-white shadow-[0_0_20px_rgba(124,58,237,0.3)]'
+                  : 'border border-[#2A2A2A] bg-[#0A0A0A] text-[#A1A1AA]'
+              }`}
+            >
+              Leads
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileView('map')}
+              className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
+                mobileView === 'map'
+                  ? 'bg-[#7C3AED] text-white shadow-[0_0_20px_rgba(124,58,237,0.3)]'
+                  : 'border border-[#2A2A2A] bg-[#0A0A0A] text-[#A1A1AA]'
+              }`}
+            >
+              Map
+            </button>
+          </div>
+        </div>
+
         <div className="grid min-h-[calc(100vh-188px)] gap-0 xl:grid-cols-[520px_minmax(0,1fr)]">
-          <div className="flex min-h-[calc(100vh-188px)] flex-col overflow-hidden border-b border-[#2A2A2A] xl:border-b-0 xl:border-r">
+          <div className={`${mobileView === 'map' ? 'hidden xl:flex' : 'flex'} min-h-[calc(100vh-188px)] flex-col overflow-hidden border-b border-[#2A2A2A] xl:border-b-0 xl:border-r`}>
             <div className="border-b border-[#2A2A2A] bg-[#151515] p-4">
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_88px_110px]">
               <input
@@ -515,6 +569,7 @@ export default function LeadDiscoveryWorkspace({
                     onClick={() => {
                       setSelectedId(result.id)
                       focusMapOnLead(result)
+                      setMobileView('map')
                     }}
                     className="block w-full text-left"
                   >
@@ -586,6 +641,7 @@ export default function LeadDiscoveryWorkspace({
                       onClick={() => {
                         setSelectedId(result.id)
                         setDetailsOpen(true)
+                        setMobileView('map')
                       }}
                     >
                       View Details
@@ -621,7 +677,7 @@ export default function LeadDiscoveryWorkspace({
           </div>
         </div>
 
-          <div className="relative min-h-[calc(100vh-188px)] overflow-hidden bg-[#0D0D0E]">
+          <div className={`${mobileView === 'leads' ? 'hidden xl:block' : 'block'} relative min-h-[55vh] overflow-hidden bg-[#0D0D0E] xl:min-h-[calc(100vh-188px)]`}>
             <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between border-b border-[#2A2A2A] bg-[#121212]/92 px-4 py-3 backdrop-blur-xl">
               <div>
                 <p className="text-sm font-semibold text-white">Lead Map</p>
@@ -638,7 +694,7 @@ export default function LeadDiscoveryWorkspace({
                 </ActionButton>
               </div>
             </div>
-            <div ref={mapContainer} className="h-full min-h-[calc(100vh-188px)]" />
+            <div ref={mapContainer} className="h-[55vh] w-full xl:h-full xl:min-h-[calc(100vh-188px)]" />
           </div>
         </div>
       </section>
@@ -647,7 +703,7 @@ export default function LeadDiscoveryWorkspace({
         type="button"
         onClick={() => setAiOpen(true)}
         disabled={!selectedSavedLead}
-        className="fixed bottom-6 right-6 z-30 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED] px-5 py-3 text-sm font-semibold text-white shadow-[0_0_28px_rgba(124,58,237,0.28)] transition-all duration-300 hover:scale-[1.02] hover:bg-[#8B5CF6] disabled:cursor-not-allowed disabled:opacity-60"
+        className="fixed bottom-4 right-4 z-30 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED] px-4 py-3 text-sm font-semibold text-white shadow-[0_0_28px_rgba(124,58,237,0.28)] transition-all duration-300 hover:scale-[1.02] hover:bg-[#8B5CF6] disabled:cursor-not-allowed disabled:opacity-60 sm:bottom-6 sm:right-6 sm:px-5"
       >
         Open AI Outreach
       </button>

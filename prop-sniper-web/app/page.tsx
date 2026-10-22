@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPinned, ListChecks, Send } from "lucide-react";
+import Pricing from "@/components/marketing/Pricing";
 import MarketingShell from "@/components/marketing/MarketingShell";
 import { CTA_LABEL, SITE } from "@/lib/site";
 
@@ -38,7 +39,7 @@ export default function HomePage() {
 <ol className="ps-steps"><li className="ps-step"><h3>Choose a market</h3><p>Search a city and state. Review property pins and save a lead.</p></li><li className="ps-step"><h3>Check the numbers</h3><p>Review the value estimate and repair allowance. Verify both before making an offer.</p></li><li className="ps-step"><h3>Move the deal forward</h3><p>Set a follow-up task. When you control a deal, review buyer matches.</p></li></ol>
 <div className="ps-note"><h3>Where the data comes from</h3><p>Property records come from RentCast. Maps use Mapbox. Value estimates use RentCast�s automated valuation, available comparable prices, or a saved estimate. They are not verified after-repair values or appraisals.</p><p>Skip tracing is not connected in the reviewed enrichment flow. It does not return owner phone numbers or emails. Coverage and accuracy vary; verify records and estimates.</p></div>
 </div></section>
-    {/* PRICING */}
+    <Pricing />
     {/* FAQ */}
     {/* TODO: add verified customer proof only with permission and supporting evidence. */}
   </MarketingShell>;

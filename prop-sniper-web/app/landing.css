@@ -608,3 +608,5 @@
 @media(max-width:767px){.ps .ps-header-inner{flex-wrap:wrap;padding-block:8px;gap:4px 12px}.ps .ps-nav{display:flex;order:3;width:100%;justify-content:center;gap:24px}.ps .ps-header-actions{margin-left:auto}.ps .ps-hero h1{font-size:2.5rem}}
 
 .ps .ps-feature-icon{width:28px;height:28px;color:var(--ps-accent-soft);margin-bottom:20px}.ps .ps-note p+p{margin-top:12px}
+
+.ps .ps-billing{display:inline-flex;gap:4px;border:1px solid var(--ps-line);border-radius:10px;padding:4px;margin-top:28px}.ps .ps-billing button{min-height:44px;border:0;border-radius:6px;padding:8px 16px;background:transparent;color:var(--ps-muted);cursor:pointer}.ps .ps-billing button[aria-pressed=true]{background:var(--ps-accent);color:white}.ps .ps-billing button:hover{transform:none}.ps .ps-billing-note{font-size:.875rem;color:var(--ps-muted);margin-top:16px;min-height:24px}.ps .ps-plan-recommended{border-color:var(--ps-accent-soft)}.ps .ps-price strong{font-family:var(--ps-mono)}

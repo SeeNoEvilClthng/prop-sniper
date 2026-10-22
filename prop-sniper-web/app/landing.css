@@ -606,3 +606,5 @@
 .ps :is(section[id],h2[id]) { scroll-margin-top:140px; }
 .ps .ps-nav a { min-height:44px;display:inline-flex;align-items:center; }
 @media(max-width:767px){.ps .ps-header-inner{flex-wrap:wrap;padding-block:8px;gap:4px 12px}.ps .ps-nav{display:flex;order:3;width:100%;justify-content:center;gap:24px}.ps .ps-header-actions{margin-left:auto}.ps .ps-hero h1{font-size:2.5rem}}
+
+.ps .ps-feature-icon{width:28px;height:28px;color:var(--ps-accent-soft);margin-bottom:20px}.ps .ps-note p+p{margin-top:12px}

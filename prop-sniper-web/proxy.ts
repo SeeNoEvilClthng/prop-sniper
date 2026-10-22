@@ -6,6 +6,12 @@ export async function proxy(request: NextRequest) {
     request,
   })
 
+  // Public marketing pages must render without a configured database.
+  // Keep the existing session refresh behavior when credentials are present.
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return response
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",

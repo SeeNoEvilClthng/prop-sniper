@@ -106,12 +106,19 @@ export default function LoginPage() {
           <input
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            aria-label="Email"
+            type="email"
+            autoComplete="email"
+            required
             placeholder="Email"
             className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none"
           />
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            aria-label="Password"
+            autoComplete="current-password"
+            required
             placeholder="Password"
             type="password"
             className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none"

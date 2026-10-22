@@ -106,6 +106,9 @@ export default function ResetPasswordPage() {
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            aria-label="New password"
+            autoComplete="new-password"
+            required
             placeholder="New password"
             type="password"
             disabled={!ready}
@@ -114,6 +117,9 @@ export default function ResetPasswordPage() {
           <input
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
+            aria-label="Confirm new password"
+            autoComplete="new-password"
+            required
             placeholder="Confirm new password"
             type="password"
             disabled={!ready}

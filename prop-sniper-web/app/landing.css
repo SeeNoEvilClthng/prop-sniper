@@ -610,3 +610,5 @@
 .ps .ps-feature-icon{width:28px;height:28px;color:var(--ps-accent-soft);margin-bottom:20px}.ps .ps-note p+p{margin-top:12px}
 
 .ps .ps-billing{display:inline-flex;gap:4px;border:1px solid var(--ps-line);border-radius:10px;padding:4px;margin-top:28px}.ps .ps-billing button{min-height:44px;border:0;border-radius:6px;padding:8px 16px;background:transparent;color:var(--ps-muted);cursor:pointer}.ps .ps-billing button[aria-pressed=true]{background:var(--ps-accent);color:white}.ps .ps-billing button:hover{transform:none}.ps .ps-billing-note{font-size:.875rem;color:var(--ps-muted);margin-top:16px;min-height:24px}.ps .ps-plan-recommended{border-color:var(--ps-accent-soft)}.ps .ps-price strong{font-family:var(--ps-mono)}
+
+.ps .ps-final{padding:64px 0 0;border:0}.ps .ps-faq summary{min-height:52px}.ps .ps-note{max-width:65ch}.ps .ps-feature p{max-width:65ch}

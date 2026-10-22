@@ -612,3 +612,113 @@
 .ps .ps-billing{display:inline-flex;gap:4px;border:1px solid var(--ps-line);border-radius:10px;padding:4px;margin-top:28px}.ps .ps-billing button{min-height:44px;border:0;border-radius:6px;padding:8px 16px;background:transparent;color:var(--ps-muted);cursor:pointer}.ps .ps-billing button[aria-pressed=true]{background:var(--ps-accent);color:white}.ps .ps-billing button:hover{transform:none}.ps .ps-billing-note{font-size:.875rem;color:var(--ps-muted);margin-top:16px;min-height:24px}.ps .ps-plan-recommended{border-color:var(--ps-accent-soft)}.ps .ps-price strong{font-family:var(--ps-mono)}
 
 .ps .ps-final{padding:64px 0 0;border:0}.ps .ps-faq summary{min-height:52px}.ps .ps-note{max-width:65ch}.ps .ps-feature p{max-width:65ch}
+
+/* ---------- Signup ---------- */
+.ps-signup {
+  display: grid;
+  gap: 48px;
+  padding-block: 56px 96px;
+}
+@media (min-width: 900px) {
+  .ps-signup {
+    grid-template-columns: 1fr 440px;
+    gap: 80px;
+    align-items: start;
+    padding-top: 88px;
+  }
+}
+.ps-signup h1 {
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  max-width: 16ch;
+}
+.ps-signup .ps-checks {
+  margin-top: 32px;
+}
+.ps-card {
+  padding: 28px;
+  border: 1px solid var(--ps-line);
+  border-radius: 14px;
+  background: var(--ps-surface);
+}
+.ps-card h2 {
+  font-size: 1.25rem;
+}
+.ps-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+.ps-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.ps-field small {
+  font-weight: 400;
+  color: var(--ps-muted);
+}
+.ps .ps-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--ps-line);
+  border-radius: 10px;
+  background: var(--ps-bg);
+  color: var(--ps-text);
+  font-size: 1rem;
+}
+.ps .ps-input::placeholder {
+  color: #77738a;
+}
+.ps .ps-input:focus {
+  border-color: var(--ps-accent);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+}
+.ps .ps-input:focus-visible {
+  outline: 2px solid var(--ps-accent-soft);
+  outline-offset: 2px;
+}
+.ps-today {
+  padding: 14px 16px;
+  border: 1px solid var(--ps-line);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  color: var(--ps-muted);
+}
+.ps-today strong {
+  color: var(--ps-text);
+}
+.ps-error {
+  padding: 12px 14px;
+  border: 1px solid #7f2a3a;
+  border-radius: 10px;
+  background: rgba(244, 63, 94, 0.1);
+  color: #fda4b4;
+  font-size: 0.9375rem;
+}
+.ps button.ps-btn {
+  cursor: pointer;
+}
+.ps button.ps-btn:hover {
+  transform: none;
+}
+.ps button.ps-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ps-form-foot {
+  text-align: center;
+  color: var(--ps-muted);
+  font-size: 0.875rem;
+}
+.ps-form-foot a {
+  color: var(--ps-accent-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ps input:focus-visible{outline:2px solid var(--ps-accent-soft);outline-offset:3px}.ps .ps-btn:disabled{opacity:.65;cursor:wait}

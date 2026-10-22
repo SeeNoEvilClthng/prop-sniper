@@ -17,3 +17,5 @@ export const SITE = {
 } as const;
 
 export const CTA_LABEL = "Start free trial";
+
+export const STARTER_FEATURES = ["Map and city finder", "Lead pipeline and scoring", "Deal estimates, notes, and tasks"] as const;

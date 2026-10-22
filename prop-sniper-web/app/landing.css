@@ -724,3 +724,6 @@
 .ps input:focus-visible{outline:2px solid var(--ps-accent-soft);outline-offset:3px}.ps .ps-btn:disabled{opacity:.65;cursor:wait}
 
 .ps .ps-faq summary::after{display:none}.ps .ps-faq summary svg{width:20px;height:20px;flex-shrink:0;color:var(--ps-accent-soft)}.ps .ps-faq details[open] summary svg{transform:rotate(45deg)}
+
+.ps .ps-shot-placeholder { width:100%;max-width:100%;min-height:0;overflow-wrap:anywhere; }
+.ps .ps-shot-placeholder p { max-width:100%; }

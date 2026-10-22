@@ -14,7 +14,9 @@ Dashboard routes, shared global styles, billing endpoints, and signup remain unc
 ## Validation in this change
 
 - Full repository ESLint passed; focused marketing ESLint passed.
-- Production build blocked by pre-existing imports of missing components/mvp/glass-card and lib/mvp/env in login and reset-password. No placeholder implementations were added.
+- Restored the two modules imported by existing login/reset-password: the shared presentation card and public Supabase configuration check. Authentication behavior and dashboard routes are unchanged.
+- TypeScript and full-repository ESLint pass. Configuration-helper checks cover missing, partial, whitespace-only, and complete public configuration.
+- Turbopack compiles successfully and passes TypeScript, then Windows denies mkdir on generated billing/success segment output. Webpack also hits EPERM creating generated API chunk directories. A clean build directory did not resolve the environment failure.
 - Public marketing preview rendered after guarding missing Supabase credentials before client construction. Configured session handling is unchanged.
-- Production Lighthouse scores are unmeasured because the full build is blocked and the real hero screenshot is missing.
+- Production Lighthouse scores are unmeasured because generated-output writes fail in this Windows environment and the real hero screenshot is missing.
 - 1200x630 social sharing PNG added; hero and logo use Next Image with dimensions and responsive sizes. Hero is preloaded (not lazy-loaded) because it is the primary visual; noncritical images use default lazy loading.

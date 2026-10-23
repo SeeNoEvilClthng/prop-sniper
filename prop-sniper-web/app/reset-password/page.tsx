@@ -38,13 +38,19 @@ export default function ResetPasswordPage() {
       }
     })
 
-    client.auth.getSession().then(({ data }) => {
+    client.auth.getSession().then(({ data, error }) => {
       if (!mounted) return
+      if (error) {
+        setMessage("Unable to verify your reset link. Request a new link and try again.")
+        return
+      }
       if (data.session) {
         setReady(true)
       } else {
         setMessage("Open this page from the password reset email to create a new password.")
       }
+    }).catch(() => {
+      if (mounted) setMessage("Unable to reach the sign-in service. Please try again.")
     })
 
     return () => {
@@ -58,7 +64,12 @@ export default function ResetPasswordPage() {
     setMessage("")
 
     if (!supabaseReady) {
-      setMessage("Demo mode is active. Add Supabase keys to enable password reset.")
+      setMessage("Password reset is currently unavailable. Please try again later.")
+      return
+    }
+
+    if (!ready || submitting) {
+      setMessage("Open a valid reset link before choosing a password.")
       return
     }
 
@@ -73,25 +84,25 @@ export default function ResetPasswordPage() {
     }
 
     setSubmitting(true)
-
-    const client = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-
-    const { error } = await client.auth.updateUser({ password })
-
-    if (error) {
-      setMessage(error.message)
-      setSubmitting(false)
-      return
-    }
-
-    setMessage("Password updated. Redirecting to login...")
-    setTimeout(() => {
+    try {
+      const client = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { error } = await client.auth.updateUser({ password })
+      if (error) {
+        setMessage("Unable to update the password. The reset link may have expired; request a new one.")
+        return
+      }
+      setReady(false)
+      setMessage("Password updated. Returning to login...")
       router.replace("/login")
       router.refresh()
-    }, 800)
+    } catch {
+      setMessage("Unable to reach the password reset service. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -106,6 +117,9 @@ export default function ResetPasswordPage() {
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            aria-label="New password"
+            autoComplete="new-password"
+            required
             placeholder="New password"
             type="password"
             disabled={!ready}
@@ -114,6 +128,9 @@ export default function ResetPasswordPage() {
           <input
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
+            aria-label="Confirm new password"
+            autoComplete="new-password"
+            required
             placeholder="Confirm new password"
             type="password"
             disabled={!ready}
@@ -127,10 +144,10 @@ export default function ResetPasswordPage() {
           </button>
         </form>
         {supabaseReady ? (
-          message ? <p className="mt-4 text-sm text-zinc-400">{message}</p> : null
+          message ? <p role="status" className="mt-4 text-sm text-zinc-400">{message}</p> : null
         ) : (
           <p className="mt-4 text-sm text-zinc-400">
-            Demo mode is active. Add Supabase keys to enable password reset.
+            Password reset is currently unavailable. Please try again later.
           </p>
         )}
         <p className="mt-6 text-sm text-zinc-500">
